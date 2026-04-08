@@ -1,0 +1,66 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.vs/
+.vs/
+
+## NuGet
+*.nupkg
+**/packages/
+
+## IDE
+.idea/
+*.swp
+*.sln.docstates
+
+## Build
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+
+## Stewie runtime
+workspaces/
+
+## Secrets — NEVER commit these
+keys/
+*.pem
+*.key
+.env
+*credential*
+*secret*.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Node
+node_modules/
+dist/
+build/
+
+# Logs
+*.log
+
+# Temp
+tmp/
+.tmp/
+*.pdf

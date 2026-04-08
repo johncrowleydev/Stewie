@@ -1,0 +1,14 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: stewie-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Stewie_Dev_P@ss1"
+    ports:
+      - "1433:1433"
+    volumes:
+      - stewie-sqldata:/var/opt/mssql
+
+volumes:
+  stewie-sqldata:

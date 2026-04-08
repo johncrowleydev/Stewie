@@ -1,0 +1,7 @@
+@Stewie_Api_HostAddress = http://localhost:5275
+
+### Trigger a test run
+POST {{Stewie_Api_HostAddress}}/runs/test
+Accept: application/json
+
+###
