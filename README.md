@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/stewie-logo.png" alt="Stewie" width="160" />
+</p>
+
 # Stewie
 
 Governance-first, multi-agent software development orchestration system.

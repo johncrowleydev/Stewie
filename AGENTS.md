@@ -28,7 +28,22 @@ The Human brings vision and final decisions. The Architect Agent translates visi
 
 ---
 
-## 2. Repository Structure
+## 2. Branding
+
+| Element | Value |
+|:--------|:------|
+| **Logo** | `docs/assets/stewie-logo.png` — a green turtle-armadillo hybrid character with an antenna |
+| **Primary color** | `#6fac50` (green) |
+| **Secondary color** | `#767573` (warm gray) |
+| **Font for "stewie" wordmark** | Bold, lowercase, secondary color |
+
+Use the primary green for actions, links, and interactive elements. Use the secondary gray for body text, borders, and muted UI. The logo should appear on white or light backgrounds.
+
+Frontend assets: `src/Stewie.Web/ClientApp/public/stewie-logo.png`
+
+---
+
+## 3. Repository Structure
 
 All project documentation lives in `CODEX/`. Do **not** create docs outside this structure.
 
@@ -57,7 +72,7 @@ bin/                   ← Utility scripts
 
 ---
 
-## 3. How to Find Documents
+## 4. How to Find Documents
 
 1. **Parse** `CODEX/00_INDEX/MANIFEST.yaml`
 2. **Filter** by `tags`, `type`, `status`, or `agents` field
@@ -67,7 +82,7 @@ Do not scan the entire CODEX. Use MANIFEST.yaml as your index — it's kept in s
 
 ---
 
-## 4. Governance — The Laws
+## 5. Governance — The Laws
 
 All governance documents live in `CODEX/10_GOVERNANCE/`. **Read these first** — they are mandatory, not advisory.
 
@@ -93,7 +108,7 @@ All governance documents live in `CODEX/10_GOVERNANCE/`. **Read these first** �
 
 ---
 
-## 5. Agent Roles
+## 6. Agent Roles
 
 Detailed role definitions live in `CODEX/80_AGENTS/`. Copy the relevant template into a new agent session's context and fill in the placeholders.
 
@@ -113,7 +128,7 @@ Agent definitions are **role templates**, not project-specific profiles. They ar
 
 ---
 
-## 6. Document Types and Prefixes
+## 7. Document Types and Prefixes
 
 | Prefix | Type | Lives In | Created By |
 |:-------|:-----|:---------|:-----------|
@@ -131,7 +146,7 @@ Agent definitions are **role templates**, not project-specific profiles. They ar
 
 ---
 
-## 7. Workflows and Commands
+## 8. Workflows and Commands
 
 This template includes workflows for automating common tasks via agent slash commands.
 
@@ -154,13 +169,13 @@ This template includes workflows for automating common tasks via agent slash com
 
 ---
 
-## 8. Configuration
+## 9. Configuration
 
 - **Agent workflows**: `.agent/workflows/`
 
 ---
 
-## 9. Commit Conventions
+## 10. Commit Conventions
 
 Use conventional commits with CODEX references:
 
@@ -172,7 +187,7 @@ docs(GOV-NNN): description of doc change
 
 ---
 
-## 10. New Session Reading Order
+## 11. New Session Reading Order
 
 When starting a fresh session on any project built from this template:
 
