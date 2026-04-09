@@ -9,7 +9,7 @@ tags: [standards, specification, project-management, governance]
 related: [BLU-001, CON-002, GOV-004]
 created: 2026-04-09
 updated: 2026-04-09
-version: 1.3.0
+version: 1.4.0
 ---
 
 > **BLUF:** This contract defines the binding interface between Stewie (orchestrator) and worker containers. All communication flows through two JSON files: `task.json` (input) and `result.json` (output). Workers MUST conform to this contract. No deviation without Human approval.
@@ -48,7 +48,7 @@ version: 1.3.0
 
 | Field | Value |
 |:------|:------|
-| Contract version | `1.2.0` |
+| Contract version | `1.4.0` |
 | Stability | `EXPERIMENTAL` |
 | Breaking change policy | MAJOR version bump required for any field removal or type change |
 | Backward compatibility | Workers must handle unknown fields gracefully (ignore, don't fail) |
@@ -96,6 +96,12 @@ The orchestrator writes this file before launching the container.
 | `repoUrl` | `string` | ❌ | Git repository URL to clone into workspace | Valid HTTPS or SSH URL |
 | `branch` | `string` | ❌ | Branch name to create after clone | Valid git branch name |
 | `script` | `string[]` | ❌ | Bash commands to execute sequentially in `/workspace/repo/` | Each entry is a shell command |
+| `parentTaskId` | `string (UUID)` | ❌ | ID of the developer task this tester is validating | Present when role=tester |
+| `attemptNumber` | `integer` | ❌ | Retry attempt counter (1-based) | Default: 1. Incremented on governance retry |
+| `governanceViolations` | `object[]` | ❌ | Violations from previous governance check (for retry feedback) | Present on retry tasks (attempt > 1) |
+| `governanceViolations[].ruleId` | `string` | ✅ | Rule identifier (e.g., "GOV-003-001") | |
+| `governanceViolations[].ruleName` | `string` | ✅ | Human-readable rule name | |
+| `governanceViolations[].details` | `string` | ✅ | Specific violation details | |
 
 ### 4.2 Example
 
@@ -248,7 +254,71 @@ public class ResultPacket
 
 ---
 
-## 6. Error Behavior
+## 6. governance-report.json — Governance Output Schema
+
+The governance worker (role=tester) writes this file to `/workspace/output/governance-report.json` after running all governance checks.
+
+### 6.1 Fields
+
+| Field | Type | Required | Description |
+|:------|:-----|:--------:|:------------|
+| `taskId` | `string (UUID)` | ✅ | Must match the tester task's `taskId` |
+| `status` | `string` | ✅ | Overall verdict: `pass` or `fail` |
+| `summary` | `string` | ✅ | Human-readable summary (e.g., "14/16 checks passed") |
+| `totalChecks` | `integer` | ✅ | Total number of checks executed |
+| `passedChecks` | `integer` | ✅ | Number of checks that passed |
+| `failedChecks` | `integer` | ✅ | Number of checks that failed |
+| `checks` | `object[]` | ✅ | Array of individual check results |
+| `checks[].ruleId` | `string` | ✅ | Rule identifier (e.g., "GOV-002-001") |
+| `checks[].ruleName` | `string` | ✅ | Human-readable rule name (e.g., "Build Succeeds") |
+| `checks[].category` | `string` | ✅ | GOV document reference (e.g., "GOV-002") |
+| `checks[].passed` | `boolean` | ✅ | Whether this check passed |
+| `checks[].details` | `string` | ❌ | Error output, line numbers, or details on failure |
+| `checks[].severity` | `string` | ✅ | `error` (blocks acceptance) or `warning` (reported only) |
+
+### 6.2 Example (Pass)
+
+```json
+{
+  "taskId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+  "status": "pass",
+  "summary": "16/16 checks passed",
+  "totalChecks": 16,
+  "passedChecks": 16,
+  "failedChecks": 0,
+  "checks": [
+    { "ruleId": "GOV-002-001", "ruleName": "Build Succeeds", "category": "GOV-002", "passed": true, "details": null, "severity": "error" },
+    { "ruleId": "GOV-002-002", "ruleName": "Tests Pass", "category": "GOV-002", "passed": true, "details": null, "severity": "error" }
+  ]
+}
+```
+
+### 6.3 Example (Fail)
+
+```json
+{
+  "taskId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+  "status": "fail",
+  "summary": "14/16 checks passed, 2 failed",
+  "totalChecks": 16,
+  "passedChecks": 14,
+  "failedChecks": 2,
+  "checks": [
+    { "ruleId": "GOV-003-001", "ruleName": "No TypeScript any Types", "category": "GOV-003", "passed": false, "details": "src/pages/DashboardPage.tsx:42: const data: any = ...", "severity": "error" },
+    { "ruleId": "SEC-001-001", "ruleName": "No Secrets in Diff", "category": "SEC-001", "passed": false, "details": "src/config.ts:10: const API_KEY = 'sk-live-...'", "severity": "error" }
+  ]
+}
+```
+
+### 6.4 Verdict Logic
+
+- **`pass`**: Zero checks with `severity: "error"` failed. Warning failures are allowed.
+- **`fail`**: One or more checks with `severity: "error"` failed.
+- The `warningsBlockAcceptance` setting (user-configurable, default `false`) can override this to also fail on warnings.
+
+---
+
+## 7. Error Behavior
 
 | Scenario | Worker Behavior | Orchestrator Behavior |
 |:---------|:---------------|:---------------------|

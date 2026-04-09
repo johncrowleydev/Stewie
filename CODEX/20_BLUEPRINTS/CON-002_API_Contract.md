@@ -9,7 +9,7 @@ tags: [standards, specification, project-management, governance]
 related: [BLU-001, CON-001, GOV-004]
 created: 2026-04-09
 updated: 2026-04-09
-version: 1.5.0
+version: 1.6.0
 ---
 
 > **BLUF:** This contract defines the HTTP API surface of Stewie.Api. All frontend and external consumers MUST conform to these routes, request/response shapes, and error formats. No deviation without Human approval.
@@ -46,7 +46,7 @@ version: 1.5.0
 
 | Field | Value |
 |:------|:------|
-| Contract version | `1.4.0` |
+| Contract version | `1.6.0` |
 | Stability | `EXPERIMENTAL` |
 | Base URL | `http://localhost:5275` |
 | Content-Type | `application/json` |
@@ -244,9 +244,45 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
 
 | Param | Type | Required | Description |
 |:------|:-----|:--------:|:------------|
-| `entityType` | `string` | No | Filter by entity type (e.g. "Run", "Task") |
+| `entityType` | `string` | No | Filter by entity type (e.g. "Job", "Task") |
 | `entityId` | `uuid` | No | Filter by entity ID (requires `entityType`) |
 | `limit` | `int` | No | Max results (default 100, max 500) |
+
+### 4.6 Governance
+
+| Method | Path | Description |
+|:-------|:-----|:------------|
+| `GET` | `/api/jobs/{jobId}/governance` | Get latest governance report for a job |
+| `GET` | `/api/tasks/{taskId}/governance` | Get governance report for a specific tester task |
+
+**Response (200 OK):**
+
+```json
+{
+  "id": "uuid",
+  "taskId": "uuid",
+  "passed": true,
+  "totalChecks": 16,
+  "passedChecks": 16,
+  "failedChecks": 0,
+  "checks": [
+    {
+      "ruleId": "GOV-002-001",
+      "ruleName": "Build Succeeds",
+      "category": "GOV-002",
+      "passed": true,
+      "details": null,
+      "severity": "error"
+    }
+  ],
+  "createdAt": "ISO 8601 datetime"
+}
+```
+
+| Status | Condition |
+|:-------|:---------|
+| 200 | Report exists |
+| 404 | No governance report found for this job/task |
 
 ---
 
