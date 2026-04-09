@@ -134,12 +134,43 @@ You are **technology-stack agnostic** — you work in whatever language the proj
 
 ---
 
-## 8. Your CODEX Reading Order (New Session)
+## 8. Mandatory Workflows — CRITICAL
+
+> **These workflows are NON-NEGOTIABLE. Violating them causes zombie processes and broken commits. Read them BEFORE running any command.**
+
+### 8.1 Safe Command Execution (`/safe_commands`)
+
+**You MUST read `.agent/workflows/safe_commands.md` before running ANY terminal command.** Key rules:
+
+- ❌ **NEVER** walk the full repo tree (`find .`, `ruff check .`, `dotnet build` on the full solution for a single-file change)
+- ✅ Scope commands to specific directories or changed files
+- ✅ Use `GIT_TERMINAL_PROMPT=0` for all git network commands (`push`, `pull`, `fetch`)
+- ✅ Never poll `command_status` more than twice — verify outcomes directly
+- ✅ Use `fd`/`rg` instead of `find`/`grep`
+- ✅ Kill hung commands before retrying
+
+### 8.2 Git Commit Workflow (`/git_commit`)
+
+**You MUST follow `.agent/workflows/git_commit.md` for EVERY commit.** Key rules:
+
+- Run hygiene checks (junk files, secrets scan) before staging
+- Use structured commit messages with `Agent:`, `Why:`, `What:`, `Refs:` fields
+- One branch per sprint (`feature/SPR-NNN-description`), granular commits per task
+- Never commit runtime artifacts, test output, or secrets
+- Never merge to main without Architect approval
+
+**Failure to follow these workflows is treated as a governance violation and will result in a DEF- report.**
+
+---
+
+## 9. Your CODEX Reading Order (New Session)
 
 1. `00_INDEX/MANIFEST.yaml` — build your document map
 2. `10_GOVERNANCE/GOV-007` — PM system overview
 3. `80_AGENTS/AGT-002` — this document (your role)
-4. Your assigned `SPR-NNN.md` — your current tasks
-5. Referenced `BLU-NNN.md` docs — design specs for your tasks
-6. Referenced `CON-NNN.md` docs — contracts you must satisfy
-7. `GOV-002`, `GOV-003`, `GOV-004`, `GOV-006` — universal coding standards
+4. `.agent/workflows/safe_commands.md` — **READ BEFORE ANY COMMANDS**
+5. `.agent/workflows/git_commit.md` — **READ BEFORE ANY COMMITS**
+6. Your assigned `SPR-NNN.md` — your current tasks
+7. Referenced `BLU-NNN.md` docs — design specs for your tasks
+8. Referenced `CON-NNN.md` docs — contracts you must satisfy
+9. `GOV-002`, `GOV-003`, `GOV-004`, `GOV-006` — universal coding standards

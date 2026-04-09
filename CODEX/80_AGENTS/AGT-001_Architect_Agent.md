@@ -118,13 +118,40 @@ This project uses CODEX as its Project Management Operating System. Read `10_GOV
 
 ---
 
-## 7. Your CODEX Reading Order (New Session)
+## 7. Mandatory Workflows — CRITICAL
+
+> **These workflows are NON-NEGOTIABLE. ALL agents must follow them. Violating them causes zombie processes and broken commits.**
+
+### 7.1 Safe Command Execution (`/safe_commands`)
+
+**Read `.agent/workflows/safe_commands.md` before running ANY terminal command.** Key rules:
+
+- ❌ NEVER walk the full repo tree
+- ✅ Scope commands to specific directories or changed files
+- ✅ Use `GIT_TERMINAL_PROMPT=0` for all git network commands
+- ✅ Never poll `command_status` more than twice
+- ✅ Kill hung commands before retrying
+
+### 7.2 Git Commit Workflow (`/git_commit`)
+
+**Follow `.agent/workflows/git_commit.md` for EVERY commit.** Key rules:
+
+- Run hygiene checks before staging
+- Structured commit messages with `Agent:`, `Why:`, `What:`, `Refs:` fields
+- Secret scanning is mandatory and blocking
+- Never merge to main without Human approval (for Architect) or Architect approval (for Developers)
+
+---
+
+## 8. Your CODEX Reading Order (New Session)
 
 1. `00_INDEX/MANIFEST.yaml` — build your document map
 2. `10_GOVERNANCE/GOV-007` — PM system overview
 3. `10_GOVERNANCE/GOV-005` — development lifecycle
 4. `80_AGENTS/AGT-001` — this document (your role)
-5. `05_PROJECT/PRJ-001_Roadmap.md` — project vision
-6. `05_PROJECT/BCK-001_Backlog.md` — current backlog
-7. All active `SPR-NNN.md` documents — current sprint state
-8. Referenced `CON-` and `BLU-` docs — contracts you audit against
+5. `.agent/workflows/safe_commands.md` — **READ BEFORE ANY COMMANDS**
+6. `.agent/workflows/git_commit.md` — **READ BEFORE ANY COMMITS**
+7. `05_PROJECT/PRJ-001_Roadmap.md` — project vision
+8. `05_PROJECT/BCK-001_Backlog.md` — current backlog
+9. All active `SPR-NNN.md` documents — current sprint state
+10. Referenced `CON-` and `BLU-` docs — contracts you audit against

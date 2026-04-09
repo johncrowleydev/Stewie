@@ -1,11 +1,11 @@
 ---
-id: ROAD-001
+id: RES-001
 title: "Lessons Learned Update — Template Improvements from LexFlow Build"
 type: explanation
 status: APPROVED
 owner: architect
 agents: [all]
-tags: [project-management, governance, agentic-development, lessons-learned]
+tags: [project-management, governance, agentic-development, lessons-learned, research]
 related: [GOV-007, GOV-008, BLU-020]
 created: 2026-03-24
 updated: 2026-03-24
@@ -14,7 +14,7 @@ version: 1.0.0
 
 > **BLUF:** 12 improvements to the agentic_architect template, discovered during the LexFlow multi-agent build. Adds GOV-008 (infrastructure governance), enriches sprint/contract/agent templates, adds architect backlog pattern, deploys 3 new workflows, and hardens compliance tooling.
 
-# ROAD-001: Lessons Learned Update
+# RES-001: Lessons Learned Update
 
 > Source: LexFlow project build (March 2026) — a multi-repo, multi-VM, trust accounting application built using this template with 2 developer agents and 1 architect agent.
 

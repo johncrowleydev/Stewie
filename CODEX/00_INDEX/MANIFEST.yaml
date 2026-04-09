@@ -17,12 +17,11 @@
 #   yq '.documents[] | select(.agents[] == "coder")' MANIFEST.yaml
 #
 # MAINTENANCE: Update this file whenever a doc is created, moved, or archived.
-#   Run: CODEX/_scripts/manifest-gen.sh (when available) to auto-regenerate.
 # ============================================================================
 
 schema_version: "1.0.0"
-project: "agentic-architect-template"
-generated: "2026-03-18"
+project: "stewie"
+generated: "2026-04-09"
 
 # ── Area Definitions ──────────────────────────────────────────────────────────
 areas:
@@ -42,7 +41,7 @@ areas:
     name: BLUEPRINTS
     slug: blueprints
     description: "Component specifications, system designs, API contracts"
-    category_codes: [BLU, API]
+    category_codes: [BLU, CON]
 
   - number: 30
     name: RUNBOOKS
@@ -102,7 +101,40 @@ documents:
       Humans browse here. Agents read MANIFEST.yaml.
 
   # ── 05_PROJECT ─────────────────────────────────────────────────────────────
-  # (empty — add PRJ-, SPR-, BCK- docs as your project starts)
+  - id: PRJ-001
+    path: 05_PROJECT/PRJ-001_Roadmap.md
+    title: "Stewie — Project Roadmap"
+    type: explanation
+    status: APPROVED
+    tags: [project-management, roadmap, governance, agentic-development]
+    agents: [all]
+    summary: >
+      Project roadmap derived from the Stewie constitution. Defines 6 delivery
+      phases from Foundation (complete) through Real-Time Interaction. Phase 1
+      (Core Orchestration MVP) is the current target.
+
+  - id: BCK-001
+    path: 05_PROJECT/BCK-001_Backlog.md
+    title: "Development Backlog"
+    type: planning
+    status: ACTIVE
+    tags: [project-management, backlog, agentic-development]
+    agents: [all]
+    summary: >
+      Prioritized development backlog for Stewie Phase 1 MVP. Covers entity
+      creation (Project, Event, Workspace), API endpoints, React dashboard,
+      and test infrastructure.
+
+  - id: BCK-002
+    path: 05_PROJECT/BCK-002_Architect_Backlog.md
+    title: "Architect Agent Backlog"
+    type: planning
+    status: ACTIVE
+    tags: [project-management, backlog, architect, audit, deployment]
+    agents: [architect]
+    summary: >
+      Architect's own work stream: CODEX bootstrap, sprint planning, audit
+      preparation, contract compliance, and agent onboarding.
 
   # ── 10_GOVERNANCE ───────────────────────────────────────────────────────────
   - id: GOV-001
@@ -197,19 +229,66 @@ documents:
       taxonomy (PRJ/SPR/BLU/CON/DEF/AGT), sprint lifecycle, discrepancy
       resolution protocol, and agent reading order.
 
+  - id: GOV-008
+    path: 10_GOVERNANCE/GOV-008_InfrastructureAndOperations.md
+    title: "Infrastructure & Operations Standard"
+    type: reference
+    status: APPROVED
+    tags: [governance, standards, infrastructure, deployment, operations]
+    agents: [all]
+    summary: >
+      Stewie infrastructure decisions: Docker Compose (local-first), SQL Server
+      2022, .NET 10 API + React frontend as separate projects, local disk
+      workspaces, Docker worker containers. Overrides BLU- assumptions.
+
   # ── 20_BLUEPRINTS ──────────────────────────────────────────────────────────
+  - id: BLU-001
+    path: 20_BLUEPRINTS/BLU-001_Stewie_System_Blueprint.md
+    title: "Stewie System Blueprint"
+    type: reference
+    status: DRAFT
+    tags: [architecture, standards, specification, governance]
+    agents: [all]
+    summary: >
+      4-layer .NET architecture (Domain → Application → Infrastructure → API),
+      entity model (Run, WorkTask, Artifact + planned Project, Workspace, Event),
+      execution loop, key services, persistence strategy, and extension points.
+
   - id: BLU-020
     path: 20_BLUEPRINTS/BLU-020_CODEX_System_Blueprint.md
     title: "CODEX System Blueprint"
     type: explanation
     status: DRAFT
-    tags: [governance, documentation, standards, architecture, workflow]
+    tags: [governance, documentation, codex, standards, architecture, workflow]
     agents: [all]
     summary: >
       Explains how the CODEX documentation engine works — dual-audience design,
       area architecture, three discovery mechanisms (MANIFEST, TAG_TAXONOMY,
       README), governance stack, and compliance workflows.
-      Template orientation doc.
+
+  - id: CON-001
+    path: 20_BLUEPRINTS/CON-001_Runtime_Contract.md
+    title: "Runtime Contract — Task & Result Packets"
+    type: reference
+    status: DRAFT
+    tags: [standards, specification, project-management, governance]
+    agents: [all]
+    summary: >
+      Binding interface between Stewie orchestrator and worker containers.
+      Defines task.json input schema, result.json output schema, container
+      filesystem layout, error behavior, and C# type definitions.
+
+  - id: CON-002
+    path: 20_BLUEPRINTS/CON-002_API_Contract.md
+    title: "API Contract — HTTP Endpoints"
+    type: reference
+    status: DRAFT
+    tags: [standards, specification, project-management, governance]
+    agents: [all]
+    summary: >
+      HTTP API surface for Stewie.Api. Covers current POST /runs/test endpoint
+      and planned Phase 1 CRUD endpoints for Projects, Runs, Tasks, and Health.
+      Standardized error response format per GOV-004.
 
   # ── 30_RUNBOOKS ────────────────────────────────────────────────────────────
   - id: RUN-001
@@ -234,7 +313,17 @@ documents:
   # (empty — add project-specific evolution docs here)
 
   # ── 70_RESEARCH ────────────────────────────────────────────────────────────
-  # (empty — add project-specific research docs here)
+  - id: RES-001
+    path: 70_RESEARCH/RES-001_Lessons_Learned_LexFlow.md
+    title: "Lessons Learned — Template Improvements from LexFlow Build"
+    type: explanation
+    status: APPROVED
+    tags: [project-management, governance, agentic-development, lessons-learned, research]
+    agents: [all]
+    summary: >
+      12 improvements to the agentic_architect template from the LexFlow build.
+      Covers GOV-008, sprint template overhaul, agent boot docs, architect
+      backlog pattern, and compliance tooling.
 
   # ── 80_AGENTS ──────────────────────────────────────────────────────────────
   - id: AGT-001
@@ -247,7 +336,8 @@ documents:
     summary: >
       Defines the Architect Agent role: owns CODEX, manages Developer and Tester
       agents, audits code against contracts, resolves discrepancies with Human.
-      Does not write feature code. Includes reading order and primary workflows.
+      Does not write feature code. Includes mandatory workflow references and
+      reading order.
 
   - id: AGT-002
     path: 80_AGENTS/AGT-002_Developer_Agent.md
@@ -259,7 +349,7 @@ documents:
     summary: >
       Defines the Developer Agent role: executes sprint tasks against blueprints
       and contracts, proposes contract changes via EVO- docs, reports blockers
-      upstream. Technology-stack agnostic.
+      upstream. Includes mandatory workflow references (safe_commands, git_commit).
 
   - id: AGT-003
     path: 80_AGENTS/AGT-003_Tester_Agent.md

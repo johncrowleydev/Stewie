@@ -2,17 +2,17 @@
 id: GOV-008
 title: "Infrastructure & Operations Standard"
 type: reference
-status: DRAFT
+status: APPROVED
 owner: architect
 agents: [all]
 tags: [governance, standards, infrastructure, deployment, operations]
-related: [GOV-007, BLU-020]
+related: [GOV-007, BLU-001, PRJ-001]
 created: 2026-03-24
-updated: 2026-03-24
-version: 1.0.0
+updated: 2026-04-09
+version: 2.0.0
 ---
 
-> **BLUF:** This document captures all infrastructure decisions that override or adapt the architecture blueprint. It is the bridge between what the blueprint ASSUMES and what the deployment ACTUALLY uses. The Architect MUST complete this document with the Human BEFORE creating the backlog or sprint docs.
+> **BLUF:** Stewie runs local-first as a Docker Compose stack: .NET 10 API (Stewie.Api), React frontend (Stewie.Web), SQL Server 2022, and ephemeral Docker worker containers. Monorepo structure. No cloud services in MVP. All infrastructure decisions are final and override any BLU- assumptions.
 
 # Infrastructure & Operations Standard
 
@@ -20,75 +20,83 @@ version: 1.0.0
 
 ---
 
-## 1. When to Create This Document
-
-This document is created during the **infrastructure governance conversation** — a required discussion between the Human and the Architect Agent before any sprint planning begins. The conversation resolves:
-
-- Deployment model
-- Repository structure
-- Database ownership
-- File storage
-- Agent communication protocol
-- Shared types strategy
-
-**Rule:** Architecture blueprint (BLU-) + Infrastructure conversation → GOV-008 → THEN create the backlog. Never create the backlog before resolving infrastructure.
-
----
-
-## 2. Deployment Model
+## 1. Deployment Model
 
 | Decision | Value |
 |:---------|:------|
-| **Deployment target** | `[Cloud Run / Kubernetes / VM / Serverless / Docker Compose]` |
-| **Cloud provider** | `[GCP / AWS / Azure / Self-hosted / None]` |
-| **Environment count** | `[dev / staging / prod]` |
-| **Production hostname** | `[hostname or TBD]` |
+| **Deployment target** | Docker Compose (local-first) |
+| **Cloud provider** | None (local development only for MVP) |
+| **Environment count** | dev only (staging/prod deferred) |
+| **Production hostname** | N/A (local-first MVP) |
 
 ### Adaptation Table
 
-> If the blueprint assumes a different deployment model, document the adaptation here.
-
 | Blueprint Assumption | Actual (GOV-008) |
 |:--------------------|:-----------------|
-| `[e.g., Cloud Run]` | `[e.g., PM2 on GCP VM]` |
-| `[e.g., Cloud SQL]` | `[e.g., Self-managed PostgreSQL]` |
-| `[e.g., GCS signed URLs]` | `[e.g., Local disk storage]` |
+| Cloud hosting | Local Docker Compose |
+| Managed database | SQL Server 2022 in Docker container |
+| External file storage | Local disk (`workspaces/` directory) |
+| Message queue | Deferred (RabbitMQ planned for future) |
 
 ---
 
-## 3. Repository Structure
+## 2. Repository Structure
 
 | Decision | Value |
 |:---------|:------|
-| **Structure** | `[Monorepo / Multi-repo with CODEX submodule]` |
-| **CODEX repo** | `[repo URL]` |
+| **Structure** | Monorepo |
+| **CODEX location** | `CODEX/` at repository root |
 
-### Repository Map (Multi-Repo)
+### Repository Layout
 
-| Repository | VM / Machine | Agent | Port | Database |
-|:-----------|:-------------|:------|:-----|:---------|
-| `[repo-name]` | `[vm-name]` | `[Frontend/Backend]` | `[port]` | `[db-name]` |
-
-### Submodule Configuration
-
-```bash
-# Each code repo includes CODEX as a submodule:
-git submodule add [CODEX_REPO_URL] lexflow-codex
+```
+architect/                  # Repository root
+├── CODEX/                  # Governance, blueprints, contracts, project mgmt
+├── src/
+│   ├── Stewie.Domain/      # Entities, enums, contracts (DTOs)
+│   ├── Stewie.Application/ # Service interfaces, orchestration use cases
+│   ├── Stewie.Infrastructure/ # NHibernate, migrations, Docker, filesystem
+│   ├── Stewie.Api/         # ASP.NET Core API host (port 5275)
+│   └── Stewie.Web/         # React frontend (Vite, port 5173)
+├── workers/
+│   └── dummy-worker/       # Dummy worker runtime (container)
+├── workspaces/             # Runtime-created per-task directories (ephemeral)
+└── docker-compose.yml      # SQL Server 2022
 ```
 
 ---
 
-## 4. Database Ownership
+## 3. Service Architecture
 
-| Database | Owner Service | Schema Owner Agent | Notes |
-|:---------|:-------------|:-------------------|:------|
-| `[db_name]` | `[service_name]` | `[Frontend/Backend]` | `[e.g., "No cross-schema FKs"]` |
+Two separate host processes:
 
-### Cross-Service Data Access
+| Service | Project | Port | Purpose |
+|:--------|:--------|:-----|:--------|
+| **API** | `Stewie.Api` | 5275 | Orchestration API, business logic, DB access |
+| **Frontend** | `Stewie.Web` | 5173 | React SPA (Vite dev server), proxies `/api` to API |
 
-> How do services that don't own a database access data from it?
+These are intentionally separate projects. The frontend calls the API over HTTP.
 
-`[HTTP callback / Shared read replica / Message queue / N/A]`
+---
+
+## 4. Database
+
+| Decision | Value |
+|:---------|:------|
+| **Engine** | SQL Server 2022 (Docker: `mcr.microsoft.com/mssql/server:2022-latest`) |
+| **ORM** | NHibernate |
+| **Migrations** | FluentMigrator (runs on API startup) |
+| **Port** | 1433 |
+| **Database name** | `Stewie` (auto-created on first run) |
+| **Schema owner** | `Stewie.Api` (single service owns all tables) |
+
+### Tables (Milestone 0)
+
+| Table | Entity | Owner |
+|:------|:-------|:------|
+| `Runs` | `Run` | Stewie.Api |
+| `Tasks` | `WorkTask` | Stewie.Api |
+| `Artifacts` | `Artifact` | Stewie.Api |
 
 ---
 
@@ -96,26 +104,23 @@ git submodule add [CODEX_REPO_URL] lexflow-codex
 
 | Decision | Value |
 |:---------|:------|
-| **Storage model** | `[Local disk / S3-compatible / Cloud Storage / N/A]` |
-| **Storage path** | `[e.g., /var/lexflow/documents/]` |
-| **Max file size** | `[e.g., 50MB]` |
-| **Allowed types** | `[e.g., pdf, doc, docx, xls, jpg, png]` |
+| **Storage model** | Local disk |
+| **Storage path** | `./workspaces/{taskId}/` |
+| **Structure** | `input/` (task.json), `output/` (result.json), `repo/` (cloned source) |
+| **Lifecycle** | Ephemeral — created per task, not auto-cleaned |
 
 ---
 
-## 6. Shared Types Strategy
+## 6. Worker Container Runtime
 
-> How do multiple services share TypeScript (or other language) types?
-
-| Strategy | Description |
-|:---------|:------------|
-| **(a) npm package** | Publish shared types as an npm package. Both repos install it. |
-| **(b) Contract-first** | Types defined only in `CON-` docs. Each agent generates their own. |
-| **(c) Copy script** | Script copies type files between repos. |
-
-**Selected:** `[a / b / c]`
-
-**Rationale:** `[Why this choice]`
+| Decision | Value |
+|:---------|:------|
+| **Container runtime** | Docker (local Docker daemon) |
+| **Image** | `stewie-dummy-worker` (MVP) |
+| **Execution model** | `docker run --rm` with volume mounts |
+| **I/O contract** | Input: `/workspace/input/task.json` → Output: `/workspace/output/result.json` |
+| **Isolation** | Each task runs in its own container |
+| **Networking** | No network access (containers are compute-only) |
 
 ---
 
@@ -123,34 +128,29 @@ git submodule add [CODEX_REPO_URL] lexflow-codex
 
 | Decision | Value |
 |:---------|:------|
-| **Transport** | `[HTTP / gRPC / Message queue]` |
-| **Authentication** | `[Shared secret / mTLS / JWT / None]` |
-| **Auth header** | `[e.g., X-Internal-Service-Key]` |
-| **Base URLs** | `[e.g., Web: localhost:3000, Trust: localhost:4000]` |
+| **Frontend ↔ API** | HTTP (Vite proxy in dev) |
+| **API ↔ Worker** | Docker volumes (filesystem I/O, not network) |
+| **Authentication** | None (MVP — local-first) |
+| **Inter-service auth** | N/A (single API service) |
 
 ---
 
-## 8. Production Environment
-
-### VM / Server Configuration
+## 8. Development Environment
 
 | Component | Spec |
 |:----------|:-----|
-| **OS** | `[e.g., Ubuntu 22.04 LTS]` |
-| **Node.js** | `[e.g., 20 LTS]` |
-| **Process manager** | `[e.g., PM2 / systemd]` |
-| **Reverse proxy** | `[e.g., nginx]` |
-| **TLS** | `[e.g., Let's Encrypt / Cloudflare / None]` |
-| **Firewall** | `[e.g., UFW: 22, 80, 443]` |
+| **OS** | Linux (Ubuntu) |
+| **.NET** | 10 SDK |
+| **Node.js** | 20+ LTS |
+| **Docker** | Docker Engine (required for SQL Server + workers) |
+| **IDE** | Any (VS Code recommended) |
 
-### Directory Layout
+### Startup Sequence
 
-```
-/opt/[project]/
-├── frontend/    # Web service code
-├── backend/     # API service code
-└── scripts/     # Deployment and provisioning scripts
-```
+1. `docker compose up -d` — Start SQL Server
+2. `docker build -t stewie-dummy-worker workers/dummy-worker/` — Build worker image
+3. `dotnet run --project src/Stewie.Api/Stewie.Api.csproj` — Start API (auto-migrates DB)
+4. `cd src/Stewie.Web/ClientApp && npm run dev` — Start React frontend
 
 ---
 
@@ -158,10 +158,9 @@ git submodule add [CODEX_REPO_URL] lexflow-codex
 
 | Decision | Value |
 |:---------|:------|
-| **Backup method** | `[pg_dump cron / managed snapshots / N/A]` |
-| **Frequency** | `[daily / hourly]` |
-| **Retention** | `[e.g., 7 days rolling]` |
-| **Restore procedure** | `[scripts/restore.sh or documented steps]` |
+| **Backup method** | N/A (local dev only) |
+| **Frequency** | N/A |
+| **Recovery** | `docker compose down -v && docker compose up -d` (fresh start) |
 
 ---
 
@@ -169,7 +168,7 @@ git submodule add [CODEX_REPO_URL] lexflow-codex
 
 | Decision | Value |
 |:---------|:------|
-| **Error tracking** | `[Sentry / Datadog / None]` |
-| **Log aggregation** | `[Structured JSON to files / CloudWatch / None]` |
-| **Health checks** | `[e.g., GET /health on each service]` |
-| **Uptime monitoring** | `[UptimeRobot / custom / None]` |
+| **Error tracking** | Console logging (structured, via `ILogger`) |
+| **Log aggregation** | None (local dev — console output) |
+| **Health checks** | Deferred (will add `GET /health` in future sprint) |
+| **Uptime monitoring** | N/A |

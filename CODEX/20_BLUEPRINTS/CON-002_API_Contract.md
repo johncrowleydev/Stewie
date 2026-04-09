@@ -1,0 +1,236 @@
+---
+id: CON-002
+title: "API Contract — HTTP Endpoints"
+type: reference
+status: DRAFT
+owner: architect
+agents: [all]
+tags: [standards, specification, project-management, governance]
+related: [BLU-001, CON-001, GOV-004]
+created: 2026-04-09
+updated: 2026-04-09
+version: 1.0.0
+---
+
+> **BLUF:** This contract defines the HTTP API surface of Stewie.Api. All frontend and external consumers MUST conform to these routes, request/response shapes, and error formats. No deviation without Human approval.
+
+# API Contract — HTTP Endpoints
+
+> **"The contract is truth. The code is an attempt to match it."**
+
+---
+
+## 1. Contract Scope
+
+**What this covers:**
+- HTTP endpoints exposed by `Stewie.Api`
+- Request/response JSON schemas
+- Error response format
+- Status codes and semantics
+
+**What this does NOT cover:**
+- Worker container I/O (see `CON-001`)
+- Database schema
+- Frontend routing
+
+**Parties:**
+
+| Role | Description |
+|:-----|:------------|
+| **Producer** | `Stewie.Api` (ASP.NET Core) |
+| **Consumer** | `Stewie.Web` (React frontend), CLI tools, external callers |
+
+---
+
+## 2. Version & Stability
+
+| Field | Value |
+|:------|:------|
+| Contract version | `1.0.0` |
+| Stability | `EXPERIMENTAL` |
+| Base URL | `http://localhost:5275` |
+| Content-Type | `application/json` |
+| Breaking change policy | MAJOR version bump; old routes kept for 1 minor version |
+
+---
+
+## 3. Endpoints — Current (Milestone 0)
+
+### 3.1 POST /runs/test
+
+Triggers a test run: creates a Run, creates a Task, launches the dummy worker, ingests the result.
+
+**Request:** No body required.
+
+**Response (200 OK):**
+
+```json
+{
+  "runId": "uuid",
+  "taskId": "uuid",
+  "artifactId": "uuid",
+  "status": "Completed",
+  "summary": "Dummy worker executed successfully. Runtime contract verified.",
+  "resultPayload": {
+    "taskId": "uuid",
+    "status": "success",
+    "summary": "...",
+    "filesChanged": [],
+    "testsPassed": false,
+    "errors": [],
+    "notes": "...",
+    "nextAction": "review"
+  }
+}
+```
+
+**Error responses:**
+
+| Status | Condition |
+|:-------|:---------|
+| 200 with `status: "Failed"` | Container failed or result ingestion failed |
+| 500 | Unhandled server error |
+
+---
+
+## 4. Endpoints — Phase 1 (Planned)
+
+> These endpoints will be implemented during Phase 1 sprints.
+
+### 4.1 Projects
+
+| Method | Path | Description |
+|:-------|:-----|:------------|
+| `GET` | `/api/projects` | List all projects |
+| `POST` | `/api/projects` | Create a new project |
+| `GET` | `/api/projects/{id}` | Get project by ID |
+
+### 4.2 Runs
+
+| Method | Path | Description |
+|:-------|:-----|:------------|
+| `GET` | `/api/runs` | List all runs (filterable by project) |
+| `POST` | `/api/runs` | Create a new run |
+| `GET` | `/api/runs/{id}` | Get run by ID with tasks |
+| `POST` | `/api/runs/test` | Trigger a test run (existing) |
+
+### 4.3 Tasks
+
+| Method | Path | Description |
+|:-------|:-----|:------------|
+| `GET` | `/api/tasks/{id}` | Get task by ID with artifacts |
+| `GET` | `/api/runs/{runId}/tasks` | List tasks for a run |
+
+### 4.4 Health
+
+| Method | Path | Description |
+|:-------|:-----|:------------|
+| `GET` | `/health` | Health check (no auth required) |
+
+---
+
+## 5. Request/Response Schemas — Phase 1
+
+### 5.1 Project
+
+```json
+{
+  "id": "uuid",
+  "name": "string",
+  "repoUrl": "string",
+  "createdAt": "ISO 8601 datetime"
+}
+```
+
+### 5.2 Run
+
+```json
+{
+  "id": "uuid",
+  "projectId": "uuid | null",
+  "status": "Pending | Running | Completed | Failed",
+  "createdAt": "ISO 8601 datetime",
+  "completedAt": "ISO 8601 datetime | null",
+  "tasks": ["Task[]"]
+}
+```
+
+### 5.3 Task
+
+```json
+{
+  "id": "uuid",
+  "runId": "uuid",
+  "role": "developer | tester | researcher",
+  "status": "Pending | Running | Completed | Failed",
+  "workspacePath": "string",
+  "createdAt": "ISO 8601 datetime",
+  "startedAt": "ISO 8601 datetime | null",
+  "completedAt": "ISO 8601 datetime | null"
+}
+```
+
+### 5.4 Health
+
+```json
+{
+  "status": "healthy",
+  "version": "string",
+  "timestamp": "ISO 8601 datetime"
+}
+```
+
+---
+
+## 6. Error Response Format
+
+All errors follow a consistent structure per GOV-004:
+
+```json
+{
+  "error": {
+    "code": "string",
+    "message": "string",
+    "details": {}
+  }
+}
+```
+
+| Error Code | HTTP Status | Description |
+|:-----------|:-----------|:------------|
+| `NOT_FOUND` | 404 | Resource does not exist |
+| `VALIDATION_ERROR` | 400 | Invalid request body |
+| `INTERNAL_ERROR` | 500 | Unhandled server error |
+| `CONTAINER_FAILED` | 500 | Worker container exited with non-zero code |
+
+---
+
+## 7. Performance Requirements
+
+| Metric | Requirement |
+|:-------|:------------|
+| p95 latency (non-run endpoints) | < 200ms |
+| p95 latency (run execution) | N/A (long-running, async) |
+| Timeout | 30s for non-run endpoints |
+
+---
+
+## 8. Change Protocol
+
+> **This contract is immutable without Human approval.**
+
+To propose a contract change:
+1. Developer or Tester opens `60_EVOLUTION/EVO-NNN.md`
+2. Architect reviews and drafts the contract update
+3. Human approves
+4. Version is bumped, all consuming agents notified
+
+---
+
+## 9. Verification Checklist
+
+- [ ] All listed endpoints return expected status codes
+- [ ] Response bodies match documented schemas
+- [ ] Error responses use the standardized error format (§6)
+- [ ] Health endpoint returns 200 with version info
+- [ ] Content-Type header is `application/json` on all responses

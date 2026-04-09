@@ -10,9 +10,9 @@
 
 ## 1. Project Overview
 
-This is an **Agentic Architect** project template — a reusable starting point for building software through multi-agent orchestration. The human architect manages AI agents; agents do the building.
+**Stewie** is a GitHub-native orchestration system that enables multiple AI agents to collaboratively develop software in parallel under strict governance. It acts as a steward of software development — coordinating work, enforcing standards, and ensuring high-quality outcomes.
 
-**This is a template, not a product.** It is technology-stack and programming-language agnostic. The specific tech stack, application code, and domain logic are defined per project when this template is forked.
+**Tech stack:** C# .NET 10 (API), React/Vite (frontend), SQL Server 2022, NHibernate, Docker containers for worker runtimes. See `CODEX/10_GOVERNANCE/GOV-008_InfrastructureAndOperations.md` for full infrastructure decisions.
 
 ### Three-Tier Hierarchy
 
@@ -146,26 +146,40 @@ Agent definitions are **role templates**, not project-specific profiles. They ar
 
 ---
 
-## 8. Workflows and Commands
+## 8. Mandatory Workflows — CRITICAL
 
-This template includes workflows for automating common tasks via agent slash commands.
+> **⚠️ ALL agents MUST follow these two workflows. Violations cause zombie processes, broken commits, and governance failures. These are NON-NEGOTIABLE.**
 
-### Testing
+### `/safe_commands` — Read BEFORE Running ANY Command
 
-| Command | What It Does |
-|:--------|:-------------|
-| `/test` | Run all applicable GOV-002 tiers (auto-detect stack) |
-| `/test static` | Run only static analysis |
-| `/test unit` | Run unit tests + coverage |
-| `/test --safety` | Run all tiers with safety-critical thresholds |
+File: `.agent/workflows/safe_commands.md`
+
+**Every agent MUST read this workflow before executing any terminal command.** Key rules:
+- ❌ NEVER walk the full repo tree (`find .`, `dotnet build` on full solution for single-file changes)
+- ✅ Scope commands to specific directories or changed files
+- ✅ Use `GIT_TERMINAL_PROMPT=0` for all git network commands
+- ✅ Never poll `command_status` more than twice — verify outcomes directly
+- ✅ Kill hung commands before retrying
+
+### `/git_commit` — Follow for EVERY Commit
+
+File: `.agent/workflows/git_commit.md`
+
+**Every agent MUST follow this workflow for every git commit.** Key rules:
+- Run hygiene checks (junk files, secrets scan) before staging
+- Structured commit messages with `Agent:`, `Why:`, `What:`, `Refs:` fields
+- Secret scanning is mandatory and blocking
+- One branch per sprint (developers), granular commits per task
+- Never commit runtime artifacts, test output, or secrets
 
 ### Other Workflows
 
 | Command | What It Does |
 |:--------|:-------------|
-| `/git_commit` | Verify hygiene, analyze diffs, commit with detailed messages |
+| `/test` | Run all applicable GOV-002 tiers (auto-detect stack) |
 | `/manage_documents` | Scan, lint, and sync all CODEX docs |
-| `/safe_commands` | Rules for running shell commands without hanging |
+| `/audit_sprint` | Run Architect sprint audit checklist |
+| `/deploy` | Deploy to production (Architect only) |
 
 ---
 
@@ -189,11 +203,13 @@ docs(GOV-NNN): description of doc change
 
 ## 11. New Session Reading Order
 
-When starting a fresh session on any project built from this template:
+When starting a fresh session on this project:
 
 1. `AGENTS.md` — this file (project context)
 2. `CODEX/00_INDEX/MANIFEST.yaml` — build your document map
-3. `CODEX/10_GOVERNANCE/` — read the governance docs relevant to your role
-4. `CODEX/80_AGENTS/AGT-NNN` — read your role definition
-5. `CODEX/05_PROJECT/` — check active sprints, backlog, roadmap
-6. Referenced `BLU-` and `CON-` docs — your execution constraints
+3. **`.agent/workflows/safe_commands.md`** — READ BEFORE ANY COMMANDS
+4. **`.agent/workflows/git_commit.md`** — READ BEFORE ANY COMMITS
+5. `CODEX/10_GOVERNANCE/` — read the governance docs relevant to your role
+6. `CODEX/80_AGENTS/AGT-NNN` — read your role definition
+7. `CODEX/05_PROJECT/` — check active sprints, backlog, roadmap
+8. Referenced `BLU-` and `CON-` docs — your execution constraints
