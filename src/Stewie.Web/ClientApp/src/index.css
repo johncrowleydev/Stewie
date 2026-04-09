@@ -1074,3 +1074,157 @@ textarea.form-input {
   background: var(--color-completed);
   animation: pulse 1.5s ease-in-out infinite;
 }
+
+/* --- Auth Pages --- */
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--color-bg);
+  padding: var(--space-lg);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl) var(--space-lg);
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xl);
+}
+
+.auth-logo {
+  width: 48px;
+  height: 48px;
+}
+
+.auth-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.auth-heading {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  margin-bottom: var(--space-lg);
+  text-align: center;
+}
+
+.auth-footer {
+  margin-top: var(--space-lg);
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.auth-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+.btn-full {
+  width: 100%;
+  margin-top: var(--space-md);
+}
+
+/* --- GitHub Status --- */
+.github-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.status-dot-lg {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot-lg.connected {
+  background: var(--color-completed);
+  box-shadow: 0 0 6px var(--color-completed);
+}
+
+.status-dot-lg.disconnected {
+  background: var(--color-text-muted);
+}
+
+/* --- Form Message --- */
+.form-message {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}
+
+.form-message.success {
+  background: rgba(111, 172, 80, 0.12);
+  color: var(--color-completed);
+  border: 1px solid rgba(111, 172, 80, 0.3);
+}
+
+.form-message.error {
+  background: rgba(229, 72, 77, 0.12);
+  color: var(--color-failed);
+  border: 1px solid rgba(229, 72, 77, 0.3);
+}
+
+/* --- Sidebar User --- */
+.sidebar-user {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-sm);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-md);
+}
+
+.sidebar-user-name {
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+}
+
+.sidebar-user-role {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-transform: capitalize;
+}
+
+/* --- PR Badge --- */
+.pr-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  background: rgba(111, 172, 80, 0.12);
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: background var(--transition-fast);
+}
+
+.pr-badge:hover {
+  background: rgba(111, 172, 80, 0.24);
+}
+
+.pr-badge svg {
+  width: 14px;
+  height: 14px;
+}

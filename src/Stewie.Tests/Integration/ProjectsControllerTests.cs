@@ -26,6 +26,7 @@ public class ProjectsControllerTests : IClassFixture<StewieWebApplicationFactory
     {
         _factory = factory;
         _client = factory.CreateClient();
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", factory.GetAuthToken());
     }
 
     /// <summary>GET /api/projects returns 200 with empty array when no projects exist.</summary>

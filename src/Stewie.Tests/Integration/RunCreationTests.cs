@@ -25,6 +25,7 @@ public class RunCreationTests : IClassFixture<StewieWebApplicationFactory>, IDis
     public RunCreationTests(StewieWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", factory.GetAuthToken());
     }
 
     /// <summary>POST /api/runs with valid projectId creates a run.</summary>

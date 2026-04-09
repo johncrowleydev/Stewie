@@ -10,11 +10,15 @@ using FluentNHibernate.Cfg.Db;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using NHibernate;
 using NHibernate.Cfg;
 using NHibernate.Tool.hbm2ddl;
 using Stewie.Application.Interfaces;
 using Stewie.Infrastructure.Persistence;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace Stewie.Tests.Integration;
 
@@ -28,10 +32,44 @@ public class StewieWebApplicationFactory : WebApplicationFactory<Program>
     private ISessionFactory? _sessionFactory;
     private System.Data.SQLite.SQLiteConnection? _keepAliveConnection;
 
+    public StewieWebApplicationFactory()
+    {
+        System.Environment.SetEnvironmentVariable("Stewie__JwtSecret", "test-jwt-secret-minimum-32-characters-long!!");
+        System.Environment.SetEnvironmentVariable("Stewie__EncryptionKey", "dGVzdC1lbmNyeXB0aW9uLWtleS1taW5pbXVtMzJjaHI=");
+        System.Environment.SetEnvironmentVariable("Stewie__AdminPassword", "Admin@Stewie123!");
+        System.Environment.SetEnvironmentVariable("Stewie__AdminUsername", "admin");
+    }
+
+    /// <summary>
+    /// Generates a signed JWT for API tests that require authentication.
+    /// Uses the same secret bound to the mock environment.
+    /// </summary>
+    public string GetAuthToken()
+    {
+        var secret = "test-jwt-secret-minimum-32-characters-long!!";
+        var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(secret));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, "00000000-0000-0000-0000-000000000000"),
+            new Claim("username", "admin"),
+            new Claim("role", "admin")
+        };
+
+        var token = new JwtSecurityToken(
+            issuer: "stewie",
+            audience: "stewie",
+            claims: claims,
+            expires: System.DateTime.UtcNow.AddMinutes(30),
+            signingCredentials: credentials);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-
         builder.ConfigureServices(services =>
         {
             // Remove the production NHibernate session factory

@@ -22,6 +22,7 @@ public class RunsControllerTests : IClassFixture<StewieWebApplicationFactory>, I
     public RunsControllerTests(StewieWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
+        _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", factory.GetAuthToken());
     }
 
     /// <summary>GET /api/runs returns 200 with array.</summary>

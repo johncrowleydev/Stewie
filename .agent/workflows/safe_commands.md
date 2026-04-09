@@ -54,6 +54,8 @@ Local-only git commands (status, log, diff, branch, merge, commit) don't need th
 | `pytest` (full suite) | 10000 (will go async) |
 | Any `os.walk` or `find` on repo root | **BANNED** |
 | `dotnet build src/Stewie.Api/` | 10000 (full build) |
+| `cmd > file; echo "EXIT=$?"` | 10000 (File-redirect pattern) |
+| `head / tail -n file.txt` | 3000 (Reading redirect output) |
 
 ## Rule 4: Kill Before Re-running
 
@@ -115,3 +117,31 @@ Always verify the **result** of an operation rather than its **process status**:
 | "Did the file compile?" | `dotnet build src/Stewie.Api/Stewie.Api.csproj` |
 | "Did tests pass?" | Check the test report or re-run a single test |
 | "Is the module importable?" | `dotnet build` the relevant project |
+
+## Rule 9: Use File-Redirect Pattern for Build and Test Commands
+
+Commands that may produce large output or have long silent periods (NuGet restore, npm install, Docker build) **MUST** use the file-redirect pattern instead of pipe chains with filters.
+
+**❌ BANNED — Pipe chains with grep/awk on build commands:**
+```bash
+# These can hang when build has silent restore phases
+dotnet build src/Foo.csproj 2>&1 | grep -E "(error|warning)" | tail -5
+dotnet test src/Foo.csproj 2>&1 | grep "(Passed|Failed)"
+npm run build 2>&1 | grep -i error
+```
+
+**✅ REQUIRED — File-redirect then read:**
+```bash
+# Step 1: Run the command, redirect ALL output to a file, echo exit code
+dotnet build src/Foo.csproj > /tmp/stewie-build.txt 2>&1; echo "EXIT=$?"
+
+# Step 2: Read the results from the file
+tail -5 /tmp/stewie-build.txt              # Quick summary
+grep -c "error CS" /tmp/stewie-build.txt   # Count errors
+grep "Build succeeded" /tmp/stewie-build.txt  # Verify success
+```
+
+**Cleanup:** Always delete temp files after reading:
+```bash
+rm -f /tmp/stewie-build.txt
+```

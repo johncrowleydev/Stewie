@@ -1,10 +1,11 @@
 /**
  * Layout — App shell component with sidebar navigation and main content area.
  * Provides consistent structure across all pages with Stewie branding.
- * Includes theme toggle (DEF-001) and Events nav link (T-025).
+ * Includes theme toggle, user display, logout button, and Settings nav link.
  */
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useTheme } from "../hooks/useTheme";
+import { useAuth } from "../contexts/AuthContext";
 
 /** SVG icon components for sidebar navigation */
 function DashboardIcon() {
@@ -34,7 +35,6 @@ function ProjectsIcon() {
   );
 }
 
-/** Events timeline icon */
 function EventsIcon() {
   return (
     <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -44,13 +44,25 @@ function EventsIcon() {
   );
 }
 
+/** Settings gear icon */
+function SettingsIcon() {
+  return (
+    <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  );
+}
+
 /** Maps route paths to page titles for the header bar */
 function getPageTitle(pathname: string): string {
   if (pathname === "/") return "Dashboard";
+  if (pathname === "/runs/new") return "Create Run";
   if (pathname === "/runs") return "Runs";
   if (pathname.startsWith("/runs/")) return "Run Details";
   if (pathname === "/projects") return "Projects";
   if (pathname === "/events") return "Events";
+  if (pathname === "/settings") return "Settings";
   return "Stewie";
 }
 
@@ -59,6 +71,7 @@ export function Layout() {
   const location = useLocation();
   const pageTitle = getPageTitle(location.pathname);
   const { theme, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
 
   return (
     <div className="app-layout">
@@ -85,9 +98,19 @@ export function Layout() {
             <EventsIcon />
             Events
           </NavLink>
+          <NavLink to="/settings" className={({ isActive }) => isActive ? "active" : ""}>
+            <SettingsIcon />
+            Settings
+          </NavLink>
         </nav>
 
         <div className="sidebar-footer">
+          {user && (
+            <div className="sidebar-user" id="sidebar-user">
+              <span className="sidebar-user-name">{user.username}</span>
+              <span className="sidebar-user-role">{user.role}</span>
+            </div>
+          )}
           <button
             className="theme-toggle"
             onClick={toggleTheme}
@@ -96,6 +119,15 @@ export function Layout() {
           >
             <span className="theme-icon">{theme === "dark" ? "☀️" : "🌙"}</span>
             {theme === "dark" ? "Light mode" : "Dark mode"}
+          </button>
+          <button
+            className="theme-toggle"
+            onClick={logout}
+            id="logout-btn"
+            style={{ marginTop: "var(--space-xs)" }}
+          >
+            <span className="theme-icon">🚪</span>
+            Sign out
           </button>
         </div>
       </aside>
