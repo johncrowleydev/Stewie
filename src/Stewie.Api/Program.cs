@@ -19,6 +19,7 @@ var connectionString = builder.Configuration.GetConnectionString("Stewie")
 var workspaceRoot = builder.Configuration.GetValue<string>("Stewie:WorkspaceRoot") ?? "./workspaces";
 var dockerImageName = builder.Configuration.GetValue<string>("Stewie:DockerImageName") ?? "stewie-dummy-worker";
 var scriptWorkerImage = builder.Configuration.GetValue<string>("Stewie:ScriptWorkerImage") ?? "stewie-script-worker";
+var taskTimeoutSeconds = builder.Configuration.GetValue<int>("Stewie:TaskTimeoutSeconds", 300);
 var jwtSecret = builder.Configuration["Stewie:JwtSecret"]
     ?? throw new InvalidOperationException("JWT secret is required. Set Stewie:JwtSecret or STEWIE_JWT_SECRET.");
 var encryptionKey = builder.Configuration["Stewie:EncryptionKey"]
@@ -84,7 +85,7 @@ builder.Services.AddScoped<IUserCredentialRepository, UserCredentialRepository>(
 builder.Services.AddSingleton<IWorkspaceService>(sp =>
     new WorkspaceService(workspaceRoot, sp.GetRequiredService<ILogger<WorkspaceService>>()));
 builder.Services.AddSingleton<IContainerService>(sp =>
-    new DockerContainerService(dockerImageName, sp.GetRequiredService<ILogger<DockerContainerService>>()));
+    new DockerContainerService(dockerImageName, taskTimeoutSeconds, sp.GetRequiredService<ILogger<DockerContainerService>>()));
 builder.Services.AddSingleton<IEncryptionService>(new AesEncryptionService(encryptionKey));
 builder.Services.AddScoped<IGitPlatformService, GitHubService>();
 builder.Services.AddScoped<RunOrchestrationService>(sp =>
