@@ -76,14 +76,45 @@ version: 1.0.0
 
 ---
 
-## Phase 2: Real Repo Interaction (Future)
+## Phase 2: Real Repo Interaction
+
+| ID | Task | Description | Priority | Status |
+|:---|:-----|:------------|:---------|:-------|
+| B-100 | ~~Git clone into workspace~~ | ✅ Done (SPR-002 T-021 plumbing, SPR-003 T-028 wiring) | P1 | → SPR-003 |
+| B-101 | ~~Branch creation for tasks~~ | ✅ Done (SPR-002 T-021 plumbing, SPR-003 T-028 wiring) | P1 | → SPR-003 |
+| B-102 | Diff ingestion from result | Capture git diff after worker exits | P2 | → SPR-003 T-030 |
+| B-103 | Commit worker changes | Auto-commit worker file mutations | P2 | → SPR-003 T-031 |
+| B-104 | Script worker container | Shell-based worker that executes bash commands | P1 | → SPR-003 T-029 |
+| B-105 | Extended Run creation API | POST /api/runs with task definitions | P1 | → SPR-003 T-027 |
+| B-106 | Create Run form (frontend) | Dashboard form to create runs with objectives | P2 | → SPR-003 T-032 |
+| B-107 | Run detail git/diff viewer | Branch, commit SHA, diff display | P2 | → SPR-003 T-033 |
+| B-108 | Dashboard auto-refresh | Polling for live status updates | P2 | → SPR-003 T-034 |
+
+---
+
+## Phase 3: GitHub Integration + User System (Future — SPR-004)
 
 | ID | Task | Description | Priority |
 |:---|:-----|:------------|:---------|
-| B-100 | Git clone into workspace | WorkspaceService clones target repo into `repo/` | P1 |
-| B-101 | Branch creation for tasks | Create feature branch per task | P1 |
-| B-102 | Diff ingestion from result | Parse `filesChanged` into actual git diffs | P2 |
-| B-103 | Commit worker changes | Auto-commit worker file mutations | P2 |
+| B-200 | **GitHub repo creation** | Create repos via GitHub API | P1 (HIGH PRIORITY) |
+| B-201 | GitHub PR automation | Auto-create PR after successful run + commit | P1 |
+| B-202 | User entity + authentication | User model, login, sessions, API key auth | P1 |
+| B-203 | Encrypted credential storage | Per-user GitHub PAT, encrypted in DB | P1 |
+| B-204 | Push branch to remote | Push local commits to GitHub via API | P1 |
+| B-205 | GitHub settings UI | User settings page for PAT configuration | P2 |
+| B-206 | Auth UI | Login/registration pages | P2 |
+
+---
+
+## Future Backlog
+
+| ID | Task | Description | Priority |
+|:---|:-----|:------------|:---------|
+| B-300 | Workspace TTL-based cleanup | Auto-delete old workspaces | P3 |
+| B-301 | Multi-task runs (Phase 4) | One run spawns N parallel tasks | P2 |
+| B-302 | AI agent worker | Container with LLM API for code generation | P2 |
+| B-303 | WebSocket/SSE live updates | Replace polling with real-time push | P3 |
+| B-304 | Task dependency graph | Sequential and parallel task ordering | P3 |
 
 ---
 
@@ -93,3 +124,4 @@ version: 1.0.0
 |:-----|:-------|
 | 2026-04-09 | Initial backlog created from PRJ-001 Phase 1 |
 | 2026-04-09 | SPR-001 items marked complete. B-020, B-043 → SPR-002. Phase 2 items unchanged. |
+| 2026-04-09 | Phase 2 items assigned to SPR-003. Added Phase 3 (GitHub/Users) and future backlog. |

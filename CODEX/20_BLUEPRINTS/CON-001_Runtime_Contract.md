@@ -9,7 +9,7 @@ tags: [standards, specification, project-management, governance]
 related: [BLU-001, CON-002, GOV-004]
 created: 2026-04-09
 updated: 2026-04-09
-version: 1.1.0
+version: 1.2.0
 ---
 
 > **BLUF:** This contract defines the binding interface between Stewie (orchestrator) and worker containers. All communication flows through two JSON files: `task.json` (input) and `result.json` (output). Workers MUST conform to this contract. No deviation without Human approval.
@@ -48,7 +48,7 @@ version: 1.1.0
 
 | Field | Value |
 |:------|:------|
-| Contract version | `1.1.0` |
+| Contract version | `1.2.0` |
 | Stability | `EXPERIMENTAL` |
 | Breaking change policy | MAJOR version bump required for any field removal or type change |
 | Backward compatibility | Workers must handle unknown fields gracefully (ignore, don't fail) |
@@ -95,6 +95,7 @@ The orchestrator writes this file before launching the container.
 | `acceptanceCriteria` | `string[]` | ✅ | Conditions that must be met for success | At least 1 criterion |
 | `repoUrl` | `string` | ❌ | Git repository URL to clone into workspace | Valid HTTPS or SSH URL |
 | `branch` | `string` | ❌ | Branch name to create after clone | Valid git branch name |
+| `script` | `string[]` | ❌ | Bash commands to execute sequentially in `/workspace/repo/` | Each entry is a shell command |
 
 ### 4.2 Example
 
@@ -113,7 +114,11 @@ The orchestrator writes this file before launching the container.
     "Endpoint requires no authentication"
   ],
   "repoUrl": "https://github.com/johncrowleydev/Stewie.git",
-  "branch": "feature/SPR-001-T006-health-endpoint"
+  "branch": "stewie/a1b2c3d4/health-endpoint",
+  "script": [
+    "echo 'Implementing health endpoint'",
+    "touch src/Stewie.Api/Controllers/HealthController.cs"
+  ]
 }
 ```
 
@@ -151,6 +156,9 @@ public class TaskPacket
 
     [JsonPropertyName("branch")]
     public string? Branch { get; set; }
+
+    [JsonPropertyName("script")]
+    public List<string>? Script { get; set; }
 }
 ```
 

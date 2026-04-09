@@ -9,7 +9,7 @@ tags: [standards, specification, project-management, governance]
 related: [BLU-001, CON-001, GOV-004]
 created: 2026-04-09
 updated: 2026-04-09
-version: 1.1.0
+version: 1.2.0
 ---
 
 > **BLUF:** This contract defines the HTTP API surface of Stewie.Api. All frontend and external consumers MUST conform to these routes, request/response shapes, and error formats. No deviation without Human approval.
@@ -46,7 +46,7 @@ version: 1.1.0
 
 | Field | Value |
 |:------|:------|
-| Contract version | `1.1.0` |
+| Contract version | `1.2.0` |
 | Stability | `EXPERIMENTAL` |
 | Base URL | `http://localhost:5275` |
 | Content-Type | `application/json` |
@@ -110,9 +110,29 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
 | Method | Path | Description |
 |:-------|:-----|:------------|
 | `GET` | `/api/runs` | List all runs (filterable by project) |
-| `POST` | `/api/runs` | Create a new run |
-| `GET` | `/api/runs/{id}` | Get run by ID with tasks |
-| `POST` | `/api/runs/test` | Trigger a test run (existing) |
+| `POST` | `/api/runs` | Create a new run (with task definition) |
+| `GET` | `/api/runs/{id}` | Get run by ID with tasks and artifacts |
+| `POST` | `/api/runs/test` | Trigger a test run (legacy, backward-compatible) |
+
+**POST /api/runs** request body:
+
+```json
+{
+  "projectId": "uuid",
+  "objective": "string",
+  "scope": "string | null",
+  "script": ["string"] | null,
+  "acceptanceCriteria": ["string"] | null
+}
+```
+
+| Field | Type | Required | Description |
+|:------|:-----|:--------:|:------------|
+| `projectId` | `uuid` | ✅ | Links to Project with repoUrl |
+| `objective` | `string` | ✅ | What the worker should accomplish |
+| `scope` | `string` | ❌ | Boundaries of the work |
+| `script` | `string[]` | ❌ | Bash commands for script worker |
+| `acceptanceCriteria` | `string[]` | ❌ | Conditions for success |
 
 ### 4.3 Tasks
 
@@ -164,6 +184,9 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
   "id": "uuid",
   "projectId": "uuid | null",
   "status": "Pending | Running | Completed | Failed",
+  "branch": "string | null",
+  "diffSummary": "string | null",
+  "commitSha": "string | null",
   "createdAt": "ISO 8601 datetime",
   "completedAt": "ISO 8601 datetime | null",
   "tasks": ["Task[]"]
@@ -178,10 +201,27 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
   "runId": "uuid",
   "role": "developer | tester | researcher",
   "status": "Pending | Running | Completed | Failed",
+  "objective": "string",
+  "scope": "string | null",
   "workspacePath": "string",
   "createdAt": "ISO 8601 datetime",
   "startedAt": "ISO 8601 datetime | null",
   "completedAt": "ISO 8601 datetime | null"
+}
+```
+
+### 5.6 Artifact (Diff)
+
+```json
+{
+  "id": "uuid",
+  "taskId": "uuid",
+  "type": "diff",
+  "contentJson": {
+    "diffStat": "string (git diff --stat output)",
+    "diffPatch": "string (full git diff output)"
+  },
+  "createdAt": "ISO 8601 datetime"
 }
 ```
 
