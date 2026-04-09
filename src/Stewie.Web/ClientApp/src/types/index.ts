@@ -3,11 +3,12 @@
  * These types are the frontend's contract with the Stewie API.
  */
 
-/** Project entity — CON-002 §5.1 */
+/** Project entity — CON-002 §5.1 (v1.4.0) */
 export interface Project {
   id: string;
   name: string;
   repoUrl: string;
+  repoProvider: string | null;
   createdAt: string;
 }
 
@@ -55,10 +56,14 @@ export interface ApiError {
   };
 }
 
-/** Create project request body */
+/** Create project request body — CON-002 §4.1 (v1.4.0) */
 export interface CreateProjectRequest {
   name: string;
-  repoUrl: string;
+  repoUrl?: string | null;
+  createRepo?: boolean;
+  repoName?: string | null;
+  isPrivate?: boolean;
+  description?: string | null;
 }
 
 /** Create run request body — CON-002 §4.2 (v1.2.0) */
