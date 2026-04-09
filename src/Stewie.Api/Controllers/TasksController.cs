@@ -57,6 +57,8 @@ public class TasksController : ControllerBase
         {
             id = task.Id,
             jobId = task.JobId,
+            parentTaskId = task.ParentTaskId,
+            attemptNumber = task.AttemptNumber,
             role = task.Role,
             status = task.Status.ToString(),
             workspacePath = task.WorkspacePath,
@@ -84,10 +86,12 @@ public class TasksController : ControllerBase
 
         var tasks = await _workTaskRepository.GetByJobIdAsync(jobId);
 
-        var response = tasks.Select(t => new
+        var response = tasks.OrderBy(t => t.CreatedAt).Select(t => new
         {
             id = t.Id,
             jobId = t.JobId,
+            parentTaskId = t.ParentTaskId,
+            attemptNumber = t.AttemptNumber,
             role = t.Role,
             status = t.Status.ToString(),
             workspacePath = t.WorkspacePath,
