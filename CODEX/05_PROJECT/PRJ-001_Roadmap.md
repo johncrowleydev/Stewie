@@ -84,22 +84,23 @@ Phases are **scope-bounded**, not time-bounded.
 
 ---
 
-### Phase 1: Core Orchestration (MVP)
+### Phase 1: Core Orchestration (MVP) ✅ COMPLETE
 **Goal:** Build a functional single-repo orchestrator with real task management.
 **Exit criteria:**
-- [ ] Project entity with repo association
-- [ ] Run supports multiple task states (not just test run)
-- [ ] Event entity for audit trail
-- [ ] Workspace entity for lifecycle tracking
-- [ ] API endpoints for CRUD on all core entities
-- [ ] React dashboard shows Runs, Tasks, and their statuses
-- [ ] Health check endpoint (`GET /health`)
+- [x] Project entity with repo association
+- [x] Run supports multiple task states (not just test run)
+- [x] Event entity for audit trail
+- [x] Workspace entity for lifecycle tracking
+- [x] API endpoints for CRUD on all core entities
+- [x] React dashboard shows Runs, Tasks, and their statuses
+- [x] Health check endpoint (`GET /health`)
 
 **Key deliverables:**
-- `CON-001` — Runtime Contract (task.json / result.json)
-- `CON-002` — API Contract (HTTP endpoints)
+- `CON-001` — Runtime Contract (task.json / result.json) — v1.1.0
+- `CON-002` — API Contract (HTTP endpoints) — v1.1.0
 - `BLU-001` — Stewie System Blueprint
-- `SPR-001` through `SPR-NNN` — Development sprints
+- `SPR-001` — Foundation sprint (CLOSED)
+- `SPR-002` — Phase 1 closure + Phase 2 plumbing (CLOSED)
 
 ---
 

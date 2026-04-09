@@ -2,7 +2,7 @@
 id: DEF-001
 title: "Dashboard is dark-mode only — no light theme toggle"
 type: reference
-status: OPEN
+status: FIXED
 owner: coder
 agents: [coder]
 tags: [defect, frontend, ux]
@@ -22,7 +22,7 @@ version: 1.0.0
 |:------|:------|
 | **Priority** | P3 |
 | **Severity** | 4-MINOR |
-| **Status** | OPEN |
+| **Status** | FIXED |
 | **Discovered By** | Human (UAT) |
 | **Discovered During** | UAT — Sprint 001 verification |
 | **Component** | `Stewie.Web/ClientApp` — `index.css`, Layout component |

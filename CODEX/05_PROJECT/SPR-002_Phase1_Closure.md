@@ -2,7 +2,7 @@
 id: SPR-002
 title: "Phase 1 Closure + Phase 2 Plumbing"
 type: how-to
-status: PLANNING
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, sprint, workflow]
@@ -78,7 +78,7 @@ T-021: Git clone/branch          T-026: Run detail events ← soft dep on T-020
 - **Acceptance criteria:**
   - After `POST /runs/test`, Events table contains RunCreated + RunStarted + RunCompleted/RunFailed
   - Build succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-018: Event Emission — Task Lifecycle
 - **Dependencies:** T-017 (pattern established)
@@ -92,7 +92,7 @@ T-021: Git clone/branch          T-026: Run detail events ← soft dep on T-020
 - **Acceptance criteria:**
   - After `POST /runs/test`, Events table contains TaskCreated + TaskStarted + TaskCompleted/TaskFailed
   - Build succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-019: Workspace Lifecycle Tracking
 - **Dependencies:** None
@@ -105,7 +105,7 @@ T-021: Git clone/branch          T-026: Run detail events ← soft dep on T-020
 - **Acceptance criteria:**
   - After `POST /runs/test`, Workspaces table has a record with correct status
   - Build succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-020: Events API Endpoint
 - **Dependencies:** T-017, T-018 (events exist to query)
@@ -122,7 +122,7 @@ T-021: Git clone/branch          T-026: Run detail events ← soft dep on T-020
   - `GET /api/events` returns recent events per CON-002 §5.5
   - Filtering by entityType + entityId works
   - Build succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-021: Git Clone + Branch in WorkspaceService
 - **Dependencies:** None
@@ -139,7 +139,7 @@ T-021: Git clone/branch          T-026: Run detail events ← soft dep on T-020
   - `CreateBranchAsync` creates a new branch in the cloned repo
   - Unit tests pass
   - Build succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ---
 
@@ -164,7 +164,7 @@ T-021: Git clone/branch          T-026: Run detail events ← soft dep on T-020
   - Default respects OS preference
   - All pages render correctly in both themes
   - `npm run build` succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-023: Integration Tests — Project Endpoints
 - **Dependencies:** None
@@ -184,7 +184,7 @@ T-021: Git clone/branch          T-026: Run detail events ← soft dep on T-020
   - All integration tests pass: `dotnet test src/Stewie.Tests/Stewie.Tests.csproj`
   - Tests run without Docker (SQLite in-memory)
   - Build succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-024: Integration Tests — Run, Task, Health Endpoints
 - **Dependencies:** T-023 (test fixture established)
@@ -204,7 +204,7 @@ T-021: Git clone/branch          T-026: Run detail events ← soft dep on T-020
   - All integration tests pass
   - Error response format verified
   - Build succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-025: Events Timeline Page
 - **Dependencies:** Soft dependency on T-020 (Agent A creates endpoint); build against CON-002 §4.5/§5.5 contract
@@ -221,7 +221,7 @@ T-021: Git clone/branch          T-026: Run detail events ← soft dep on T-020
   - Events page renders (may show empty/error state if backend not yet merged)
   - `npm run build` succeeds
   - Color coding and timeline layout work
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-026: Run Detail — Events Mini-Timeline
 - **Dependencies:** T-025 (shared types/API functions)
@@ -234,7 +234,7 @@ T-021: Git clone/branch          T-026: Run detail events ← soft dep on T-020
   - Run detail page shows event timeline
   - Handles missing/empty events gracefully
   - `npm run build` succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ---
 
@@ -242,16 +242,16 @@ T-021: Git clone/branch          T-026: Run detail events ← soft dep on T-020
 
 | Task | Agent | Status | Description |
 |:-----|:------|:-------|:------------|
-| T-017 | A | [ ] | Event emission (Run) |
-| T-018 | A | [ ] | Event emission (Task) |
-| T-019 | A | [ ] | Workspace tracking |
-| T-020 | A | [ ] | Events API endpoint |
-| T-021 | A | [ ] | Git clone/branch plumbing |
-| T-022 | B | [ ] | DEF-001 theme toggle |
-| T-023 | B | [ ] | Integration tests (Projects) |
-| T-024 | B | [ ] | Integration tests (Runs/Tasks/Health) |
-| T-025 | B | [ ] | Events timeline page |
-| T-026 | B | [ ] | Run detail events |
+| T-017 | A | [x] | Event emission (Run) |
+| T-018 | A | [x] | Event emission (Task) |
+| T-019 | A | [x] | Workspace tracking |
+| T-020 | A | [x] | Events API endpoint |
+| T-021 | A | [x] | Git clone/branch plumbing |
+| T-022 | B | [x] | DEF-001 theme toggle |
+| T-023 | B | [x] | Integration tests (Projects) |
+| T-024 | B | [x] | Integration tests (Runs/Tasks/Health) |
+| T-025 | B | [x] | Events timeline page |
+| T-026 | B | [x] | Run detail events |
 
 ---
 
@@ -287,7 +287,15 @@ T-021: Git clone/branch          T-026: Run detail events ← soft dep on T-020
 
 ## Audit Notes (Architect)
 
-[Architect fills this in during audit.]
+### Combined Audit (2026-04-09)
+- **Audit report:** `40_VERIFICATION/VER-003_SPR-002_Audit.md`
+- Build: ✅ API 0 errors, frontend 50 modules, 19/19 tests pass
+- E2E: ✅ Test run → 6 events emitted → Events API returns correctly
+- Governance: ✅ All GOV docs compliant
+- Contract: ✅ CON-001 v1.1.0, CON-002 v1.1.0 fully implemented
+- DEF-001: ✅ FIXED (light/dark theme toggle)
+- **Verdict:** PASS
 
-**Verdict:** PENDING
-**Deploy approved:** NO
+**Sprint Verdict:** CLOSED ✅
+**Phase 1:** COMPLETE ✅
+**Deploy approved:** YES
