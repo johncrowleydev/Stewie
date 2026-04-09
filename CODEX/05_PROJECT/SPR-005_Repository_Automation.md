@@ -2,7 +2,7 @@
 id: SPR-005
 title: "Repository Automation + Platform Abstraction"
 type: how-to
-status: PLANNING
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, sprint, workflow]
@@ -259,14 +259,14 @@ T-052: Retry + error taxonomy
 
 | Task | Agent | Status | Description |
 |:-----|:------|:-------|:------------|
-| T-048 | A | [ ] | IGitPlatformService refactor |
-| T-049 | A | [ ] | Project entity + RepoProvider migration |
-| T-050 | A | [ ] | ProjectsController link-or-create |
-| T-051 | A | [ ] | Container timeout enforcement |
-| T-052 | A | [ ] | Retry logic + error taxonomy |
-| T-053 | B | [ ] | Project creation form (frontend) |
-| T-054 | B | [ ] | Integration tests (project creation) |
-| T-055 | B | [ ] | Unit tests (timeout + retry) |
+| T-048 | A | [x] | IGitPlatformService refactor |
+| T-049 | A | [x] | Project entity + RepoProvider migration |
+| T-050 | A | [x] | ProjectsController link-or-create |
+| T-051 | A | [x] | Container timeout enforcement |
+| T-052 | A | [x] | Retry logic + error taxonomy |
+| T-053 | B | [x] | Project creation form (frontend) |
+| T-054 | B | [x] | Integration tests (project creation) |
+| T-055 | B | [x] | Unit tests (timeout + retry) |
 
 ---
 
@@ -309,4 +309,14 @@ New/updated configuration for Sprint 005:
 
 ## Audit Notes (Architect)
 
-_[Pending — will be filled after developer work completes]_
+### Combined Audit (2026-04-09)
+- **Audit report:** `40_VERIFICATION/VER-006_SPR-005_Audit.md`
+- Build: ✅ API 0 errors, frontend 57 modules, 54/54 tests pass (3 skipped)
+- Merge fix: Applied IGitHubService → IGitPlatformService rename in Agent B's test files (parallel-agent merge artifact)
+- Governance: ✅ All GOV docs compliant
+- Contract: ✅ CON-002 v1.4.0, CON-001 §7 timeout enforced
+- **Verdict:** PASS
+
+**Sprint Verdict:** CLOSED ✅
+**Phase 3:** COMPLETE ✅
+**Deploy approved:** YES

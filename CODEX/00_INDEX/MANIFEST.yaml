@@ -186,7 +186,7 @@ documents:
     path: 05_PROJECT/SPR-005_Repository_Automation.md
     title: "Sprint 005 — Repository Automation + Platform Abstraction"
     type: how-to
-    status: PLANNING
+    status: CLOSED
     tags: [project-management, sprint, workflow]
     agents: [coder]
     summary: >
