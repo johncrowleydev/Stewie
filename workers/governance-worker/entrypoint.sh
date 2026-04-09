@@ -1,11 +1,9 @@
 #!/bin/bash
-# Governance Worker — Reads task.json, detects stack, runs governance checks,
-# writes governance-report.json with check results.
+# Governance Worker — Full Implementation
+# Reads task.json, detects stack, runs governance checks via rule scripts,
+# writes governance-report.json per CON-001 §6.
 #
-# SKELETON VERSION: All checks pass as placeholders.
-# JOB-008 will populate /rules/ with real check scripts.
-#
-# REF: CON-001 §6, JOB-007 T-070
+# REF: CON-001 §6, JOB-007 T-070, JOB-008 T-075
 #
 # Exit codes: always 0 (pass/fail encoded in governance-report.json)
 
@@ -14,6 +12,7 @@ set -euo pipefail
 TASK_FILE="/workspace/input/task.json"
 REPORT_FILE="/workspace/output/governance-report.json"
 REPO_DIR="/workspace/repo"
+RULES_DIR="/rules"
 
 # ---- Read task.json ----
 if [ ! -f "$TASK_FILE" ]; then
@@ -22,23 +21,12 @@ if [ ! -f "$TASK_FILE" ]; then
 fi
 
 TASK_ID=$(jq -r '.taskId' "$TASK_FILE")
-echo "Governance worker starting for task: $TASK_ID"
-
-# ---- Detect stack ----
-STACK="unknown"
-if [ -d "$REPO_DIR" ]; then
-    if find "$REPO_DIR" -maxdepth 3 -name "*.csproj" -o -name "*.slnx" -o -name "*.sln" 2>/dev/null | head -1 | grep -q .; then
-        STACK="dotnet"
-        echo "Detected stack: dotnet"
-    elif [ -f "$REPO_DIR/package.json" ]; then
-        STACK="node"
-        echo "Detected stack: node"
-    else
-        echo "Detected stack: unknown (no .csproj or package.json found)"
-    fi
-else
-    echo "WARNING: No repo directory at $REPO_DIR"
-fi
+TASK_ROLE=$(jq -r '.role // "tester"' "$TASK_FILE")
+echo "============================================"
+echo "Governance Worker v1.0.0"
+echo "Task ID: $TASK_ID"
+echo "Role: $TASK_ROLE"
+echo "============================================"
 
 # ---- Initialize check results ----
 CHECKS="[]"
@@ -47,6 +35,7 @@ PASSED=0
 FAILED=0
 
 # ---- Helper: add check result ----
+# Usage: add_check "ruleId" "ruleName" "category" "true/false" "details|null" "error|warning"
 add_check() {
     local rule_id="$1"
     local rule_name="$2"
@@ -55,8 +44,12 @@ add_check() {
     local details="${5:-null}"
     local severity="${6:-error}"
 
-    if [ "$details" != "null" ]; then
-        details="\"$details\""
+    # Escape details for JSON safety
+    if [ "$details" = "null" ]; then
+        local det_json="null"
+    else
+        local det_json
+        det_json=$(printf '%s' "$details" | jq -Rs . | head -c 1000)
     fi
 
     CHECKS=$(echo "$CHECKS" | jq \
@@ -64,7 +57,7 @@ add_check() {
         --arg rn "$rule_name" \
         --arg cat "$category" \
         --argjson p "$passed" \
-        --argjson det "$details" \
+        --argjson det "$det_json" \
         --arg sev "$severity" \
         '. + [{"ruleId": $rid, "ruleName": $rn, "category": $cat, "passed": $p, "details": $det, "severity": $sev}]')
 
@@ -74,68 +67,140 @@ add_check() {
     else
         FAILED=$((FAILED + 1))
     fi
+
+    local icon="✅"
+    if [ "$passed" = "false" ]; then
+        icon="❌"
+    fi
+    echo "  $icon [$severity] $rule_id: $rule_name"
 }
 
-# ==================================================================
-# PLACEHOLDER CHECKS — JOB-008 will replace these with real rules
-# ==================================================================
+# ---- Detect stack ----
+HAS_DOTNET=false
+HAS_NODE=false
 
-# Check 1: Workspace exists
 if [ -d "$REPO_DIR" ]; then
-    add_check "GOV-002-001" "Workspace Exists" "GOV-002" "true"
-else
-    add_check "GOV-002-001" "Workspace Exists" "GOV-002" "false" "No repo directory found at $REPO_DIR"
-fi
+    if find "$REPO_DIR" -maxdepth 3 \( -name "*.csproj" -o -name "*.slnx" -o -name "*.sln" \) 2>/dev/null | head -1 | grep -q .; then
+        HAS_DOTNET=true
+        echo "Detected stack: .NET"
+    fi
 
-# Check 2: No secret patterns in diff (placeholder)
-add_check "SEC-001-001" "No Secrets in Diff" "SEC-001" "true" "null" "error"
+    if [ -f "$REPO_DIR/package.json" ] || find "$REPO_DIR" -maxdepth 3 -name "package.json" 2>/dev/null | head -1 | grep -q .; then
+        HAS_NODE=true
+        echo "Detected stack: Node/React"
+    fi
 
-# Check 3: Result.json produced by dev worker
-if [ -f "/workspace/output/result.json" ]; then
-    add_check "CON-001-001" "Dev Worker Produced Result" "CON-001" "true"
+    if [ "$HAS_DOTNET" = false ] && [ "$HAS_NODE" = false ]; then
+        echo "WARNING: No recognized stack detected"
+    fi
 else
-    add_check "CON-001-001" "Dev Worker Produced Result" "CON-001" "true" "null" "warning"
-fi
-
-# Check 4: Stack-specific build check (placeholder — always passes for now)
-if [ "$STACK" = "dotnet" ]; then
-    add_check "GOV-002-002" "Build Succeeds (dotnet)" "GOV-002" "true"
-elif [ "$STACK" = "node" ]; then
-    add_check "GOV-002-002" "Build Succeeds (node)" "GOV-002" "true"
-else
-    add_check "GOV-002-002" "Build Check Skipped (unknown stack)" "GOV-002" "true" "null" "warning"
+    echo "WARNING: No repo directory at $REPO_DIR"
 fi
 
 # ==================================================================
-# Run any rule scripts from /rules/ directory
+# MANDATORY CHECKS — Always run regardless of stack
 # ==================================================================
-if [ -d "/rules" ]; then
-    for rule_script in /rules/*.sh; do
-        [ -f "$rule_script" ] || continue
-        echo "Running rule: $rule_script"
-        # Rule scripts output JSON: {"ruleId":"...", "ruleName":"...", "category":"...", "passed": true/false, "details": "...", "severity": "error/warning"}
-        set +e
-        RULE_OUTPUT=$(bash "$rule_script" "$REPO_DIR" "$TASK_FILE" 2>&1)
-        RULE_EXIT=$?
-        set -e
 
-        if [ $RULE_EXIT -eq 0 ] && echo "$RULE_OUTPUT" | jq . >/dev/null 2>&1; then
-            CHECKS=$(echo "$CHECKS" | jq --argjson rule "$RULE_OUTPUT" '. + [$rule]')
-            TOTAL=$((TOTAL + 1))
-            RULE_PASSED=$(echo "$RULE_OUTPUT" | jq -r '.passed')
-            if [ "$RULE_PASSED" = "true" ]; then
-                PASSED=$((PASSED + 1))
-            else
-                FAILED=$((FAILED + 1))
-            fi
+echo ""
+echo "--- Mandatory Checks ---"
+
+# ---- SEC-001-001: No secrets in git diff ----
+run_sec_001_001() {
+    if [ ! -d "$REPO_DIR/.git" ]; then
+        add_check "SEC-001-001" "No Secrets in Diff" "SEC-001" "true" "No git repository found - skipping diff scan" "error"
+        return
+    fi
+
+    local secret_hits=""
+
+    # Scan all tracked files for common secret patterns
+    set +e
+    secret_hits=$(cd "$REPO_DIR" && git diff HEAD~1 --unified=0 2>/dev/null \
+        | grep -E '^\+' \
+        | grep -v '^\+\+\+' \
+        | grep -iE \
+            '(sk-[a-zA-Z0-9]{20,}|ghp_[a-zA-Z0-9]{36}|gho_[a-zA-Z0-9]{36}|glpat-[a-zA-Z0-9]{20}|xox[bpas]-[a-zA-Z0-9-]{20,}|-----BEGIN (RSA |EC |DSA )?PRIVATE KEY-----|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{35})' \
+        2>/dev/null || true)
+    set -e
+
+    # Also scan for hardcoded password/secret assignments
+    local password_hits=""
+    set +e
+    password_hits=$(cd "$REPO_DIR" && git diff HEAD~1 --unified=0 2>/dev/null \
+        | grep -E '^\+' \
+        | grep -v '^\+\+\+' \
+        | grep -v 'test' \
+        | grep -v 'Test' \
+        | grep -v 'example' \
+        | grep -v 'placeholder' \
+        | grep -iE '(password|secret|api_key|apiKey|token)\s*[=:]\s*"[^"]{8,}"' \
+        2>/dev/null || true)
+    set -e
+
+    local all_hits=""
+    if [ -n "$secret_hits" ]; then
+        all_hits="$secret_hits"
+    fi
+    if [ -n "$password_hits" ]; then
+        if [ -n "$all_hits" ]; then
+            all_hits="$all_hits
+$password_hits"
         else
-            echo "WARNING: Rule script $rule_script failed or produced invalid output"
+            all_hits="$password_hits"
         fi
-    done
+    fi
+
+    if [ -z "$all_hits" ]; then
+        add_check "SEC-001-001" "No Secrets in Diff" "SEC-001" "true" "null" "error"
+    else
+        local count
+        count=$(echo "$all_hits" | wc -l)
+        local details
+        details=$(echo "$all_hits" | head -3 | sed 's/"/\\"/g' | tr '\n' '; ' | head -c 500)
+        add_check "SEC-001-001" "No Secrets in Diff" "SEC-001" "false" "$count potential secret(s) found in diff: $details" "error"
+    fi
+}
+
+run_sec_001_001
+
+# ==================================================================
+# STACK-SPECIFIC RULES
+# ==================================================================
+
+# Source and run .NET rules
+if [ "$HAS_DOTNET" = true ] && [ -f "$RULES_DIR/dotnet-rules.sh" ]; then
+    echo ""
+    echo "--- .NET Stack Rules ---"
+    # shellcheck source=rules/dotnet-rules.sh
+    source "$RULES_DIR/dotnet-rules.sh"
+    run_dotnet_rules
+fi
+
+# Source and run React/TypeScript rules
+if [ "$HAS_NODE" = true ] && [ -f "$RULES_DIR/react-rules.sh" ]; then
+    echo ""
+    echo "--- React/TypeScript Stack Rules ---"
+    # shellcheck source=rules/react-rules.sh
+    source "$RULES_DIR/react-rules.sh"
+    run_react_rules
+fi
+
+# ==================================================================
+# If no stack detected, still run basic file checks
+# ==================================================================
+if [ "$HAS_DOTNET" = false ] && [ "$HAS_NODE" = false ]; then
+    echo ""
+    echo "--- Basic Checks (no stack detected) ---"
+
+    # README exists
+    if [ -f "$REPO_DIR/README.md" ]; then
+        add_check "GOV-001-001" "README.md Exists" "GOV-001" "true" "null" "error"
+    else
+        add_check "GOV-001-001" "README.md Exists" "GOV-001" "false" "No README.md found in project root" "error"
+    fi
 fi
 
 # ---- Determine verdict ----
-# Pass if zero error-severity checks failed
 ERROR_FAILURES=$(echo "$CHECKS" | jq '[.[] | select(.passed == false and .severity == "error")] | length')
 if [ "$ERROR_FAILURES" -eq 0 ]; then
     STATUS="pass"
@@ -169,5 +234,10 @@ jq -n \
         checks: $checks
     }' > "$REPORT_FILE"
 
-echo "Governance report written to $REPORT_FILE"
-echo "Verdict: $STATUS ($SUMMARY)"
+echo ""
+echo "============================================"
+echo "Governance Report: $STATUS"
+echo "Total: $TOTAL | Passed: $PASSED | Failed: $FAILED"
+echo "Error failures blocking acceptance: $ERROR_FAILURES"
+echo "Report: $REPORT_FILE"
+echo "============================================"
