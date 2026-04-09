@@ -136,6 +136,18 @@ documents:
       Architect's own work stream: CODEX bootstrap, sprint planning, audit
       preparation, contract compliance, and agent onboarding.
 
+  - id: SPR-001
+    path: 05_PROJECT/SPR-001_Phase1_MVP.md
+    title: "Sprint 001 — Phase 1 MVP"
+    type: how-to
+    status: PLANNING
+    tags: [project-management, sprint, workflow]
+    agents: [coder]
+    summary: >
+      First development sprint: 16 tasks split across 2 parallel developer agents.
+      Agent A builds backend entities + API endpoints. Agent B builds React
+      dashboard + xUnit test infrastructure. Non-overlapping file territories.
+
   # ── 10_GOVERNANCE ───────────────────────────────────────────────────────────
   - id: GOV-001
     path: 10_GOVERNANCE/GOV-001_DocumentationStandard.md
@@ -350,6 +362,30 @@ documents:
       Defines the Developer Agent role: executes sprint tasks against blueprints
       and contracts, proposes contract changes via EVO- docs, reports blockers
       upstream. Includes mandatory workflow references (safe_commands, git_commit).
+
+  - id: AGT-002-A
+    path: 80_AGENTS/AGT-002-A_Dev_Agent_A_Boot.md
+    title: "Dev Agent A — Backend API Boot Document"
+    type: reference
+    status: APPROVED
+    tags: [agent-instructions, agentic-development, project-specific]
+    agents: [coder]
+    summary: >
+      Project-specific boot document for Dev Agent A. Defines backend file
+      territory, binding contracts (CON-002), existing code patterns, database
+      tables, and branch rules for SPR-001.
+
+  - id: AGT-002-B
+    path: 80_AGENTS/AGT-002-B_Dev_Agent_B_Boot.md
+    title: "Dev Agent B — Frontend & Tests Boot Document"
+    type: reference
+    status: APPROVED
+    tags: [agent-instructions, agentic-development, project-specific]
+    agents: [coder]
+    summary: >
+      Project-specific boot document for Dev Agent B. Defines frontend file
+      territory, React app structure, branding requirements, xUnit test project
+      setup, and merge order for SPR-001.
 
   - id: AGT-003
     path: 80_AGENTS/AGT-003_Tester_Agent.md
