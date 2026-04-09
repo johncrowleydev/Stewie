@@ -2,7 +2,7 @@
 id: SPR-001
 title: "Phase 1 MVP — Core Entities, API Endpoints, Dashboard & Tests"
 type: how-to
-status: ACTIVE
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, sprint, workflow]
@@ -223,7 +223,7 @@ T-009: Task endpoints
 - **Acceptance criteria:**
   - Test project builds and runs
   - Added to solution file
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-011: Unit Tests — RunOrchestrationService
 - **Dependencies:** T-010
@@ -239,7 +239,7 @@ T-009: Task endpoints
 - **Acceptance criteria:**
   - All tests pass: `dotnet test src/Stewie.Tests/Stewie.Tests.csproj`
   - Covers success, failure, and exception paths
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-012: Unit Tests — WorkspaceService
 - **Dependencies:** T-010
@@ -255,7 +255,7 @@ T-009: Task endpoints
 - **Acceptance criteria:**
   - All tests pass
   - Covers normal and error paths
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-013: Dashboard Layout & Routing
 - **Dependencies:** None
@@ -271,7 +271,7 @@ T-009: Task endpoints
   - Navigation between routes works
   - Layout renders correctly with Stewie branding
   - `npm run build` succeeds (in ClientApp)
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-014: Runs List Page
 - **Dependencies:** T-013
@@ -287,7 +287,7 @@ T-009: Task endpoints
   - Click navigates to detail page
   - Handles loading and empty states gracefully
   - `npm run build` succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-015: Run Detail Page
 - **Dependencies:** T-013
@@ -301,7 +301,7 @@ T-009: Task endpoints
   - Tasks listed within the run detail
   - Handles 404 (run not found) gracefully
   - `npm run build` succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-016: Projects Page
 - **Dependencies:** T-013
@@ -315,7 +315,7 @@ T-009: Task endpoints
   - Create form works and refreshes list
   - Validation errors shown to user
   - `npm run build` succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ---
 
@@ -332,13 +332,13 @@ T-009: Task endpoints
 | T-007 | A | [x] | Project CRUD |
 | T-008 | A | [x] | Run endpoints |
 | T-009 | A | [x] | Task endpoints |
-| T-010 | B | [ ] | Test project setup |
-| T-011 | B | [ ] | Tests: RunOrchestrationService |
-| T-012 | B | [ ] | Tests: WorkspaceService |
-| T-013 | B | [ ] | Dashboard layout |
-| T-014 | B | [ ] | Runs list page |
-| T-015 | B | [ ] | Run detail page |
-| T-016 | B | [ ] | Projects page |
+| T-010 | B | [x] | Test project setup |
+| T-011 | B | [x] | Tests: RunOrchestrationService |
+| T-012 | B | [x] | Tests: WorkspaceService |
+| T-013 | B | [x] | Dashboard layout |
+| T-014 | B | [x] | Runs list page |
+| T-015 | B | [x] | Run detail page |
+| T-016 | B | [x] | Projects page |
 
 ---
 
@@ -383,6 +383,16 @@ T-009: Task endpoints
 - **Verdict:** PASS
 - **Merged to main:** commit `979425c`
 
-### Agent B Audit
-**Verdict:** PENDING
-**Deploy approved:** NO (waiting for Agent B)
+### Agent B Audit (2026-04-09)
+- **Audit report:** `40_VERIFICATION/VER-002_SPR-001_Agent_B_Audit.md`
+- Build: ✅ Test project 0 errors, frontend 48 modules compiled
+- Tests: ✅ 8/8 pass (131ms)
+- Governance: ✅ All applicable GOV docs compliant, zero `any` types
+- Contract: ✅ TypeScript types match all CON-002 schemas
+- UI: ✅ Stewie branding, dark theme, Inter font, 754-line design system
+- Rebase: ✅ Clean rebase on Agent A code, combined build verified
+- **Verdict:** PASS
+- **Merged to main:** merge commit on `main`
+
+**Sprint Verdict:** CLOSED ✅
+**Deploy approved:** YES (pending infrastructure verification)
