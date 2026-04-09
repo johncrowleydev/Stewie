@@ -11,7 +11,7 @@ export interface Project {
   createdAt: string;
 }
 
-/** Run entity — CON-002 §5.2 (v1.2.0) */
+/** Run entity — CON-002 §5.2 (v1.3.0) */
 export interface Run {
   id: string;
   projectId: string | null;
@@ -19,6 +19,7 @@ export interface Run {
   branch: string | null;
   diffSummary: string | null;
   commitSha: string | null;
+  pullRequestUrl: string | null;
   createdAt: string;
   completedAt: string | null;
   tasks: WorkTask[];
@@ -110,3 +111,36 @@ export type EventType =
   | "TaskStarted"
   | "TaskCompleted"
   | "TaskFailed";
+
+/** Authenticated user from JWT token — CON-002 §4.0 */
+export interface AuthUser {
+  id: string;
+  username: string;
+  role: "admin" | "user";
+}
+
+/** Login request body — CON-002 §4.0 */
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+/** Registration request body — CON-002 §4.0 */
+export interface RegisterRequest {
+  username: string;
+  password: string;
+  inviteCode: string;
+}
+
+/** Auth response — CON-002 §4.0 */
+export interface AuthResponse {
+  token: string;
+  expiresAt: string;
+  user: AuthUser;
+}
+
+/** GitHub connection status — CON-002 §4.0.1 */
+export interface GitHubStatus {
+  connected: boolean;
+  username: string | null;
+}
