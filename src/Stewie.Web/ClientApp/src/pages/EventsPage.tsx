@@ -12,10 +12,10 @@ import type { Event, EventType } from "../types";
 
 /** Maps event types to display colors */
 const EVENT_COLORS: Record<EventType, string> = {
-  RunCreated: "var(--color-running)",
-  RunStarted: "var(--color-warning)",
-  RunCompleted: "var(--color-completed)",
-  RunFailed: "var(--color-failed)",
+  JobCreated: "var(--color-running)",
+  JobStarted: "var(--color-warning)",
+  JobCompleted: "var(--color-completed)",
+  JobFailed: "var(--color-failed)",
   TaskCreated: "var(--color-running)",
   TaskStarted: "var(--color-warning)",
   TaskCompleted: "var(--color-completed)",
@@ -24,10 +24,10 @@ const EVENT_COLORS: Record<EventType, string> = {
 
 /** Human-readable labels for event types */
 const EVENT_LABELS: Record<EventType, string> = {
-  RunCreated: "Run Created",
-  RunStarted: "Run Started",
-  RunCompleted: "Run Completed",
-  RunFailed: "Run Failed",
+  JobCreated: "Job Created",
+  JobStarted: "Job Started",
+  JobCompleted: "Job Completed",
+  JobFailed: "Job Failed",
   TaskCreated: "Task Created",
   TaskStarted: "Task Started",
   TaskCompleted: "Task Completed",
@@ -37,7 +37,7 @@ const EVENT_LABELS: Record<EventType, string> = {
 /** Entity type filter options */
 const FILTER_OPTIONS = [
   { value: "", label: "All" },
-  { value: "Run", label: "Runs" },
+  { value: "Job", label: "Jobs" },
   { value: "Task", label: "Tasks" },
 ];
 

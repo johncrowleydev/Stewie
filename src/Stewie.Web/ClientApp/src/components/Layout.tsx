@@ -19,7 +19,7 @@ function DashboardIcon() {
   );
 }
 
-function RunsIcon() {
+function JobsIcon() {
   return (
     <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
@@ -57,9 +57,9 @@ function SettingsIcon() {
 /** Maps route paths to page titles for the header bar */
 function getPageTitle(pathname: string): string {
   if (pathname === "/") return "Dashboard";
-  if (pathname === "/runs/new") return "Create Run";
-  if (pathname === "/runs") return "Runs";
-  if (pathname.startsWith("/runs/")) return "Run Details";
+  if (pathname === "/jobs/new") return "Create Job";
+  if (pathname === "/jobs") return "Jobs";
+  if (pathname.startsWith("/jobs/")) return "Job Details";
   if (pathname === "/projects") return "Projects";
   if (pathname === "/events") return "Events";
   if (pathname === "/settings") return "Settings";
@@ -86,9 +86,9 @@ export function Layout() {
             <DashboardIcon />
             Dashboard
           </NavLink>
-          <NavLink to="/runs" className={({ isActive }) => isActive ? "active" : ""}>
-            <RunsIcon />
-            Runs
+          <NavLink to="/jobs" className={({ isActive }) => isActive ? "active" : ""}>
+            <JobsIcon />
+            Jobs
           </NavLink>
           <NavLink to="/projects" className={({ isActive }) => isActive ? "active" : ""}>
             <ProjectsIcon />

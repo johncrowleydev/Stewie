@@ -1,28 +1,28 @@
 /**
- * RunsPage — Lists all runs with status badges and auto-refresh.
- * Polls GET /api/runs every 5s (CON-002 §4.2).
- * Click a row to navigate to run detail page.
+ * JobsPage — Lists all jobs with status badges and auto-refresh.
+ * Polls GET /api/jobs every 5s (CON-002 §4.2).
+ * Click a row to navigate to job detail page.
  */
 import { useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { fetchRuns } from "../api/client";
+import { fetchJobs } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
-import type { Run } from "../types";
+import type { Job } from "../types";
 import { usePolling } from "../hooks/usePolling";
 
-/** Polling interval for runs list */
-const RUNS_POLL_MS = 5000;
+/** Polling interval for jobs list */
+const JOBS_POLL_MS = 5000;
 
-/** Runs list page with auto-refresh and navigation */
-export function RunsPage() {
+/** Jobs list page with auto-refresh and navigation */
+export function JobsPage() {
   const navigate = useNavigate();
-  const fetchRunsFn = useCallback(() => fetchRuns(), []);
-  const { data: runs, loading, polling, error } = usePolling<Run[]>(
-    fetchRunsFn,
-    RUNS_POLL_MS
+  const fetchJobsFn = useCallback(() => fetchJobs(), []);
+  const { data: jobs, loading, polling, error } = usePolling<Job[]>(
+    fetchJobsFn,
+    JOBS_POLL_MS
   );
 
-  const runList = runs ?? [];
+  const jobList = jobs ?? [];
 
   /** Format an ISO date string to a human-readable local string */
   function formatDate(dateStr: string | null): string {
@@ -34,7 +34,7 @@ export function RunsPage() {
     return (
       <div>
         <div className="page-title-row">
-          <h1>Runs</h1>
+          <h1>Jobs</h1>
         </div>
         <div className="card">
           {[1, 2, 3, 4, 5].map((i) => (
@@ -45,14 +45,14 @@ export function RunsPage() {
     );
   }
 
-  if (error && !runs) {
+  if (error && !jobs) {
     return (
       <div>
         <div className="page-title-row">
-          <h1>Runs</h1>
+          <h1>Jobs</h1>
         </div>
         <div className="error-state">
-          <h3>Failed to load runs</h3>
+          <h3>Failed to load jobs</h3>
           <p>{error}</p>
         </div>
       </div>
@@ -60,36 +60,36 @@ export function RunsPage() {
   }
 
   return (
-    <div id="runs-page">
+    <div id="jobs-page">
       <div className="page-title-row">
-        <h1>Runs</h1>
+        <h1>Jobs</h1>
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
           {polling && (
-            <span className="live-indicator" id="runs-live">
+            <span className="live-indicator" id="jobs-live">
               <span className="live-dot" />
               Live
             </span>
           )}
-          <span className="card-label">{runList.length} total</span>
-          <Link to="/runs/new" className="btn btn-primary" id="runs-new-run">
-            + New Run
+          <span className="card-label">{jobList.length} total</span>
+          <Link to="/jobs/new" className="btn btn-primary" id="jobs-new-job">
+            + New Job
           </Link>
         </div>
       </div>
 
-      {runList.length === 0 ? (
+      {jobList.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">📋</div>
-          <h3>No runs found</h3>
-          <p>Runs will appear here once orchestration begins.</p>
+          <h3>No jobs found</h3>
+          <p>Jobs will appear here once orchestration begins.</p>
         </div>
       ) : (
         <div className="card">
-          <table className="data-table" id="runs-table">
+          <table className="data-table" id="jobs-table">
             <thead>
               <tr>
                 <th>Status</th>
-                <th>Run ID</th>
+                <th>Job ID</th>
                 <th>Project</th>
                 <th>Created</th>
                 <th>Completed</th>
@@ -97,19 +97,19 @@ export function RunsPage() {
               </tr>
             </thead>
             <tbody>
-              {runList.map((run) => (
+              {jobList.map((job) => (
                 <tr
-                  key={run.id}
+                  key={job.id}
                   className="clickable"
-                  onClick={() => { void navigate(`/runs/${run.id}`); }}
-                  id={`run-row-${run.id}`}
+                  onClick={() => { void navigate(`/jobs/${job.id}`); }}
+                  id={`job-row-${job.id}`}
                 >
-                  <td><StatusBadge status={run.status} /></td>
-                  <td className="mono">{run.id.slice(0, 8)}…</td>
-                  <td className="mono">{run.projectId ? run.projectId.slice(0, 8) + "…" : "—"}</td>
-                  <td>{formatDate(run.createdAt)}</td>
-                  <td>{formatDate(run.completedAt)}</td>
-                  <td>{run.tasks?.length ?? 0}</td>
+                  <td><StatusBadge status={job.status} /></td>
+                  <td className="mono">{job.id.slice(0, 8)}…</td>
+                  <td className="mono">{job.projectId ? job.projectId.slice(0, 8) + "…" : "—"}</td>
+                  <td>{formatDate(job.createdAt)}</td>
+                  <td>{formatDate(job.completedAt)}</td>
+                  <td>{job.tasks?.length ?? 0}</td>
                 </tr>
               ))}
             </tbody>

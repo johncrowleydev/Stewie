@@ -12,11 +12,11 @@ export interface Project {
   createdAt: string;
 }
 
-/** Run entity — CON-002 §5.2 (v1.3.0) */
-export interface Run {
+/** Job entity — CON-002 §5.2 (v1.5.0) */
+export interface Job {
   id: string;
   projectId: string | null;
-  status: RunStatus;
+  status: JobStatus;
   branch: string | null;
   diffSummary: string | null;
   commitSha: string | null;
@@ -26,10 +26,10 @@ export interface Run {
   tasks: WorkTask[];
 }
 
-/** Task entity — CON-002 §5.3 (v1.2.0) */
+/** Task entity — CON-002 §5.3 (v1.5.0) */
 export interface WorkTask {
   id: string;
-  runId: string;
+  jobId: string;
   role: "developer" | "tester" | "researcher";
   status: TaskStatus;
   objective: string;
@@ -66,8 +66,8 @@ export interface CreateProjectRequest {
   description?: string | null;
 }
 
-/** Create run request body — CON-002 §4.2 (v1.2.0) */
-export interface CreateRunRequest {
+/** Create job request body — CON-002 §4.2 (v1.5.0) */
+export interface CreateJobRequest {
   projectId: string;
   objective: string;
   scope?: string | null;
@@ -90,8 +90,8 @@ export interface DiffContent {
   diffPatch: string;
 }
 
-/** Status enum values for Runs */
-export type RunStatus = "Pending" | "Running" | "Completed" | "Failed";
+/** Status enum values for Jobs */
+export type JobStatus = "Pending" | "Running" | "Completed" | "Failed";
 
 /** Status enum values for Tasks */
 export type TaskStatus = "Pending" | "Running" | "Completed" | "Failed";
@@ -99,7 +99,7 @@ export type TaskStatus = "Pending" | "Running" | "Completed" | "Failed";
 /** Event entity — CON-002 §5.5 */
 export interface Event {
   id: string;
-  entityType: "Run" | "Task";
+  entityType: "Job" | "Task";
   entityId: string;
   eventType: EventType;
   payload: string;
@@ -108,10 +108,10 @@ export interface Event {
 
 /** Event type classification — mirrors Stewie.Domain.Enums.EventType */
 export type EventType =
-  | "RunCreated"
-  | "RunStarted"
-  | "RunCompleted"
-  | "RunFailed"
+  | "JobCreated"
+  | "JobStarted"
+  | "JobCompleted"
+  | "JobFailed"
   | "TaskCreated"
   | "TaskStarted"
   | "TaskCompleted"

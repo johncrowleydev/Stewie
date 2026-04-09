@@ -1,6 +1,6 @@
 /**
- * CreateRunPage — Form for creating a new run with task definition.
- * Submits to POST /api/runs per CON-002 §4.2 (v1.2.0).
+ * CreateJobPage — Form for creating a new job with task definition.
+ * Submits to POST /api/jobs per CON-002 §4.2 (v1.5.0).
  * Project selector populated from GET /api/projects.
  *
  * Fields: project (required), objective (required), scope (optional),
@@ -8,11 +8,11 @@
  */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchProjects, createRun } from "../api/client";
+import { fetchProjects, createJob } from "../api/client";
 import type { Project } from "../types";
 
-/** Create Run form page */
-export function CreateRunPage() {
+/** Create Job form page */
+export function CreateJobPage() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
@@ -75,28 +75,28 @@ export function CreateRunPage() {
     setError(null);
 
     try {
-      const run = await createRun({
+      const job = await createJob({
         projectId,
         objective: objective.trim(),
         scope: scope.trim() || null,
         script: parseLines(scriptText),
         acceptanceCriteria: parseLines(criteriaText),
       });
-      void navigate(`/runs/${run.id}`);
+      void navigate(`/jobs/${job.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create run");
+      setError(err instanceof Error ? err.message : "Failed to create job");
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <div id="create-run-page">
+    <div id="create-job-page">
       <div className="page-title-row">
-        <h1>Create Run</h1>
+        <h1>Create Job</h1>
       </div>
 
-      <form className="create-form" onSubmit={(e) => { void handleSubmit(e); }} id="create-run-form">
+      <form className="create-form" onSubmit={(e) => { void handleSubmit(e); }} id="create-job-form">
         <div className="form-group">
           <label className="form-label" htmlFor="project-select">
             Project *
@@ -194,14 +194,14 @@ export function CreateRunPage() {
             type="submit"
             className="btn btn-primary"
             disabled={submitting}
-            id="submit-run-btn"
+            id="submit-job-btn"
           >
-            {submitting ? "Creating…" : "Create Run"}
+            {submitting ? "Creating…" : "Create Job"}
           </button>
           <button
             type="button"
             className="btn btn-ghost"
-            onClick={() => { void navigate("/runs"); }}
+            onClick={() => { void navigate("/jobs"); }}
           >
             Cancel
           </button>
