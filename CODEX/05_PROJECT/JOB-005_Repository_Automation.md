@@ -1,5 +1,5 @@
 ---
-id: SPR-005
+id: JOB-005
 title: "Repository Automation + Platform Abstraction"
 type: how-to
 status: CLOSED
@@ -19,7 +19,7 @@ version: 1.0.0
 **Phase:** Phase 2.75 — Repository Automation + Platform Abstraction
 **Target:** Scope-bounded
 **Agent(s):** Dev Agent A (Backend), Dev Agent B (Frontend + Tests)
-**Dependencies:** SPR-004 complete (merged)
+**Dependencies:** JOB-004 complete (merged)
 **Contracts:** CON-002 v1.4.0 (extended project creation, repoProvider field)
 
 ---
@@ -32,7 +32,7 @@ version: 1.0.0
 | **GOV-002** | All new code must have tests |
 | **GOV-003** | C# coding standards; TS strict mode, no `any` types |
 | **GOV-004** | Error middleware for API; error/loading states for frontend |
-| **GOV-005** | Branch: `feature/SPR-005-backend` (A), `feature/SPR-005-frontend-tests` (B). Commits: `feat(SPR-005): T-XXX description` |
+| **GOV-005** | Branch: `feature/JOB-005-backend` (A), `feature/JOB-005-frontend-tests` (B). Commits: `feat(JOB-005): T-XXX description` |
 | **GOV-006** | Structured `ILogger` logging on all new services and controllers |
 | **GOV-008** | All infrastructure per GOV-008 |
 
@@ -64,7 +64,7 @@ T-052: Retry + error taxonomy
 
 ## Dev Agent A Tasks (Backend)
 
-> **Branch:** `feature/SPR-005-backend`
+> **Branch:** `feature/JOB-005-backend`
 > **File territory:** `src/Stewie.Domain/`, `src/Stewie.Application/`, `src/Stewie.Infrastructure/`, `src/Stewie.Api/`
 
 ### T-048: Rename IGitHubService → IGitPlatformService
@@ -186,7 +186,7 @@ T-052: Retry + error taxonomy
 
 ## Dev Agent B Tasks (Frontend + Tests)
 
-> **Branch:** `feature/SPR-005-frontend-tests`
+> **Branch:** `feature/JOB-005-frontend-tests`
 > **File territory:** `src/Stewie.Web/ClientApp/`, `src/Stewie.Tests/`
 
 ### T-053: Project Creation Form — Link or Create Toggle
@@ -272,8 +272,8 @@ T-052: Retry + error taxonomy
 
 ## Merge Strategy
 
-1. **Agent A completes** → Architect audits → merge `feature/SPR-005-backend` to `main`
-2. **Agent B completes** → rebase `feature/SPR-005-frontend-tests` onto updated `main` → Architect audits → merge
+1. **Agent A completes** → Architect audits → merge `feature/JOB-005-backend` to `main`
+2. **Agent B completes** → rebase `feature/JOB-005-frontend-tests` onto updated `main` → Architect audits → merge
 3. E2E: Create project (link mode) → verify backward compatible
 4. E2E: Create project (create mode with PAT) → verify GitHub repo created, repoUrl populated
 5. E2E: Create run → verify timeout enforced, retry on transient failure
@@ -288,7 +288,7 @@ New/updated configuration for Sprint 005:
 |:---------|:------------|:--------------|
 | `Stewie:TaskTimeoutSeconds` | Hard timeout for container execution | `300` |
 
-> All existing SPR-004 env vars (`STEWIE_JWT_SECRET`, `STEWIE_ENCRYPTION_KEY`, `STEWIE_ADMIN_PASSWORD`, `STEWIE_ADMIN_USERNAME`) remain unchanged.
+> All existing JOB-004 env vars (`STEWIE_JWT_SECRET`, `STEWIE_ENCRYPTION_KEY`, `STEWIE_ADMIN_PASSWORD`, `STEWIE_ADMIN_USERNAME`) remain unchanged.
 
 ---
 
@@ -310,7 +310,7 @@ New/updated configuration for Sprint 005:
 ## Audit Notes (Architect)
 
 ### Combined Audit (2026-04-09)
-- **Audit report:** `40_VERIFICATION/VER-006_SPR-005_Audit.md`
+- **Audit report:** `40_VERIFICATION/VER-006_JOB-005_Audit.md`
 - Build: ✅ API 0 errors, frontend 57 modules, 54/54 tests pass (3 skipped)
 - Merge fix: Applied IGitHubService → IGitPlatformService rename in Agent B's test files (parallel-agent merge artifact)
 - Governance: ✅ All GOV docs compliant

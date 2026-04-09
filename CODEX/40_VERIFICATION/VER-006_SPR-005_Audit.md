@@ -6,17 +6,17 @@ status: APPROVED
 owner: architect
 agents: [architect]
 tags: [verification, audit, sprint, testing]
-related: [SPR-005, CON-002, CON-001, GOV-002]
+related: [JOB-005, CON-002, CON-001, GOV-002]
 created: 2026-04-09
 updated: 2026-04-09
 version: 1.0.0
 ---
 
-> **BLUF:** SPR-005 PASSES audit. Build succeeds, 54/54 tests pass (3 skipped), frontend builds clean. One merge-integration defect found and resolved during audit (stale `IGitHubService` references in Agent B's tests). No open defects.
+> **BLUF:** JOB-005 PASSES audit. Build succeeds, 54/54 tests pass (3 skipped), frontend builds clean. One merge-integration defect found and resolved during audit (stale `IGitHubService` references in Agent B's tests). No open defects.
 
 # Sprint 005 Audit Report
 
-**Sprint:** SPR-005 — Repository Automation + Platform Abstraction
+**Sprint:** JOB-005 — Repository Automation + Platform Abstraction
 **Audited by:** Architect Agent
 **Date:** 2026-04-09
 **Branch state at audit:** `main` (Agent A merged first, Agent B merged second)
@@ -75,7 +75,7 @@ version: 1.0.0
 | GOV-002 | All new code has tests | ✅ 14 new tests added |
 | GOV-003 | No `any` types, no `console.log` | ✅ Clean (verified via grep) |
 | GOV-004 | Error middleware, structured errors | ✅ ArgumentException / KeyNotFoundException used consistently |
-| GOV-005 | Branch naming, commit format | ✅ `feature/SPR-005-backend`, `feature/SPR-005-frontend-tests` |
+| GOV-005 | Branch naming, commit format | ✅ `feature/JOB-005-backend`, `feature/JOB-005-frontend-tests` |
 | GOV-006 | Structured ILogger logging | ✅ All new services/controllers use structured logging |
 | GOV-008 | Infrastructure standards | ✅ `TaskTimeoutSeconds` config key documented |
 

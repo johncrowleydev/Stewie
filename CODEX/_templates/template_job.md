@@ -1,40 +1,40 @@
 ---
-id: SPR-NNN
-title: "[Sprint Title]"
+id: JOB-NNN
+title: "[Job Title]"
 type: how-to
 status: PLANNING
 owner: architect
 agents: [coder, tester]
-tags: [project-management, sprint, workflow]
+tags: [project-management, job, workflow]
 related: [BCK-001, BLU-NNN]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 version: 1.0.0
 ---
 
-> **BLUF:** Sprint [NNN] targets [goal in one sentence]. [N] tasks assigned to [Developer/Tester Agent]. Estimated completion: [timeframe or "scope-bounded"]. **Governance compliance is mandatory from task one.**
+> **BLUF:** Job [NNN] targets [goal in one sentence]. [N] tasks assigned to [Developer/Tester Agent]. Estimated completion: [timeframe or "scope-bounded"]. **Governance compliance is mandatory from task one.**
 
-# Sprint [NNN]: [Title]
+# Job [NNN]: [Title]
 
 **Phase:** [Phase number and name]
 **Target:** [timeframe] (AI-agent pace)
 **Agent(s):** [Frontend / Backend / Both]
-**Dependencies:** [Previous sprint(s) that must be complete]
-**Contracts:** [CON-NNN — binding contracts for this sprint]
+**Dependencies:** [Previous job(s) that must be complete]
+**Contracts:** [CON-NNN — binding contracts for this job]
 
 ---
 
 ## ⚠️ Mandatory Compliance — Every Task
 
-> All tasks in this sprint MUST incorporate these governance standards. They are not optional and not deferred.
+> All tasks in this job MUST incorporate these governance standards. They are not optional and not deferred.
 
-| Governance Doc | Sprint Requirement |
+| Governance Doc | Job Requirement |
 |:---------------|:-------------------|
-| **GOV-001** | [specific doc requirement for this sprint] |
+| **GOV-001** | [specific doc requirement for this job] |
 | **GOV-002** | [specific testing requirement] |
 | **GOV-003** | [specific coding standard requirement] |
 | **GOV-004** | [specific error handling requirement] |
-| **GOV-005** | Branch: `feature/SPR-NNN-description` (one per sprint). Commits: `feat(SPR-NNN): T-XXX description`. |
+| **GOV-005** | Branch: `feature/JOB-NNN-description` (one per job). Commits: `feat(JOB-NNN): T-XXX description`. |
 | **GOV-006** | [specific logging requirement] |
 | **GOV-007** | Task status updated. Blockers → `DEF-` doc. |
 | **GOV-008** | [specific infra requirement] |
@@ -46,7 +46,7 @@ version: 1.0.0
 ## [Agent Name] Tasks
 
 ### T-NNN: [Task Title]
-- **Branch:** `feature/SPR-NNN-TNNN-[short-description]`
+- **Branch:** `feature/JOB-NNN-TNNN-[short-description]`
 - **Dependencies:** [T-NNN or None]
 - **Contracts:** [CON-NNN §section or None]
 - **Blueprints:** [BLU-NNN §section or None]
@@ -59,7 +59,7 @@ version: 1.0.0
 - **Status:** [ ] Not Started
 
 ### T-NNN: [Next Task]
-- **Branch:** `feature/SPR-NNN-TNNN-[short-description]`
+- **Branch:** `feature/JOB-NNN-TNNN-[short-description]`
 - **Dependencies:** [T-NNN]
 - **Deliverable:** [description]
 - **Acceptance criteria:** [criteria]
@@ -67,11 +67,11 @@ version: 1.0.0
 
 ---
 
-## Sprint Checklist
+## Job Checklist
 
 | Task | Agent | Status | Branch | Audited |
 |:-----|:------|:-------|:-------|:--------|
-| T-NNN | [Agent] | [ ] | `feature/SPR-NNN-TNNN-description` | [ ] |
+| T-NNN | [Agent] | [ ] | `feature/JOB-NNN-TNNN-description` | [ ] |
 
 ---
 
@@ -83,13 +83,13 @@ version: 1.0.0
 
 ---
 
-## Sprint Completion Criteria
+## Job Completion Criteria
 
 - [ ] All tasks pass acceptance criteria
 - [ ] All GOV compliance checks pass (Architect audit)
 - [ ] All tests pass: `npm run lint && npm run typecheck && npm run test`
 - [ ] Architect audit complete (VER-001 checklist)
-- [ ] No open `DEF-` reports against this sprint
+- [ ] No open `DEF-` reports against this job
 
 ---
 

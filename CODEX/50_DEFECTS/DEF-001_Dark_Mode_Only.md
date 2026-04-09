@@ -6,7 +6,7 @@ status: FIXED
 owner: coder
 agents: [coder]
 tags: [defect, frontend, ux]
-related: [SPR-001, VER-002]
+related: [JOB-001, VER-002]
 created: 2026-04-09
 updated: 2026-04-09
 version: 1.0.0
@@ -26,7 +26,7 @@ version: 1.0.0
 | **Discovered By** | Human (UAT) |
 | **Discovered During** | UAT — Sprint 001 verification |
 | **Component** | `Stewie.Web/ClientApp` — `index.css`, Layout component |
-| **Branch** | `fix/DEF-001-light-theme` or rolled into SPR-002 |
+| **Branch** | `fix/DEF-001-light-theme` or rolled into JOB-002 |
 
 ## 2. Steps to Reproduce
 
@@ -47,7 +47,7 @@ version: 1.0.0
 
 ## 4. Root Cause Analysis
 
-SPR-001 task T-013 specified "Dark theme preferred" without requiring a theme toggle. The sprint spec was ambiguous — it should have required both themes with dark as default.
+JOB-001 task T-013 specified "Dark theme preferred" without requiring a theme toggle. The sprint spec was ambiguous — it should have required both themes with dark as default.
 
 ## 5. Fix
 

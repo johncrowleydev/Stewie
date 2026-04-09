@@ -134,7 +134,7 @@ Agent definitions are **role templates**, not project-specific profiles. They ar
 |:-------|:-----|:---------|:-----------|
 | `BLU-` | Blueprint (design spec) | `20_BLUEPRINTS/` | Human + Architect |
 | `CON-` | Interface Contract | `20_BLUEPRINTS/` | Human (Architect maintains) |
-| `SPR-` | Sprint | `05_PROJECT/` | Architect |
+| `JOB-` | Job | `05_PROJECT/` | Architect |
 | `BCK-` | Backlog | `05_PROJECT/` | Architect |
 | `PRJ-` | Roadmap | `05_PROJECT/` | Human (Architect maintains) |
 | `DEF-` | Defect Report | `50_DEFECTS/` | Developer or Tester |
@@ -194,7 +194,7 @@ File: `.agent/workflows/git_commit.md`
 Use conventional commits with CODEX references:
 
 ```
-feat(SPR-NNN): description of feature
+feat(JOB-NNN): description of feature
 fix(DEF-NNN): description of fix
 docs(GOV-NNN): description of doc change
 ```

@@ -6,19 +6,19 @@ status: APPROVED
 owner: architect
 agents: [architect]
 tags: [verification, audit, testing, governance, sprint]
-related: [SPR-001, CON-002, BLU-001, GOV-002, GOV-007]
+related: [JOB-001, CON-002, BLU-001, GOV-002, GOV-007]
 created: 2026-04-09
 updated: 2026-04-09
 version: 1.0.0
 ---
 
-> **BLUF:** Dev Agent A's backend work on SPR-001 (T-001 through T-009) **PASSES** the Architect audit. Build succeeds with 0 errors. All 10 CON-002 endpoints implemented correctly. Governance compliance verified across all 8 GOV docs. Code quality is high — clean patterns, full XML doc coverage, structured logging, CODEX references. Approved for merge to main.
+> **BLUF:** Dev Agent A's backend work on JOB-001 (T-001 through T-009) **PASSES** the Architect audit. Build succeeds with 0 errors. All 10 CON-002 endpoints implemented correctly. Governance compliance verified across all 8 GOV docs. Code quality is high — clean patterns, full XML doc coverage, structured logging, CODEX references. Approved for merge to main.
 
 # VER-001: Sprint 001 Audit — Dev Agent A (Backend API)
 
-**Sprint under audit:** `SPR-001` (Tasks T-001 through T-009)
+**Sprint under audit:** `JOB-001` (Tasks T-001 through T-009)
 **Agent:** Dev Agent A (Backend)
-**Branch:** `feature/SPR-001-backend-api`
+**Branch:** `feature/JOB-001-backend-api`
 **Audit date:** 2026-04-09
 
 ---
@@ -39,8 +39,8 @@ version: 1.0.0
 | Check | Status |
 |:------|:-------|
 | 9 commits, 1 per task (T-001 through T-009) | ✅ PASS |
-| All commits follow `feat(SPR-001): T-XXX description` format | ✅ PASS |
-| Branch name follows GOV-005 (`feature/SPR-001-backend-api`) | ✅ PASS |
+| All commits follow `feat(JOB-001): T-XXX description` format | ✅ PASS |
+| Branch name follows GOV-005 (`feature/JOB-001-backend-api`) | ✅ PASS |
 | 32 files changed, 1362 insertions, 7 deletions | ✅ PASS |
 
 ---
@@ -67,12 +67,12 @@ version: 1.0.0
 | `GET /api/projects` (§4.1) | `ProjectsController.GetAll()` | ✅ PASS |
 | `POST /api/projects` (§4.1) | `ProjectsController.Create()` with validation | ✅ PASS |
 | `GET /api/projects/{id}` (§4.1) | `ProjectsController.GetById()` with 404 | ✅ PASS |
-| `GET /api/runs` (§4.2) | `RunsController.GetAll()` with `?projectId` filter | ✅ PASS |
-| `POST /api/runs` (§4.2) | `RunsController.Create()` with optional projectId | ✅ PASS |
-| `GET /api/runs/{id}` (§4.2) | `RunsController.GetById()` with nested tasks | ✅ PASS |
+| `GET /api/jobs` (§4.2) | `RunsController.GetAll()` with `?projectId` filter | ✅ PASS |
+| `POST /api/jobs` (§4.2) | `RunsController.Create()` with optional projectId | ✅ PASS |
+| `GET /api/jobs/{id}` (§4.2) | `RunsController.GetById()` with nested tasks | ✅ PASS |
 | `POST /runs/test` (§3.1) | `RunsController.TriggerTestRun()` — preserved | ✅ PASS |
 | `GET /api/tasks/{id}` (§4.3) | `TasksController.GetById()` with artifacts | ✅ PASS |
-| `GET /api/runs/{runId}/tasks` (§4.3) | `TasksController.GetByRunId()` | ✅ PASS |
+| `GET /api/jobs/{runId}/tasks` (§4.3) | `TasksController.GetByRunId()` | ✅ PASS |
 | `GET /health` (§4.4) | `HealthController.GetHealth()` — status, version, timestamp | ✅ PASS |
 
 ### Response Schema Verification

@@ -6,7 +6,7 @@ status: CLOSED
 owner: coder
 agents: [coder, tester]
 tags: [defect, testing]
-related: [SPR-004, VER-005]
+related: [JOB-004, VER-005]
 created: 2026-04-09
 updated: 2026-04-09
 version: 1.0.0
@@ -26,10 +26,10 @@ version: 1.0.0
 | **Discovered By** | architect |
 | **Discovered During** | Sprint Audit VER-005 |
 | **Component** | `Stewie.Tests` |
-| **Branch** | `feature/SPR-004-frontend-tests` |
+| **Branch** | `feature/JOB-004-frontend-tests` |
 
 ## 2. Description
-In SPR-004, Dev Agent B was tasked with implementing T-047 which includes:
+In JOB-004, Dev Agent B was tasked with implementing T-047 which includes:
 - Update `StewieWebApplicationFactory` to support auth:
   - Auto-seed a test user + invite code
   - Provide helper to generate test JWT: `factory.GetAuthToken()`
@@ -44,7 +44,7 @@ Agent B skipped refactoring the old tests.
 2. Observer 13 test failures on all previously existing controller calls.
 
 ## 4. Remediation Plan
-Agent B must checkout `feature/SPR-004-frontend-tests` and:
+Agent B must checkout `feature/JOB-004-frontend-tests` and:
 1. Implement `public string GetAuthToken()` in `StewieWebApplicationFactory.cs` returning a signed JWT using the `Stewie__JwtSecret` value (`"test-jwt-secret-minimum-32-characters-long!!"`) and admin test credentials.
 2. In all tests that test endpoints which are now protected by `[Authorize]` (essentially all endpoint hits inside `ProjectsControllerTests`, `RunsControllerTests`, and `RunCreationTests`), manually add the generated JWT as a Bearer token in the request headers on `_client`.
 3. Verify that all 40 tests execute successfully with zero failures.

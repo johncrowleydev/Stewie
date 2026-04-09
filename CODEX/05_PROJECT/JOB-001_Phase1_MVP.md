@@ -1,5 +1,5 @@
 ---
-id: SPR-001
+id: JOB-001
 title: "Phase 1 MVP — Core Entities, API Endpoints, Dashboard & Tests"
 type: how-to
 status: CLOSED
@@ -34,7 +34,7 @@ version: 1.0.0
 | **GOV-002** | Agent B creates test project; both agents write tests for their code |
 | **GOV-003** | C# coding standards, no dead code, complexity limits |
 | **GOV-004** | Standardized error responses via error middleware (Agent A) |
-| **GOV-005** | Agent A: `feature/SPR-001-backend-api`. Agent B: `feature/SPR-001-frontend-tests`. Commits: `feat(SPR-001): T-XXX description` |
+| **GOV-005** | Agent A: `feature/JOB-001-backend-api`. Agent B: `feature/JOB-001-frontend-tests`. Commits: `feat(JOB-001): T-XXX description` |
 | **GOV-006** | Structured `ILogger` logging on all new services and controllers |
 | **GOV-007** | Task status updated in this doc. Blockers → `DEF-` doc |
 | **GOV-008** | All infrastructure per GOV-008 (SQL Server, Docker, local-first) |
@@ -46,7 +46,7 @@ version: 1.0.0
 ## Parallel Execution Plan
 
 ```
-                    SPR-001 Timeline
+                    JOB-001 Timeline
                     ================
 
 Agent A (Backend)              Agent B (Frontend + Tests)
@@ -73,7 +73,7 @@ T-009: Task endpoints
 
 ## Dev Agent A Tasks (Backend API)
 
-> **Branch:** `feature/SPR-001-backend-api`
+> **Branch:** `feature/JOB-001-backend-api`
 > **File territory:** `src/Stewie.Domain/`, `src/Stewie.Application/`, `src/Stewie.Infrastructure/`, `src/Stewie.Api/`
 
 ### T-001: Project Entity
@@ -183,9 +183,9 @@ T-009: Task endpoints
 - **Contracts:** CON-002 §4.2, §5.2
 - **Deliverable:**
   - Add to `RunsController.cs` or create new controller:
-  - `GET /api/runs` — list all runs (optionally filter by projectId query param)
-  - `POST /api/runs` — create a run (optionally with projectId)
-  - `GET /api/runs/{id}` — get run by ID, include nested tasks
+  - `GET /api/jobs` — list all runs (optionally filter by projectId query param)
+  - `POST /api/jobs` — create a run (optionally with projectId)
+  - `GET /api/jobs/{id}` — get run by ID, include nested tasks
   - Keep existing `POST /runs/test` working
 - **Acceptance criteria:**
   - All endpoints return correct JSON per CON-002 §5.2
@@ -199,7 +199,7 @@ T-009: Task endpoints
 - **Deliverable:**
   - `Stewie.Api/Controllers/TasksController.cs`
   - `GET /api/tasks/{id}` — get task by ID, include artifacts
-  - `GET /api/runs/{runId}/tasks` — list tasks for a run
+  - `GET /api/jobs/{runId}/tasks` — list tasks for a run
 - **Acceptance criteria:**
   - All endpoints return correct JSON per CON-002 §5.3
   - Build succeeds
@@ -209,7 +209,7 @@ T-009: Task endpoints
 
 ## Dev Agent B Tasks (Frontend + Tests)
 
-> **Branch:** `feature/SPR-001-frontend-tests`
+> **Branch:** `feature/JOB-001-frontend-tests`
 > **File territory:** `src/Stewie.Web/ClientApp/`, `src/Stewie.Tests/` (new project)
 
 ### T-010: Test Project Setup
@@ -277,7 +277,7 @@ T-009: Task endpoints
 - **Dependencies:** T-013
 - **Contracts:** CON-002 §4.2, §5.2
 - **Deliverable:**
-  - `src/pages/RunsPage.tsx` — fetches `GET /api/runs`, displays as a table/list
+  - `src/pages/RunsPage.tsx` — fetches `GET /api/jobs`, displays as a table/list
   - Status badges (color-coded: Pending=gray, Running=blue, Completed=green, Failed=red)
   - Click a run → navigates to `/runs/{id}`
   - Loading and empty states
@@ -293,7 +293,7 @@ T-009: Task endpoints
 - **Dependencies:** T-013
 - **Contracts:** CON-002 §4.2, §4.3, §5.2, §5.3
 - **Deliverable:**
-  - `src/pages/RunDetailPage.tsx` — fetches `GET /api/runs/{id}`, displays Run info + Tasks table
+  - `src/pages/RunDetailPage.tsx` — fetches `GET /api/jobs/{id}`, displays Run info + Tasks table
   - Shows: Run status, created/completed timestamps, list of tasks with their statuses
   - Each task shows: role, status, workspace path, timestamps
 - **Acceptance criteria:**
@@ -344,8 +344,8 @@ T-009: Task endpoints
 
 ## Merge Strategy
 
-1. **Agent A completes** → Architect audits → merge `feature/SPR-001-backend-api` to `main`
-2. **Agent B completes** → rebase `feature/SPR-001-frontend-tests` onto updated `main` → Architect audits → merge
+1. **Agent A completes** → Architect audits → merge `feature/JOB-001-backend-api` to `main`
+2. **Agent B completes** → rebase `feature/JOB-001-frontend-tests` onto updated `main` → Architect audits → merge
 3. Architect verifies end-to-end: dashboard shows data from API
 
 **Expected conflict:** `Stewie.slnx` (Agent B adds test project). Trivial to resolve.
@@ -375,7 +375,7 @@ T-009: Task endpoints
 ## Audit Notes (Architect)
 
 ### Agent A Audit (2026-04-09)
-- **Audit report:** `40_VERIFICATION/VER-001_SPR-001_Agent_A_Audit.md`
+- **Audit report:** `40_VERIFICATION/VER-001_JOB-001_Agent_A_Audit.md`
 - Build: ✅ 0 errors
 - Governance: ✅ All 8 GOV docs compliant
 - Contract: ✅ All 10 CON-002 endpoints verified
@@ -384,7 +384,7 @@ T-009: Task endpoints
 - **Merged to main:** commit `979425c`
 
 ### Agent B Audit (2026-04-09)
-- **Audit report:** `40_VERIFICATION/VER-002_SPR-001_Agent_B_Audit.md`
+- **Audit report:** `40_VERIFICATION/VER-002_JOB-001_Agent_B_Audit.md`
 - Build: ✅ Test project 0 errors, frontend 48 modules compiled
 - Tests: ✅ 8/8 pass (131ms)
 - Governance: ✅ All applicable GOV docs compliant, zero `any` types

@@ -99,14 +99,14 @@ Dashboard available at `http://localhost:5173`. API at `http://localhost:5275`.
 1. Open `http://localhost:5173` → Login with your admin credentials
 2. Navigate to **Settings** → Add your GitHub PAT (stored AES-256-CBC encrypted)
 3. Create a **Project** — link an existing repo or create a new one on GitHub
-4. Create a **Run** — define an objective, scope, and optional script commands
+4. Create a **Job** — define an objective, scope, and optional script commands
 5. Stewie clones the repo, creates a branch, executes the worker, captures diffs, commits, pushes, and opens a PR
 
 ## How It Works
 
-### Run Execution Flow
+### Job Execution Flow
 
-1. User creates a **Run** against a **Project** (with objective and optional script)
+1. User creates a **Job** against a **Project** (with objective and optional script)
 2. Stewie creates a **Task** and prepares an isolated workspace:
    - `workspaces/{taskId}/input/` — `task.json` with instructions
    - `workspaces/{taskId}/output/` — worker writes `result.json` here
@@ -116,7 +116,7 @@ Dashboard available at `http://localhost:5173`. API at `http://localhost:5275`.
 5. Worker reads `task.json`, executes, writes `result.json`
 6. Stewie ingests the result, captures `git diff`, commits changes
 7. Branch is pushed to remote, a pull request is created automatically
-8. Run/Task statuses updated, events logged for audit trail
+8. Job/Task statuses updated, events logged for audit trail
 
 ### Retry Logic
 
@@ -155,10 +155,10 @@ All endpoints require `Authorization: Bearer {jwt}` (except `/api/auth/login`).
 | `POST` | `/api/auth/register` | Register new user (requires invite code) |
 | `GET` | `/api/projects` | List all projects |
 | `POST` | `/api/projects` | Create project (link existing repo or create new) |
-| `GET` | `/api/runs` | List runs (optionally filter by `?projectId=`) |
-| `POST` | `/api/runs` | Create and execute a run |
-| `GET` | `/api/runs/{id}` | Get run details with nested tasks |
-| `POST` | `/runs/test` | Trigger a test run (dummy worker) |
+| `GET` | `/api/jobs` | List jobs (optionally filter by `?projectId=`=`) |
+| `POST` | `/api/jobs` | Create and execute a job |
+| `GET` | `/api/jobs/{id}` | Get job details with nested tasks |
+| `POST` | `/jobs/test` | Trigger a test job (dummy worker) |
 | `POST` | `/api/users/github-token` | Store GitHub PAT (AES-256 encrypted) |
 | `GET` | `/api/users/github-token/status` | Check PAT configuration status |
 
@@ -189,7 +189,7 @@ Workers communicate with Stewie via JSON files mounted in the container.
 ```json
 {
   "taskId": "guid",
-  "runId": "guid",
+  "jobId": "guid",
   "role": "developer",
   "objective": "Implement feature X",
   "scope": "src/services/",
@@ -237,7 +237,7 @@ cd src/Stewie.Web/ClientApp && npm run build
 | 2.5 | GitHub Integration + Auth | ✅ Complete |
 | 2.75 | Repository Automation + Platform Abstraction | ✅ Complete |
 | **3** | **Governance Engine** | 🔜 Next |
-| 4 | Multi-Task Runs | Planned |
+| 4 | Multi-Task Jobs | Planned |
 | 5 | Real-Time Interaction | Planned |
 
 Full roadmap: `CODEX/05_PROJECT/PRJ-001_Roadmap.md`

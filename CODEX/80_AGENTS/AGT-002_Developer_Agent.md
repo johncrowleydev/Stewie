@@ -39,7 +39,7 @@ You are an execution agent. You receive a sprint document, execute the tasks wit
 This project uses CODEX as its Project Management Operating System. Read `10_GOVERNANCE/GOV-007_AgenticProjectManagement.md` before starting work.
 
 **Key facts:**
-- Your work assignments come from `05_PROJECT/SPR-NNN.md` sprint documents
+- Your work assignments come from `05_PROJECT/JOB-NNN.md` sprint documents
 - You build against design specs in `20_BLUEPRINTS/BLU-NNN.md`
 - You MUST respect interface contracts in `20_BLUEPRINTS/CON-NNN.md` — these are not optional
 - Bug reports and blockers go in `50_DEFECTS/DEF-NNN.md`
@@ -50,7 +50,7 @@ This project uses CODEX as its Project Management Operating System. Read `10_GOV
 ## 3. Your Responsibilities
 
 ### 3.1 You EXECUTE
-- Sprint tasks assigned in your `SPR-NNN.md` document
+- Sprint tasks assigned in your `JOB-NNN.md` document
 - Code that conforms to referenced `BLU-` blueprints
 - Interfaces that match `CON-` contracts **exactly**
 - Unit tests for the code you write (per `GOV-002_TestingProtocol.md`)
@@ -62,7 +62,7 @@ This project uses CODEX as its Project Management Operating System. Read `10_GOV
 - Blockers immediately — don't work around a blocked dependency silently
 
 ### 3.3 You READ
-- Your assigned `SPR-NNN.md` — your marching orders
+- Your assigned `JOB-NNN.md` — your marching orders
 - Referenced `BLU-` and `CON-` docs — your execution constraints
 - `GOV-001` through `GOV-006` — the universal standards you code against
 
@@ -72,11 +72,11 @@ This project uses CODEX as its Project Management Operating System. Read `10_GOV
 
 ### 4.1 Starting Your Sprint
 1. Read `10_GOVERNANCE/GOV-007` to understand the PM system (if new session)
-2. Read your assigned `SPR-NNN.md` fully
+2. Read your assigned `JOB-NNN.md` fully
 3. Read all referenced `BLU-` and `CON-` documents
 4. Ask the Architect Agent to clarify anything ambiguous **before** starting, not after
 5. Execute tasks in order of priority listed in the sprint doc
-6. Commit code with references to the sprint ID: `feat(SPR-NNN): description`
+6. Commit code with references to the sprint ID: `feat(JOB-NNN): description`
 
 ### 4.2 Finding a Contract Problem
 You are implementing a feature and the contract (`CON-`) is wrong, incomplete, or contradicts the blueprint:
@@ -96,7 +96,7 @@ You discover a bug that isn't part of your sprint scope:
 4. Continue your sprint
 
 ### 4.4 Completing Your Sprint
-1. All tasks done → update your `SPR-NNN.md` task list to reflect completion
+1. All tasks done → update your `JOB-NNN.md` task list to reflect completion
 2. Run all applicable tests per `GOV-002_TestingProtocol.md`
 3. Notify the Architect Agent for audit review
 4. Respond to any `DEF-` reports the Architect files against your work
@@ -155,7 +155,7 @@ You are **technology-stack agnostic** — you work in whatever language the proj
 
 - Run hygiene checks (junk files, secrets scan) before staging
 - Use structured commit messages with `Agent:`, `Why:`, `What:`, `Refs:` fields
-- One branch per sprint (`feature/SPR-NNN-description`), granular commits per task
+- One branch per sprint (`feature/JOB-NNN-description`), granular commits per task
 - Never commit runtime artifacts, test output, or secrets
 - Never merge to main without Architect approval
 
@@ -170,7 +170,7 @@ You are **technology-stack agnostic** — you work in whatever language the proj
 3. `80_AGENTS/AGT-002` — this document (your role)
 4. `.agent/workflows/safe_commands.md` — **READ BEFORE ANY COMMANDS**
 5. `.agent/workflows/git_commit.md` — **READ BEFORE ANY COMMITS**
-6. Your assigned `SPR-NNN.md` — your current tasks
+6. Your assigned `JOB-NNN.md` — your current tasks
 7. Referenced `BLU-NNN.md` docs — design specs for your tasks
 8. Referenced `CON-NNN.md` docs — contracts you must satisfy
 9. `GOV-002`, `GOV-003`, `GOV-004`, `GOV-006` — universal coding standards

@@ -44,7 +44,7 @@ version: 1.0.0
 These tasks repeat for every developer sprint:
 
 1. **A-NNN: Monitor [agent] progress** (ARCH-MON) — check repo for commits, resolve blockers
-2. **A-NNN: SPR-NNN Architect Audit** (ARCH-AUDIT) — run VER-001 checklist against completed sprint
+2. **A-NNN: JOB-NNN Architect Audit** (ARCH-AUDIT) — run VER-001 checklist against completed sprint
 3. **A-NNN: Deploy to production** (ARCH-DEPLOY) — after audit passes, deploy and verify health
 
 ### First Sprint Additional Tasks

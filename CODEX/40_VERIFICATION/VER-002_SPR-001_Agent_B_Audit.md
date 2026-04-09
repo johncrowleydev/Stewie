@@ -6,19 +6,19 @@ status: APPROVED
 owner: architect
 agents: [architect]
 tags: [verification, audit, testing, governance, sprint]
-related: [SPR-001, CON-002, GOV-002, GOV-003]
+related: [JOB-001, CON-002, GOV-002, GOV-003]
 created: 2026-04-09
 updated: 2026-04-09
 version: 1.0.0
 ---
 
-> **BLUF:** Dev Agent B's frontend + test work on SPR-001 (T-010 through T-016) **PASSES** the Architect audit. Test project builds with 0 errors. 8/8 unit tests pass. Frontend builds clean (48 modules, 1.21s). All TypeScript is strict (zero `any` types). Rebased cleanly on Agent A's code — combined build verified. Approved for merge to main.
+> **BLUF:** Dev Agent B's frontend + test work on JOB-001 (T-010 through T-016) **PASSES** the Architect audit. Test project builds with 0 errors. 8/8 unit tests pass. Frontend builds clean (48 modules, 1.21s). All TypeScript is strict (zero `any` types). Rebased cleanly on Agent A's code — combined build verified. Approved for merge to main.
 
 # VER-002: Sprint 001 Audit — Dev Agent B (Frontend & Tests)
 
-**Sprint under audit:** `SPR-001` (Tasks T-010 through T-016)
+**Sprint under audit:** `JOB-001` (Tasks T-010 through T-016)
 **Agent:** Dev Agent B (Frontend + Tests)
-**Branch:** `feature/SPR-001-frontend-tests`
+**Branch:** `feature/JOB-001-frontend-tests`
 **Audit date:** 2026-04-09
 
 ---
@@ -40,8 +40,8 @@ version: 1.0.0
 | Check | Status |
 |:------|:-------|
 | 7 task commits + 1 chore commit | ✅ PASS |
-| All commits follow `feat(SPR-001): T-XXX description` format | ✅ PASS |
-| Branch name follows GOV-005 (`feature/SPR-001-frontend-tests`) | ✅ PASS |
+| All commits follow `feat(JOB-001): T-XXX description` format | ✅ PASS |
+| Branch name follows GOV-005 (`feature/JOB-001-frontend-tests`) | ✅ PASS |
 | Rebase onto Agent A's code: clean, no conflicts | ✅ PASS |
 
 ---
@@ -76,8 +76,8 @@ version: 1.0.0
 
 | Endpoint | Client Function | Status |
 |:---------|:----------------|:-------|
-| `GET /api/runs` | `fetchRuns()` | ✅ PASS |
-| `GET /api/runs/{id}` | `fetchRun(id)` | ✅ PASS |
+| `GET /api/jobs` | `fetchRuns()` | ✅ PASS |
+| `GET /api/jobs/{id}` | `fetchRun(id)` | ✅ PASS |
 | `GET /api/projects` | `fetchProjects()` | ✅ PASS |
 | `GET /api/projects/{id}` | `fetchProject(id)` | ✅ PASS |
 | `POST /api/projects` | `createProject(data)` | ✅ PASS |
@@ -110,7 +110,7 @@ version: 1.0.0
 
 ### Minor Observations (non-blocking)
 - `.gitignore` addition for `wwwroot/` was done as a separate chore commit — correct approach.
-- Agent B also modified SPR-001 sprint doc with status updates — some of these conflict with Architect's updates. Resolved cleanly during rebase.
+- Agent B also modified JOB-001 sprint doc with status updates — some of these conflict with Architect's updates. Resolved cleanly during rebase.
 
 ---
 

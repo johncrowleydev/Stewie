@@ -59,7 +59,7 @@ Phases are **scope-bounded**, not time-bounded. Each phase is complete when its 
 **Key deliverables:**
 - `BLU-NNN` — [Blueprint title]
 - `CON-NNN` — [Contract title]
-- `SPR-NNN` — [Sprint title]
+- `JOB-NNN` — [Sprint title]
 
 ---
 
@@ -77,8 +77,8 @@ Phases are **scope-bounded**, not time-bounded. Each phase is complete when its 
 
 | Role | Agent Type | Primary CODEX Docs |
 |:-----|:-----------|:------------------|
-| Project manager | Architect Agent | `AGT-001`, all `SPR-`, all `CON-` |
-| Implementation | Developer Agent(s) | `AGT-002`, assigned `SPR-` |
+| Project manager | Architect Agent | `AGT-001`, all `JOB-`, all `CON-` |
+| Implementation | Developer Agent(s) | `AGT-002`, assigned `JOB-` |
 | Quality | Tester Agent | `AGT-003`, `VER-`, `40_VERIFICATION/` |
 
 ---

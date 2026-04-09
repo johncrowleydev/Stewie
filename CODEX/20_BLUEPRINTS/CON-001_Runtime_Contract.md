@@ -9,7 +9,7 @@ tags: [standards, specification, project-management, governance]
 related: [BLU-001, CON-002, GOV-004]
 created: 2026-04-09
 updated: 2026-04-09
-version: 1.2.0
+version: 1.3.0
 ---
 
 > **BLUF:** This contract defines the binding interface between Stewie (orchestrator) and worker containers. All communication flows through two JSON files: `task.json` (input) and `result.json` (output). Workers MUST conform to this contract. No deviation without Human approval.
@@ -86,7 +86,7 @@ The orchestrator writes this file before launching the container.
 | Field | Type | Required | Description | Constraints |
 |:------|:-----|:--------:|:------------|:------------|
 | `taskId` | `string (UUID)` | ✅ | Unique identifier for this task | Valid UUID v4 |
-| `runId` | `string (UUID)` | ✅ | Parent Run identifier | Valid UUID v4 |
+| `jobId` | `string (UUID)` | ✅ | Parent Job identifier | Valid UUID v4 |
 | `role` | `string` | ✅ | Agent role executing this task | One of: `developer`, `tester`, `researcher` |
 | `objective` | `string` | ✅ | What the worker should accomplish | Non-empty, max 2000 chars |
 | `scope` | `string` | ✅ | Boundaries of the work | Non-empty, max 2000 chars |
@@ -102,7 +102,7 @@ The orchestrator writes this file before launching the container.
 ```json
 {
   "taskId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "runId": "f0e1d2c3-b4a5-6789-0fed-cba987654321",
+  "jobId": "f0e1d2c3-b4a5-6789-0fed-cba987654321",
   "role": "developer",
   "objective": "Implement the health check endpoint",
   "scope": "Add GET /health to Stewie.Api returning 200 OK with version info",
@@ -130,7 +130,7 @@ public class TaskPacket
     [JsonPropertyName("taskId")]
     public Guid TaskId { get; set; }
 
-    [JsonPropertyName("runId")]
+    [JsonPropertyName("jobId")]
     public Guid RunId { get; set; }
 
     [JsonPropertyName("role")]

@@ -1,5 +1,5 @@
 ---
-id: SPR-004
+id: JOB-004
 title: "GitHub Integration + User System"
 type: how-to
 status: CLOSED
@@ -19,7 +19,7 @@ version: 1.0.0
 **Phase:** Phase 3 — GitHub Integration + Auth
 **Target:** Scope-bounded
 **Agent(s):** Dev Agent A (Backend), Dev Agent B (Frontend + Tests)
-**Dependencies:** SPR-003 complete (merged)
+**Dependencies:** JOB-003 complete (merged)
 **Contracts:** CON-002 v1.3.0 (auth endpoints, user endpoints, GitHub token, pullRequestUrl)
 
 ---
@@ -32,7 +32,7 @@ version: 1.0.0
 | **GOV-002** | All new code must have tests |
 | **GOV-003** | C# coding standards; TS strict mode, no `any` types |
 | **GOV-004** | Error middleware for API; error/loading states for frontend |
-| **GOV-005** | Branch: `feature/SPR-004-backend` (A), `feature/SPR-004-frontend-tests` (B). Commits: `feat(SPR-004): T-XXX description` |
+| **GOV-005** | Branch: `feature/JOB-004-backend` (A), `feature/JOB-004-frontend-tests` (B). Commits: `feat(JOB-004): T-XXX description` |
 | **GOV-006** | Structured `ILogger` logging on all new services and controllers |
 | **GOV-008** | All infrastructure per GOV-008 |
 
@@ -58,7 +58,7 @@ T-042: Auth on all endpoints
 
 ## Dev Agent A Tasks (Backend)
 
-> **Branch:** `feature/SPR-004-backend`
+> **Branch:** `feature/JOB-004-backend`
 > **File territory:** `src/Stewie.Domain/`, `src/Stewie.Application/`, `src/Stewie.Infrastructure/`, `src/Stewie.Api/`
 
 ### T-037: User + InviteCode Entities + Migrations
@@ -182,7 +182,7 @@ T-042: Auth on all endpoints
 
 ## Dev Agent B Tasks (Frontend + Tests)
 
-> **Branch:** `feature/SPR-004-frontend-tests`
+> **Branch:** `feature/JOB-004-frontend-tests`
 > **File territory:** `src/Stewie.Web/ClientApp/`, `src/Stewie.Tests/`
 
 ### T-043: Login Page + Auth Context
@@ -278,8 +278,8 @@ T-042: Auth on all endpoints
     - Login with valid creds → 200 + JWT
     - Login with wrong password → 401
   - **Protected endpoint tests**:
-    - GET /api/runs without token → 401
-    - GET /api/runs with valid token → 200
+    - GET /api/jobs without token → 401
+    - GET /api/jobs with valid token → 200
     - GET /health without token → 200 (public)
   - **Encryption unit tests** (`EncryptionServiceTests.cs`):
     - Encrypt then decrypt returns original
@@ -316,8 +316,8 @@ T-042: Auth on all endpoints
 
 ## Merge Strategy
 
-1. **Agent A completes** → Architect audits → merge `feature/SPR-004-backend` to `main`
-2. **Agent B completes** → rebase `feature/SPR-004-frontend-tests` onto updated `main` → Architect audits → merge
+1. **Agent A completes** → Architect audits → merge `feature/JOB-004-backend` to `main`
+2. **Agent B completes** → rebase `feature/JOB-004-frontend-tests` onto updated `main` → Architect audits → merge
 3. E2E: Register → Login → Configure GitHub PAT → Create Project → Create Run → Verify PR created
 
 ---

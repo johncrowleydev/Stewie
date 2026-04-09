@@ -1,5 +1,5 @@
 ---
-id: SPR-003
+id: JOB-003
 title: "Real Repo Interaction"
 type: how-to
 status: CLOSED
@@ -19,7 +19,7 @@ version: 1.0.0
 **Phase:** Phase 2 — Real Repo Interaction
 **Target:** Scope-bounded
 **Agent(s):** Dev Agent A (Backend), Dev Agent B (Frontend + Tests)
-**Dependencies:** SPR-002 complete (merged)
+**Dependencies:** JOB-002 complete (merged)
 **Contracts:** CON-001 v1.2.0 (script field), CON-002 v1.2.0 (Run creation body, diff/branch fields)
 
 ---
@@ -32,7 +32,7 @@ version: 1.0.0
 | **GOV-002** | All new code must have tests |
 | **GOV-003** | C# coding standards; TS strict mode, no `any` types |
 | **GOV-004** | Error middleware for API; error/loading states for frontend |
-| **GOV-005** | Branch: `feature/SPR-003-backend` (A), `feature/SPR-003-frontend-tests` (B). Commits: `feat(SPR-003): T-XXX description` |
+| **GOV-005** | Branch: `feature/JOB-003-backend` (A), `feature/JOB-003-frontend-tests` (B). Commits: `feat(JOB-003): T-XXX description` |
 | **GOV-006** | Structured `ILogger` logging on all new services and controllers |
 | **GOV-008** | All infrastructure per GOV-008 |
 
@@ -57,14 +57,14 @@ T-031: Auto-commit                   T-036: Unit tests (diff/commit)
 
 ## Dev Agent A Tasks (Backend)
 
-> **Branch:** `feature/SPR-003-backend`
+> **Branch:** `feature/JOB-003-backend`
 > **File territory:** `src/Stewie.Domain/`, `src/Stewie.Application/`, `src/Stewie.Infrastructure/`, `src/Stewie.Api/`, `workers/`
 
 ### T-027: Extended Run Creation API
 - **Dependencies:** None
 - **Contracts:** CON-002 §4.2 (updated), §5.2, §5.3
 - **Deliverable:**
-  - Modify `POST /api/runs` to accept JSON body: `{ projectId, objective, scope, script, acceptanceCriteria }`
+  - Modify `POST /api/jobs` to accept JSON body: `{ projectId, objective, scope, script, acceptanceCriteria }`
   - Validate `projectId` exists (return 404 if not), `objective` is non-empty (return 400 if missing)
   - Create Run linked to Project, create Task with provided fields
   - Add `Objective` (string), `Scope` (string), `ScriptJson` (string, JSON array), `AcceptanceCriteriaJson` (string, JSON array) fields to WorkTask entity
@@ -73,7 +73,7 @@ T-031: Auto-commit                   T-036: Unit tests (diff/commit)
   - NHibernate mapping updates
   - `POST /runs/test` remains backward-compatible
 - **Acceptance criteria:**
-  - `POST /api/runs { projectId, objective }` creates Run + Task with correct fields
+  - `POST /api/jobs { projectId, objective }` creates Run + Task with correct fields
   - Validation returns 400/404 for bad input
   - Build succeeds
 - **Status:** [ ] Not Started
@@ -129,7 +129,7 @@ T-031: Auto-commit                   T-036: Unit tests (diff/commit)
   - Add `CaptureDiffAsync(string workspacePath)` to `IWorkspaceService`
   - Returns a `DiffResult { DiffStat, DiffPatch }` DTO
 - **Acceptance criteria:**
-  - After a script worker modifies files, `GET /api/runs/{id}` includes `diffSummary`
+  - After a script worker modifies files, `GET /api/jobs/{id}` includes `diffSummary`
   - Diff artifact exists in artifacts array
   - Build succeeds
 - **Status:** [ ] Not Started
@@ -143,10 +143,10 @@ T-031: Auto-commit                   T-036: Unit tests (diff/commit)
   - Store commit SHA on Run entity (`CommitSha` field)
   - Add `CommitChangesAsync(string workspacePath, string message)` to `IWorkspaceService`
   - Returns the commit SHA string
-  - This is a LOCAL commit only — push to remote deferred to SPR-004
+  - This is a LOCAL commit only — push to remote deferred to JOB-004
 - **Acceptance criteria:**
   - After script worker runs, workspace repo has a new commit
-  - `GET /api/runs/{id}` includes `commitSha`
+  - `GET /api/jobs/{id}` includes `commitSha`
   - Build succeeds
 - **Status:** [ ] Not Started
 
@@ -154,7 +154,7 @@ T-031: Auto-commit                   T-036: Unit tests (diff/commit)
 
 ## Dev Agent B Tasks (Frontend + Tests)
 
-> **Branch:** `feature/SPR-003-frontend-tests`
+> **Branch:** `feature/JOB-003-frontend-tests`
 > **File territory:** `src/Stewie.Web/ClientApp/`, `src/Stewie.Tests/`
 
 ### T-032: Create Run Form
@@ -168,7 +168,7 @@ T-031: Auto-commit                   T-036: Unit tests (diff/commit)
     - Scope (text input, optional)
     - Script commands (multi-line text area, one command per line, optional)
     - Acceptance criteria (multi-line text area, one per line, optional)
-  - Submit calls `POST /api/runs` with JSON body
+  - Submit calls `POST /api/jobs` with JSON body
   - Loading state during submission
   - On success: redirect to Run detail page
   - Form validation (project + objective required)
@@ -199,9 +199,9 @@ T-031: Auto-commit                   T-036: Unit tests (diff/commit)
 - **Dependencies:** None
 - **Contracts:** None (UX improvement)
 - **Deliverable:**
-  - Dashboard page: poll `GET /api/runs` every 5s (configurable via constant)
+  - Dashboard page: poll `GET /api/jobs` every 5s (configurable via constant)
   - Runs list page: same polling
-  - Run detail page: poll `GET /api/runs/{id}` every 3s while status is `Running` or `Pending`
+  - Run detail page: poll `GET /api/jobs/{id}` every 3s while status is `Running` or `Pending`
   - Stop polling once status reaches `Completed` or `Failed`
   - Create `usePolling` custom hook for reusable polling logic
   - Subtle "live" indicator (green dot + pulse) when polling is active
@@ -219,12 +219,12 @@ T-031: Auto-commit                   T-036: Unit tests (diff/commit)
 - **Deliverable:**
   - `Stewie.Tests/Integration/RunCreationTests.cs`
   - Test cases:
-    - `POST /api/runs` with valid `{ projectId, objective }` → 200/201
-    - `POST /api/runs` with missing `projectId` → 400
-    - `POST /api/runs` with missing `objective` → 400
-    - `POST /api/runs` with non-existent `projectId` → 404
+    - `POST /api/jobs` with valid `{ projectId, objective }` → 200/201
+    - `POST /api/jobs` with missing `projectId` → 400
+    - `POST /api/jobs` with missing `objective` → 400
+    - `POST /api/jobs` with non-existent `projectId` → 404
     - Response body includes `branch` field (null or populated)
-  - Reuse `StewieWebApplicationFactory` from SPR-002
+  - Reuse `StewieWebApplicationFactory` from JOB-002
 - **Acceptance criteria:**
   - All integration tests pass
   - Build succeeds
@@ -267,8 +267,8 @@ T-031: Auto-commit                   T-036: Unit tests (diff/commit)
 
 ## Merge Strategy
 
-1. **Agent A completes** → Architect audits → merge `feature/SPR-003-backend` to `main`
-2. **Agent B completes** → rebase `feature/SPR-003-frontend-tests` onto updated `main` → Architect audits → merge
+1. **Agent A completes** → Architect audits → merge `feature/JOB-003-backend` to `main`
+2. **Agent B completes** → rebase `feature/JOB-003-frontend-tests` onto updated `main` → Architect audits → merge
 3. Build script worker image: `docker build -t stewie-script-worker workers/script-worker/`
 4. E2E: Create project → create run with script → verify repo cloned, script executed, diff captured, committed
 
@@ -290,7 +290,7 @@ T-031: Auto-commit                   T-036: Unit tests (diff/commit)
 ## Audit Notes (Architect)
 
 ### Combined Audit (2026-04-09)
-- **Audit report:** `40_VERIFICATION/VER-004_SPR-003_Audit.md`
+- **Audit report:** `40_VERIFICATION/VER-004_JOB-003_Audit.md`
 - Build: ✅ API 0 errors, frontend 52 modules, 30/30 tests pass
 - Script worker: ✅ Alpine image builds and runs
 - Governance: ✅ All GOV docs compliant

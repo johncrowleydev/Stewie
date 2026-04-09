@@ -52,7 +52,7 @@ Read these documents IN THIS ORDER before starting any work:
 2. `lexflow-codex/CODEX/80_AGENTS/[THIS_FILE]` — your role (this document)
 3. `lexflow-codex/CODEX/10_GOVERNANCE/GOV-007_AgenticProjectManagement.md` — PM system
 4. `lexflow-codex/CODEX/10_GOVERNANCE/GOV-005_AgenticDevelopmentLifecycle.md` — dev lifecycle
-5. `lexflow-codex/CODEX/05_PROJECT/SPR-NNN.md` — your current sprint
+5. `lexflow-codex/CODEX/05_PROJECT/JOB-NNN.md` — your current sprint
 6. `lexflow-codex/CODEX/20_BLUEPRINTS/CON-NNN.md` — your binding contracts
 7. `lexflow-codex/CODEX/10_GOVERNANCE/GOV-003_CodingStandard.md` — coding rules
 8. `lexflow-codex/CODEX/10_GOVERNANCE/GOV-004_ErrorHandlingProtocol.md` — error handling
@@ -109,7 +109,7 @@ Every task you complete MUST satisfy ALL of the following:
 - [ ] **GOV-001**: TSDoc/JSDoc on all exported functions. README updated.
 - [ ] **GOV-003**: TypeScript strict. No `any`. Complexity ≤10.
 - [ ] **GOV-004**: Structured error responses. No unhandled rejections.
-- [ ] **GOV-005**: Branch: `feature/SPR-NNN-description` (one per sprint). Commits: `feat(SPR-NNN): T-XXX description`.
+- [ ] **GOV-005**: Branch: `feature/JOB-NNN-description` (one per sprint). Commits: `feat(JOB-NNN): T-XXX description`.
 - [ ] **GOV-006**: Structured JSON logging. Correlation IDs on requests.
 - [ ] **GOV-008**: `.env.example` updated. CODEX submodule linked.
 

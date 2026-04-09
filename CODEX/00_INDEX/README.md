@@ -42,7 +42,7 @@ Welcome to the project knowledge base. This documentation system is designed for
 
 | ID | Title | Type | Status |
 |:---|:------|:-----|:-------|
-| *(empty — add PRJ-, SPR-, BCK- docs when your project starts)* | | | |
+| *(empty — add PRJ-, JOB-, BCK- docs when your project starts)* | | | |
 
 **Category Codes**: `PRJ` (Project Roadmap), `SPR` (Sprint), `BCK` (Backlog)
 
@@ -171,7 +171,7 @@ Welcome to the project knowledge base. This documentation system is designed for
 | [template_how-to.md](../_templates/template_how-to.md) | How-To | Writing step-by-step procedures to solve a specific problem |
 | [template_tutorial.md](../_templates/template_tutorial.md) | Tutorial | Teaching through a guided learning experience |
 | [template_explanation.md](../_templates/template_explanation.md) | Explanation | Explaining concepts, architecture, design decisions |
-| [template_sprint.md](../_templates/template_sprint.md) | SPR- Sprint | Creating a new sprint document |
+| [template_sprint.md](../_templates/template_sprint.md) | JOB- Sprint | Creating a new sprint document |
 | [template_contract.md](../_templates/template_contract.md) | CON- Contract | Defining an interface contract |
 | [template_project_roadmap.md](../_templates/template_project_roadmap.md) | PRJ- Roadmap | Writing the project vision and delivery phases |
 

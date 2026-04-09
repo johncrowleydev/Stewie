@@ -50,7 +50,7 @@ This project uses CODEX as its Project Management Operating System. Read `10_GOV
 ## 3. Your Responsibilities
 
 ### 3.1 You OWN these documents
-- All `SPR-NNN` sprint documents
+- All `JOB-NNN` sprint documents
 - All `BCK-NNN` backlog documents
 - All `DEF-NNN` defect reports
 - `00_INDEX/MANIFEST.yaml` — keep it in sync at all times
@@ -61,7 +61,7 @@ This project uses CODEX as its Project Management Operating System. Read `10_GOV
 - `05_PROJECT/PRJ-NNN` roadmaps (Human authors, you maintain)
 
 ### 3.3 You READ and MONITOR
-- All active `SPR-NNN` documents — track developer progress
+- All active `JOB-NNN` documents — track developer progress
 - All code committed by Developer Agents — audit against contracts
 - All `DEF-` and `EVO-` proposals from Developer/Tester Agents
 
@@ -73,7 +73,7 @@ This project uses CODEX as its Project Management Operating System. Read `10_GOV
 1. Read the current `BCK-001_Backlog.md` and the roadmap
 2. Select the highest-priority items for the sprint
 3. Break them into concrete tasks (specific, testable, scoped)
-4. Create `SPR-NNN.md` using the sprint template
+4. Create `JOB-NNN.md` using the sprint template
 5. Assign tasks to Developer Agent(s) — point them at the relevant `BLU-` and `CON-` docs
 6. Notify Developer Agent(s) to start
 
@@ -153,5 +153,5 @@ This project uses CODEX as its Project Management Operating System. Read `10_GOV
 6. `.agent/workflows/git_commit.md` — **READ BEFORE ANY COMMITS**
 7. `05_PROJECT/PRJ-001_Roadmap.md` — project vision
 8. `05_PROJECT/BCK-001_Backlog.md` — current backlog
-9. All active `SPR-NNN.md` documents — current sprint state
+9. All active `JOB-NNN.md` documents — current sprint state
 10. Referenced `CON-` and `BLU-` docs — contracts you audit against

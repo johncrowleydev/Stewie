@@ -1,5 +1,5 @@
 ---
-id: SPR-002
+id: JOB-002
 title: "Phase 1 Closure + Phase 2 Plumbing"
 type: how-to
 status: CLOSED
@@ -19,7 +19,7 @@ version: 1.0.0
 **Phase:** Phase 1 closure + Phase 2 start
 **Target:** Scope-bounded (AI-agent pace)
 **Agent(s):** Dev Agent A (Backend), Dev Agent B (Frontend + Tests)
-**Dependencies:** SPR-001 complete (merged)
+**Dependencies:** JOB-001 complete (merged)
 **Contracts:** CON-001 v1.1.0 (updated with git fields), CON-002 v1.1.0 (updated with Events endpoints)
 
 ---
@@ -34,7 +34,7 @@ version: 1.0.0
 | **GOV-002** | All new code must have tests. Integration tests use SQLite in-memory via WebApplicationFactory. |
 | **GOV-003** | C# coding standards; TypeScript strict mode, no `any` types |
 | **GOV-004** | Error middleware for API; error boundaries/states for frontend |
-| **GOV-005** | Agent A: `feature/SPR-002-backend`. Agent B: `feature/SPR-002-frontend-tests`. Commits: `feat(SPR-002): T-XXX description` |
+| **GOV-005** | Agent A: `feature/JOB-002-backend`. Agent B: `feature/JOB-002-frontend-tests`. Commits: `feat(JOB-002): T-XXX description` |
 | **GOV-006** | Structured `ILogger` logging on all new services and controllers |
 | **GOV-007** | Task status updated in this doc. Blockers → `DEF-` doc |
 | **GOV-008** | All infrastructure per GOV-008 |
@@ -62,7 +62,7 @@ T-021: Git clone/branch          T-026: Run detail events ← soft dep on T-020
 
 ## Dev Agent A Tasks (Backend)
 
-> **Branch:** `feature/SPR-002-backend`
+> **Branch:** `feature/JOB-002-backend`
 > **File territory:** `src/Stewie.Domain/`, `src/Stewie.Application/`, `src/Stewie.Infrastructure/`, `src/Stewie.Api/`
 
 ### T-017: Event Emission — Run Lifecycle
@@ -145,7 +145,7 @@ T-021: Git clone/branch          T-026: Run detail events ← soft dep on T-020
 
 ## Dev Agent B Tasks (Frontend + Tests)
 
-> **Branch:** `feature/SPR-002-frontend-tests`
+> **Branch:** `feature/JOB-002-frontend-tests`
 > **File territory:** `src/Stewie.Web/ClientApp/`, `src/Stewie.Tests/`
 
 ### T-022: DEF-001 — Light/Dark Theme Toggle
@@ -193,10 +193,10 @@ T-021: Git clone/branch          T-026: Run detail events ← soft dep on T-020
   - `Stewie.Tests/Integration/RunsControllerTests.cs`
   - `Stewie.Tests/Integration/HealthControllerTests.cs`
   - Test cases:
-    - `GET /api/runs` returns 200 with empty array
-    - `POST /api/runs` creates run, returns 201
-    - `GET /api/runs/{id}` returns 200 with tasks array
-    - `GET /api/runs/{id}` returns 404 for missing run
+    - `GET /api/jobs` returns 200 with empty array
+    - `POST /api/jobs` creates run, returns 201
+    - `GET /api/jobs/{id}` returns 200 with tasks array
+    - `GET /api/jobs/{id}` returns 404 for missing run
     - `GET /api/tasks/{nonexistent}` returns 404
     - `GET /health` returns 200 with status/version/timestamp
   - Verify error middleware returns structured error format per CON-002 §6
@@ -257,8 +257,8 @@ T-021: Git clone/branch          T-026: Run detail events ← soft dep on T-020
 
 ## Merge Strategy
 
-1. **Agent A completes** → Architect audits → merge `feature/SPR-002-backend` to `main`
-2. **Agent B completes** → rebase `feature/SPR-002-frontend-tests` onto updated `main` → Architect audits → merge
+1. **Agent A completes** → Architect audits → merge `feature/JOB-002-backend` to `main`
+2. **Agent B completes** → rebase `feature/JOB-002-frontend-tests` onto updated `main` → Architect audits → merge
 3. Architect verifies end-to-end: test run → events appear → events timeline shows them
 
 ---
@@ -288,7 +288,7 @@ T-021: Git clone/branch          T-026: Run detail events ← soft dep on T-020
 ## Audit Notes (Architect)
 
 ### Combined Audit (2026-04-09)
-- **Audit report:** `40_VERIFICATION/VER-003_SPR-002_Audit.md`
+- **Audit report:** `40_VERIFICATION/VER-003_JOB-002_Audit.md`
 - Build: ✅ API 0 errors, frontend 50 modules, 19/19 tests pass
 - E2E: ✅ Test run → 6 events emitted → Events API returns correctly
 - Governance: ✅ All GOV docs compliant

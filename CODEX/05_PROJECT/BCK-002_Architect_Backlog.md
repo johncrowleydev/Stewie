@@ -44,7 +44,7 @@ version: 1.0.0
 | A-008 | Update MANIFEST.yaml | ARCH-CODEX | [ ] | Register all new docs |
 | A-009 | Fix ROAD-001 misplacement | ARCH-CODEX | [ ] | Wrong prefix/location |
 | A-010 | Enforce workflow references in agent docs | ARCH-AGENT | [ ] | safe_commands + git_commit |
-| A-011 | Create SPR-001 (first dev sprint) | ARCH-SPRINT | [ ] | Pull from BCK-001 |
+| A-011 | Create JOB-001 (first dev sprint) | ARCH-SPRINT | [ ] | Pull from BCK-001 |
 | A-012 | Create developer agent boot docs | ARCH-AGENT | [ ] | 2 developer agents |
 | A-013 | Build sprint audit checklist (VER-001) | ARCH-AUDIT | [ ] | Reusable audit template |
 

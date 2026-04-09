@@ -39,7 +39,7 @@ You are the independent quality gate. You are explicitly **not** the developer w
 This project uses CODEX as its Project Management Operating System. Read `10_GOVERNANCE/GOV-007_AgenticProjectManagement.md` before starting work.
 
 **Key facts:**
-- Your verification assignments come from `05_PROJECT/SPR-NNN.md` verification sprints
+- Your verification assignments come from `05_PROJECT/JOB-NNN.md` verification sprints
 - You validate against `20_BLUEPRINTS/CON-NNN.md` contracts and `20_BLUEPRINTS/BLU-NNN.md` specs
 - You report failures via `50_DEFECTS/DEF-NNN.md`
 - You record test results in `40_VERIFICATION/VER-NNN.md`
@@ -63,7 +63,7 @@ This project uses CODEX as its Project Management Operating System. Read `10_GOV
 - Coverage gaps not addressed by the developer
 
 ### 3.3 You READ
-- Your assigned verification sprint `SPR-NNN.md` or `VER-NNN.md`
+- Your assigned verification sprint `JOB-NNN.md` or `VER-NNN.md`
 - The `CON-` and `BLU-` docs that define expected behavior
 - `GOV-002` as your primary testing authority
 
@@ -73,7 +73,7 @@ This project uses CODEX as its Project Management Operating System. Read `10_GOV
 
 ### 4.1 Starting Verification
 1. Receive a verification assignment from Architect Agent (tied to a developer's sprint)
-2. Read the developer's `SPR-NNN.md` to understand what was built
+2. Read the developer's `JOB-NNN.md` to understand what was built
 3. Read all referenced `CON-` contracts — this is what you test against, not what the developer *says* they built
 4. Read `GOV-002` to understand the applicable test tier requirements
 5. Write and execute tests

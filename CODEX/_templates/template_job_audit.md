@@ -1,22 +1,22 @@
 ---
 id: VER-001
-title: "Sprint Audit Checklist"
+title: "Job Audit Checklist"
 type: reference
 status: DRAFT
 owner: architect
 agents: [architect]
-tags: [verification, audit, testing, governance, sprint]
+tags: [verification, audit, testing, governance, job]
 related: [GOV-002, GOV-007]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
 version: 1.0.0
 ---
 
-> **BLUF:** Reusable checklist the Architect runs after every sprint. Clone this template, fill in the sprint ID, and check every box before marking the sprint CLOSED. Any failure → DEF- report filed.
+> **BLUF:** Reusable checklist the Architect runs after every job. Clone this template, fill in the job ID, and check every box before marking the job CLOSED. Any failure → DEF- report filed.
 
-# VER-001: Sprint Audit Checklist
+# VER-001: Job Audit Checklist
 
-**Sprint under audit:** `SPR-NNN`
+**Job under audit:** `JOB-NNN`
 **Agent(s):** `[Frontend / Backend / Both]`
 **Audit date:** `YYYY-MM-DD`
 
@@ -69,11 +69,11 @@ version: 1.0.0
 
 ---
 
-## 5. Sprint Task Verification
+## 5. Job Task Verification
 
 | Task | Acceptance Criteria Met | Status |
 |:-----|:------------------------|:-------|
-| T-NNN | [criteria from sprint doc] | [ ] |
+| T-NNN | [criteria from job doc] | [ ] |
 
 ---
 

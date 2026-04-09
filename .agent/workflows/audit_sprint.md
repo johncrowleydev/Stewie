@@ -1,16 +1,16 @@
 ---
-description: Run the Architect's sprint audit checklist — verify build, governance compliance, contract compliance, and generate audit report.
+description: Run the Architect's job audit checklist — verify build, governance compliance, contract compliance, and generate audit report.
 ---
 
-# /audit_sprint
+# /audit_job
 
-> Run this workflow after a developer agent completes a sprint.
-> Generates a VER-001 audit report for the completed sprint.
+> Run this workflow after a developer agent completes a job.
+> Generates a VER-001 audit report for the completed job.
 
-## Step 1: Identify the Sprint
+## Step 1: Identify the Job
 
-1. Ask: Which sprint is being audited? (e.g., `SPR-001`)
-2. Read the sprint document from `CODEX/05_PROJECT/SPR-NNN.md`
+1. Ask: Which job is being audited? (e.g., `JOB-001`)
+2. Read the job document from `CODEX/05_PROJECT/JOB-NNN.md`
 3. Identify all tasks and their acceptance criteria
 4. Identify which repos need to be checked
 
@@ -47,7 +47,7 @@ echo "=== End Build Verification ==="
 
 ## Step 4: Governance Compliance
 
-For each GOV doc (001-008), verify the sprint's specific requirement was met:
+For each GOV doc (001-008), verify the job's specific requirement was met:
 
 ### GOV-001 (Documentation)
 - [ ] README.md present and updated
@@ -71,8 +71,8 @@ grep -rn ": any" src/ --include="*.ts" --include="*.tsx" | grep -v node_modules 
 - [ ] Structured error responses
 
 ### GOV-005 (Dev Lifecycle)
-- [ ] Branch names follow `feature/SPR-NNN-TXXX-description` pattern
-- [ ] Commit messages follow `feat(SPR-NNN): description` format
+- [ ] Branch names follow `feature/JOB-NNN-TXXX-description` pattern
+- [ ] Commit messages follow `feat(JOB-NNN): description` format
 
 ### GOV-006 (Logging)
 - [ ] Structured JSON logging configured (pino or similar)
@@ -87,7 +87,7 @@ grep -rn ": any" src/ --include="*.ts" --include="*.tsx" | grep -v node_modules 
 
 ## Step 5: Contract Compliance (if applicable)
 
-For each CON-NNN referenced in the sprint:
+For each CON-NNN referenced in the job:
 
 1. Read the contract document
 2. Verify routes/endpoints match contract schemas
@@ -111,7 +111,7 @@ echo "=== End Health Check ==="
 
 ## Step 7: Generate Audit Report
 
-Create `CODEX/40_VERIFICATION/VER-001_SPR-NNN_Audit.md` using the sprint audit template (`_templates/template_sprint_audit.md`):
+Create `CODEX/40_VERIFICATION/VER-001_JOB-NNN_Audit.md` using the job audit template (`_templates/template_job_audit.md`):
 
 1. Fill in all checklist items from steps 3-6
 2. Set verdict: PASS or FAIL
@@ -131,11 +131,11 @@ For each failure found:
 
 ---
 
-## Step 9: Update Sprint Status
+## Step 9: Update Job Status
 
-1. If PASS: Update sprint doc `status:` to `CLOSED`
-2. If FAIL: Update sprint doc `status:` to `BLOCKED`
-3. Mark audited tasks in the sprint checklist
+1. If PASS: Update job doc `status:` to `CLOSED`
+2. If FAIL: Update job doc `status:` to `BLOCKED`
+3. Mark audited tasks in the job checklist
 
 ---
 
@@ -143,6 +143,6 @@ For each failure found:
 
 | What | Command |
 |:-----|:--------|
-| Full audit | `/audit_sprint` |
+| Full audit | `/audit_job` |
 | Build checks only | Run Step 3 |
 | Governance checks only | Run Step 4 |

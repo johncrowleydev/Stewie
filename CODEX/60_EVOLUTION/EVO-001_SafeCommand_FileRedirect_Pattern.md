@@ -12,13 +12,13 @@ updated: 2026-04-09
 version: 1.0.0
 ---
 
-> **BLUF:** Proposes adding a mandatory "file-redirect" execution pattern to `.agent/workflows/safe_commands.md` for all `dotnet build`, `dotnet test`, and other commands whose output is piped. Eliminates the pipe-blocking hang that has repeatedly caused agent stalls across SPR-002, SPR-003, and SPR-004.
+> **BLUF:** Proposes adding a mandatory "file-redirect" execution pattern to `.agent/workflows/safe_commands.md` for all `dotnet build`, `dotnet test`, and other commands whose output is piped. Eliminates the pipe-blocking hang that has repeatedly caused agent stalls across JOB-002, JOB-003, and JOB-004.
 
 # EVO-001: Safe Command File-Redirect Pattern
 
 ## 1. Problem Statement
 
-Across sprints SPR-002 through SPR-004, Dev Agent B encountered a recurring command hang with the following root cause chain:
+Across sprints JOB-002 through JOB-004, Dev Agent B encountered a recurring command hang with the following root cause chain:
 
 1. Agent runs `dotnet build … 2>&1 | grep … | tail -5`
 2. `dotnet build` spends 30–90 seconds on NuGet package restore before producing build output
@@ -110,11 +110,11 @@ Add the file-redirect pattern to the WaitMsBeforeAsync reference table:
 
 - **Non-breaking.** Existing pipe-chain commands that use `tail` (no grep) remain valid.
 - Agents already following Rule 7/8 will naturally benefit from this pattern.
-- The proposal codifies what Dev Agent B already discovered empirically in SPR-004.
+- The proposal codifies what Dev Agent B already discovered empirically in JOB-004.
 
 ## 7. Evidence
 
-Successful executions using file-redirect in SPR-004:
+Successful executions using file-redirect in JOB-004:
 
 ```
 # Build — completed in 2.48s, EXIT=0
@@ -137,6 +137,6 @@ Both commands returned results on the first attempt with zero hangs.
 
 ---
 
-*Submitted by: Dev Agent B, SPR-004*
-*Incident count: 4+ across SPR-002, SPR-003, SPR-004*
+*Submitted by: Dev Agent B, JOB-004*
+*Incident count: 4+ across JOB-002, JOB-003, JOB-004*
 *Severity: P2 — recurring productivity blocker for all developer agents*

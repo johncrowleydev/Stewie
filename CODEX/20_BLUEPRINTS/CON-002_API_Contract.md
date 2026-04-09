@@ -9,7 +9,7 @@ tags: [standards, specification, project-management, governance]
 related: [BLU-001, CON-001, GOV-004]
 created: 2026-04-09
 updated: 2026-04-09
-version: 1.4.0
+version: 1.5.0
 ---
 
 > **BLUF:** This contract defines the HTTP API surface of Stewie.Api. All frontend and external consumers MUST conform to these routes, request/response shapes, and error formats. No deviation without Human approval.
@@ -56,7 +56,7 @@ version: 1.4.0
 
 ## 3. Endpoints — Current (Milestone 0)
 
-### 3.1 POST /runs/test
+### 3.1 POST /jobs/test
 
 Triggers a test run: creates a Run, creates a Task, launches the dummy worker, ingests the result.
 
@@ -66,7 +66,7 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
 
 ```json
 {
-  "runId": "uuid",
+  "jobId": "uuid",
   "taskId": "uuid",
   "artifactId": "uuid",
   "status": "Completed",
@@ -195,12 +195,12 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
 
 | Method | Path | Description |
 |:-------|:-----|:------------|
-| `GET` | `/api/runs` | List all runs (filterable by project) |
-| `POST` | `/api/runs` | Create a new run (with task definition) |
-| `GET` | `/api/runs/{id}` | Get run by ID with tasks and artifacts |
-| `POST` | `/api/runs/test` | Trigger a test run (legacy, backward-compatible) |
+| `GET` | `/api/jobs` | List all runs (filterable by project) |
+| `POST` | `/api/jobs` | Create a new run (with task definition) |
+| `GET` | `/api/jobs/{id}` | Get run by ID with tasks and artifacts |
+| `POST` | `/api/jobs/test` | Trigger a test run (legacy, backward-compatible) |
 
-**POST /api/runs** request body:
+**POST /api/jobs** request body:
 
 ```json
 {
@@ -225,7 +225,7 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
 | Method | Path | Description |
 |:-------|:-----|:------------|
 | `GET` | `/api/tasks/{id}` | Get task by ID with artifacts |
-| `GET` | `/api/runs/{runId}/tasks` | List tasks for a run |
+| `GET` | `/api/jobs/{jobId}/tasks` | List tasks for a job |
 
 ### 4.4 Health
 
@@ -290,7 +290,7 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
 ```json
 {
   "id": "uuid",
-  "runId": "uuid",
+  "jobId": "uuid",
   "role": "developer | tester | researcher",
   "status": "Pending | Running | Completed | Failed",
   "objective": "string",

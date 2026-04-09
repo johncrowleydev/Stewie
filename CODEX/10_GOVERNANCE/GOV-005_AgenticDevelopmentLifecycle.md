@@ -12,7 +12,7 @@ updated: 2026-03-04
 version: 2.0.0
 ---
 
-> **BLUF:** Project lifecycle protocol for human-Architect + AI-agent development. Replaces traditional Agile with scope-bounded sprints, emergent work items, one-agent-per-branch execution, natural checkpoints, and human-in-the-loop merge/deploy. The only human in the loop is the Architect. Everything else is agentic.
+> **BLUF:** Project lifecycle protocol for human-Architect + AI-agent development. Replaces traditional Agile with scope-bounded jobs, emergent work items, one-agent-per-branch execution, natural checkpoints, and human-in-the-loop merge/deploy. The only human in the loop is the Architect. Everything else is agentic.
 
 # Agentic Development Lifecycle
 
@@ -26,10 +26,10 @@ Traditional Agile assumes a team of humans who need ceremonies (standups, retros
 
 | Agile | Agentic Development |
 |:------|:-------------------|
-| Sprint = 2 weeks | Sprint = **scope-bounded** (one feature, one bug, one research) |
-| Sprint planning meeting | **Conversation** → formal spec in minutes |
+| Job = 2 weeks | Job = **scope-bounded** (one feature, one bug, one research) |
+| Job planning meeting | **Conversation** → formal spec in minutes |
 | Daily standup | Doesn't exist — agents work, Architect reviews |
-| Sprint review / retro | **Checkpoint** — natural stopping point to assess |
+| Job review / retro | **Checkpoint** — natural stopping point to assess |
 | Product backlog groomed by humans | **Emergent** — gaps, test failures, and ideas create work items in real-time |
 | Team of 5-9 humans | **1 Architect + N agents**, one per branch |
 | PRs reviewed by teammates | **Agentic merge** with Architect in the loop |
@@ -73,7 +73,7 @@ Every piece of work — feature, bug, research — follows this loop:
 
 ## 3. Phase 1: Conversation
 
-The Architect and an agent discuss what needs to be built. This replaces sprint planning, user story writing, and backlog grooming — all in one conversation.
+The Architect and an agent discuss what needs to be built. This replaces job planning, user story writing, and backlog grooming — all in one conversation.
 
 ### 3.1 What Happens
 
@@ -110,24 +110,24 @@ The agent writes a formal document based on the conversation. The document type 
 
 ---
 
-## 5. Phase 3: Sprint
+## 5. Phase 3: Job
 
-A sprint is **scope-bounded, not time-bounded.** It runs until the spec is implemented, tested, and verified — whether that takes 5 minutes or 5 hours.
+A job is **scope-bounded, not time-bounded.** It runs until the spec is implemented, tested, and verified — whether that takes 5 minutes or 5 hours.
 
 ### 5.1 Branch Strategy
 
-**One agent, one branch per sprint. Granular commits, not granular branches.**
+**One agent, one branch per job. Granular commits, not granular branches.**
 
 > [!IMPORTANT]
-> Do NOT create a separate branch per task within a sprint. Tasks within a sprint
+> Do NOT create a separate branch per task within a job. Tasks within a job
 > are tightly coupled — separate branches add merge complexity without review value.
 
 #### Branch Naming
 
 | Scenario | Naming Convention | Example |
 |:---------|:-----------------|:--------|
-| **Single-agent sprint** | `feature/SPR-NNN-short-description` | `feature/SPR-004-trust-accounting` |
-| **Multi-agent sprint** (per agent) | `feature/SPR-NNN-agent-short-desc` | `feature/SPR-005-frontend-trust-ui` |
+| **Single-agent job** | `feature/JOB-NNN-short-description` | `feature/JOB-004-trust-accounting` |
+| **Multi-agent job** (per agent) | `feature/JOB-NNN-agent-short-desc` | `feature/JOB-005-frontend-trust-ui` |
 | Bug Fix | `fix/DEF-NNN-short-description` | `fix/DEF-003-missing-tests` |
 | Hotfix | `hotfix/DEF-NNN-short-description` | `hotfix/DEF-010-auth-bypass` |
 | Deploy | `deploy/vX.Y.Z` | `deploy/v0.2.0` |
@@ -137,20 +137,20 @@ A sprint is **scope-bounded, not time-bounded.** It runs until the spec is imple
 Each task gets its own commit. This gives you task-level traceability via `git log`:
 
 ```
-feat(SPR-004): T-034 trust schema + migration
-feat(SPR-004): T-038 ledger engine with advisory locks
-feat(SPR-004): T-040 deposit route
-feat(SPR-004): T-041 disburse route
-test(SPR-004): unit tests for all routes and ledger engine
+feat(JOB-004): T-034 trust schema + migration
+feat(JOB-004): T-038 ledger engine with advisory locks
+feat(JOB-004): T-040 deposit route
+feat(JOB-004): T-041 disburse route
+test(JOB-004): unit tests for all routes and ledger engine
 ```
 
 ### 5.2 Branch Rules
 
 1. **Branch from `main`** — always start from the latest stable.
 2. **One agent per branch** — no two agents working on the same branch.
-3. **One branch per sprint per agent** — do NOT create per-task branches.
-4. **Branch names include the sprint ID** — traceability from branch to spec.
-5. **Short-lived branches** — merge or close within the sprint. No stale branches.
+3. **One branch per job per agent** — do NOT create per-task branches.
+4. **Branch names include the job ID** — traceability from branch to spec.
+5. **Short-lived branches** — merge or close within the job. No stale branches.
 6. **Delete after merge** — the Architect deletes feature branches after auditing and merging. No branch accumulation.
 5. **Commit messages** follow this format (optimized for agent readability):
 
@@ -181,7 +181,7 @@ Checkpoints are **natural stopping points** where the Architect can assess progr
 - Agent presents current state (what's done, what's next, any concerns)
 - Architect may ask questions, request changes, or approve
 - Testing can be triggered at any checkpoint
-- The sprint continues or pivots based on the conversation
+- The job continues or pivots based on the conversation
 
 **Checkpoints are not blockers** — they're the Architect's opportunity to steer. If the Architect says "looks good, keep going," the agent continues without delay.
 
@@ -274,20 +274,20 @@ Work items emerge organically — from conversations, testing gaps, bugs discove
 
 | Source | What Happens |
 |:-------|:-------------|
-| **Architect has an idea** | Conversation → Spec → Sprint |
+| **Architect has an idea** | Conversation → Spec → Job |
 | **Agent discovers a gap** | Agent flags it → Architect decides priority → Spec if approved |
-| **Test fails** | Defect report created → Sprint to fix |
-| **E2E/integration reveals issue** | Defect report → Root cause analysis → Fix sprint |
-| **Research needed before building** | Research spec → Investigation sprint → Findings doc |
+| **Test fails** | Defect report created → Job to fix |
+| **E2E/integration reveals issue** | Defect report → Root cause analysis → Fix job |
+| **Research needed before building** | Research spec → Investigation job → Findings doc |
 
 ### 9.2 Work Item Priorities
 
 | Priority | Definition | Response |
 |:---------|:-----------|:---------|
-| **P0 — Critical** | Production broken, data loss, security breach | Sprint immediately. Everything else stops. |
-| **P1 — High** | Major feature blocked, significant bug | Sprint next. |
-| **P2 — Medium** | Important but not blocking | Sprint when current work completes. |
-| **P3 — Low** | Nice to have, cosmetic, optimization | Sprint when nothing higher is pending. |
+| **P0 — Critical** | Production broken, data loss, security breach | Job immediately. Everything else stops. |
+| **P1 — High** | Major feature blocked, significant bug | Job next. |
+| **P2 — Medium** | Important but not blocking | Job when current work completes. |
+| **P3 — Low** | Nice to have, cosmetic, optimization | Job when nothing higher is pending. |
 
 ---
 
@@ -303,7 +303,7 @@ When starting a new project with the Agentic Architect template:
 4. **Agent sets up the project** — scaffolding, dependencies, CI/CD
 5. **Agent configures governance** — static analysis (GOV-003 §12), logging (GOV-006), error handling (GOV-004)
 6. **First checkpoint** — Architect reviews scaffolding before any features are built
-7. **Sprint 1 begins** — first feature from the spec
+7. **Job 1 begins** — first feature from the spec
 
 ### 10.2 What the Agent Does Automatically
 
@@ -327,7 +327,7 @@ Before deploying any project milestone:
 - [ ] All work items traced to CODEX specs (GOV-001 §10)
 - [ ] All branches follow naming convention (§5.1)
 - [ ] All commits follow message format (§5.2)
-- [ ] All sprints started from a formal spec (§4)
+- [ ] All jobs started from a formal spec (§4)
 - [ ] All checkpoints documented in conversation history
 - [ ] Automated verification passed (§6.1)
 - [ ] Architect UAT completed (§6.2)

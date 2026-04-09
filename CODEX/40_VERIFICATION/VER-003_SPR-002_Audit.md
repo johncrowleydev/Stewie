@@ -6,17 +6,17 @@ status: APPROVED
 owner: architect
 agents: [architect]
 tags: [verification, audit, testing, governance, sprint]
-related: [SPR-002, CON-001, CON-002, DEF-001]
+related: [JOB-002, CON-001, CON-002, DEF-001]
 created: 2026-04-09
 updated: 2026-04-09
 version: 1.0.0
 ---
 
-> **BLUF:** SPR-002 **PASSES**. Both agents delivered all 10 tasks. API builds (0 errors), 19/19 tests pass (8 unit + 11 integration), frontend builds clean (50 modules). E2E verified: test run emits 6 events, Events API returns them correctly. DEF-001 resolved (light/dark theme). Phase 1 is now COMPLETE.
+> **BLUF:** JOB-002 **PASSES**. Both agents delivered all 10 tasks. API builds (0 errors), 19/19 tests pass (8 unit + 11 integration), frontend builds clean (50 modules). E2E verified: test run emits 6 events, Events API returns them correctly. DEF-001 resolved (light/dark theme). Phase 1 is now COMPLETE.
 
 # VER-003: Sprint 002 Consolidated Audit
 
-**Sprint:** `SPR-002` — Phase 1 Closure + Phase 2 Plumbing
+**Sprint:** `JOB-002` — Phase 1 Closure + Phase 2 Plumbing
 **Audit date:** 2026-04-09
 
 ---
@@ -37,7 +37,7 @@ version: 1.0.0
 | Check | Status |
 |:------|:-------|
 | Commits: 3 (T-017, T-020, T-021) | ✅ PASS — T-018/T-019 bundled with T-017 (acceptable) |
-| Commit format: `feat(SPR-002):` | ✅ PASS |
+| Commit format: `feat(JOB-002):` | ✅ PASS |
 | GOV-001: XML docs | ✅ PASS — 17 doc blocks on new code |
 | GOV-003: Coding standard | ✅ PASS |
 | GOV-006: Structured logging | ✅ PASS — 22 log calls (Info/Warning/Error/Debug) |
@@ -62,7 +62,7 @@ version: 1.0.0
 | Check | Status |
 |:------|:-------|
 | Commits: 5 (one per task) | ✅ PASS |
-| Commit format: `feat(SPR-002):` | ✅ PASS |
+| Commit format: `feat(JOB-002):` | ✅ PASS |
 | GOV-001: JSDoc | ✅ PASS — 58 JSDoc blocks total |
 | GOV-003: No `any` types | ✅ PASS — 0 found |
 | DEF-001: Theme toggle | ✅ PASS — `useTheme` hook, localStorage, OS preference |

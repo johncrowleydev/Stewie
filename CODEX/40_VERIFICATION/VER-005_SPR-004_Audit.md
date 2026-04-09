@@ -1,23 +1,23 @@
 ---
 id: VER-005
-title: "SPR-004 Audit Report"
+title: "JOB-004 Audit Report"
 type: reference
 status: CLOSED
 owner: architect
 agents: [architect]
 tags: [verification, audit, testing, governance, sprint]
-related: [GOV-002, GOV-007, SPR-004]
+related: [GOV-002, GOV-007, JOB-004]
 created: 2026-04-09
 updated: 2026-04-09
 version: 1.0.0
 ---
 
-> **BLUF:** Audit for SPR-004 (GitHub Integration + User System). Agent A completed successfully. Agent B failed testing requirements for T-047 (updating existing integration tests with auth headers). Sprint is BLOCKED until DEF-001 is resolved.
+> **BLUF:** Audit for JOB-004 (GitHub Integration + User System). Agent A completed successfully. Agent B failed testing requirements for T-047 (updating existing integration tests with auth headers). Sprint is BLOCKED until DEF-001 is resolved.
 
-# VER-005: SPR-004 Audit Checklist
+# VER-005: JOB-004 Audit Checklist
 
-**Sprint under audit:** `SPR-004`
-**Agent(s):** Dev Agent B (`feature/SPR-004-frontend-tests`)
+**Sprint under audit:** `JOB-004`
+**Agent(s):** Dev Agent B (`feature/JOB-004-frontend-tests`)
 **Audit date:** 2026-04-09
 
 ---

@@ -1,26 +1,26 @@
 ---
 id: AGT-002-A-SPR004
-title: "Dev Agent A Boot — SPR-004 Backend"
+title: "Dev Agent A Boot — JOB-004 Backend"
 type: how-to
 status: ACTIVE
 owner: architect
 agents: [coder]
 tags: [agent, boot, sprint]
-related: [SPR-004, AGT-002, CON-002]
+related: [JOB-004, AGT-002, CON-002]
 created: 2026-04-09
 updated: 2026-04-09
 version: 1.0.0
 ---
 
-> **BLUF:** You are Dev Agent A for Sprint 004. You build JWT authentication, user management, encrypted credential storage, GitHub API integration (Octokit.net), and wire GitHub into the post-run flow. 6 tasks. Work on `feature/SPR-004-backend`.
+> **BLUF:** You are Dev Agent A for Sprint 004. You build JWT authentication, user management, encrypted credential storage, GitHub API integration (Octokit.net), and wire GitHub into the post-run flow. 6 tasks. Work on `feature/JOB-004-backend`.
 
-# Dev Agent A — SPR-004 Boot Document
+# Dev Agent A — JOB-004 Boot Document
 
 ## 1. Your Identity
 
 - **Role:** Developer Agent A (Backend)
-- **Sprint:** SPR-004
-- **Branch:** `feature/SPR-004-backend`
+- **Sprint:** JOB-004
+- **Branch:** `feature/JOB-004-backend`
 - **Merge order:** You merge first. Agent B rebases on your code.
 
 ## 2. ⚠️ MANDATORY: Read These Before ANY Action
@@ -67,7 +67,7 @@ Octokit
 
 | Document | Path | Read Before |
 |:---------|:-----|:------------|
-| Sprint tasks | `CODEX/05_PROJECT/SPR-004_GitHub_Integration.md` | Starting work |
+| Sprint tasks | `CODEX/05_PROJECT/JOB-004_GitHub_Integration.md` | Starting work |
 | API contract | `CODEX/20_BLUEPRINTS/CON-002_API_Contract.md` (v1.3.0) | All tasks |
 | Existing orchestration | `src/Stewie.Application/Services/RunOrchestrationService.cs` | T-041 |
 | Existing workspace svc | `src/Stewie.Infrastructure/Services/WorkspaceService.cs` | T-041 |
@@ -111,6 +111,6 @@ In production, these come from environment variables: `STEWIE_JWT_SECRET`, `STEW
 
 - [ ] XML doc comments on all new/modified public members
 - [ ] Structured `ILogger` logging on new code
-- [ ] Commit: `feat(SPR-004): T-XXX description`
+- [ ] Commit: `feat(JOB-004): T-XXX description`
 - [ ] Build succeeds: `dotnet build src/Stewie.Api/Stewie.Api.csproj`
 - [ ] No secrets in committed code

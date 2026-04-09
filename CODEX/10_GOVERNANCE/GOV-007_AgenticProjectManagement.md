@@ -28,9 +28,9 @@ Traditional project management tools (Jira, Trello, Linear) are designed for hum
 
 | Traditional PM | Agentic PM (CODEX) |
 |:--------------|:-------------------|
-| Jira ticket | `SPR-NNN / DEF-NNN` Markdown doc |
+| Jira ticket | `JOB-NNN / DEF-NNN` Markdown doc |
 | Project manager | Architect Agent + Human |
-| Sprint board | `05_PROJECT/SPR-NNN_ActiveSprint.md` |
+| Job board | `05_PROJECT/JOB-NNN_ActiveJob.md` |
 | API specification | `20_BLUEPRINTS/CON-NNN_ContractName.md` |
 | Team member profile | `80_AGENTS/AGT-NNN_RoleDefinition.md` |
 | Status meeting | Architect reads CODEX, files discrepancy report |
@@ -48,13 +48,13 @@ Traditional project management tools (Jira, Trello, Linear) are designed for hum
                     │ owns + approves
 ┌───────────────────▼─────────────────────────────┐
 │         TIER 2: ARCHITECT AGENT                  │
-│  Manages CODEX, files reports, assigns sprints   │
+│  Manages CODEX, files reports, assigns jobs   │
 │  Audits developer output against contracts       │
 └───────────────────┬─────────────────────────────┘
                     │ assigns + reviews
 ┌───────────────────▼─────────────────────────────┐
 │     TIER 3: DEVELOPER / TESTER AGENTS            │
-│  Execute sprint tasks, report defects,           │
+│  Execute job tasks, report defects,           │
 │  propose contract changes upstream               │
 └─────────────────────────────────────────────────┘
 ```
@@ -71,7 +71,7 @@ Traditional project management tools (Jira, Trello, Linear) are designed for hum
 See `80_AGENTS/AGT-001_Architect_Agent.md` for full definition.
 
 - Owns and maintains all CODEX documents
-- Breaks down `EVO-` feature specs into `SPR-` sprint tasks
+- Breaks down `EVO-` feature specs into `JOB-` job tasks
 - Continuously audits developer output against `CON-` contracts
 - Files `DEF-` defect reports for code violations
 - Proposes contract updates → Human approves → propagates downstream
@@ -82,7 +82,7 @@ See `80_AGENTS/AGT-001_Architect_Agent.md` for full definition.
 
 See `80_AGENTS/AGT-002_Developer_Agent.md` for full definition.
 
-- Receives work via sprint docs (`SPR-`)
+- Receives work via job docs (`JOB-`)
 - Executes against blueprints (`BLU-`) and contracts (`CON-`)
 - Proposes contract changes via `EVO-` or annotated `DEF-` docs
 - All proposed changes go upstream to Architect for review
@@ -104,7 +104,7 @@ The complete vocabulary of agentic project management:
 | Code | Area | Agile Equivalent | Description | Owner |
 |:-----|:-----|:-----------------|:------------|:------|
 | `PRJ-` | `05_PROJECT/` | Initiative / Epic | High-level project roadmap and vision | Human |
-| `SPR-` | `05_PROJECT/` | Sprint | Discrete sprint with tasks, assignees, status | Architect |
+| `JOB-` | `05_PROJECT/` | Job | Discrete job with tasks, assignees, status | Architect |
 | `BCK-` | `05_PROJECT/` | Backlog | Prioritized feature backlog (BCK-001 = dev, BCK-002 = architect) | Architect + Human |
 | `BLU-` | `20_BLUEPRINTS/` | Story / Spec | Design specification for a feature or component | Architect |
 | `CON-` | `20_BLUEPRINTS/` | API Definition | Interface contract — the binding rules of the road | Architect + Human |
@@ -130,22 +130,22 @@ Contracts are the highest-authority documents in the system. They live in `20_BL
 
 ---
 
-## 4. Sprint Lifecycle
+## 4. Job Lifecycle
 
-Sprints are **discrete, versioned documents** (not a single living file). Each sprint is `SPR-NNN.md`. When closed, it moves to `90_ARCHIVE/`.
+Jobs are **discrete, versioned documents** (not a single living file). Each job is `JOB-NNN.md`. When closed, it moves to `90_ARCHIVE/`.
 
 ```
 EVO- (feature request)
   → Architect breaks into tasks
-  → SPR-NNN.md created (ACTIVE)
+  → JOB-NNN.md created (ACTIVE)
   → Tasks assigned to Developer Agent(s)
   → Developer executes, commits code
   → Architect audits output against CON-/BLU-
-  → If passes: SPR-NNN.md status → CLOSED, moved to 90_ARCHIVE
-  → If fails: DEF-NNN.md filed, Sprint re-opened or new DEF sprint created
+  → If passes: JOB-NNN.md status → CLOSED, moved to 90_ARCHIVE
+  → If fails: DEF-NNN.md filed, Job re-opened or new DEF job created
 ```
 
-### 4.1 Sprint Document States
+### 4.1 Job Document States
 
 | Status | Meaning |
 |:-------|:--------|
@@ -166,13 +166,13 @@ Step 1: Architect determines — is this a DEVELOPER ERROR or CONTRACT AMBIGUITY
         → Cannot determine alone → escalate to Human
         
 Step 2a: Developer Error
-         → File DEF-NNN.md against the developer's sprint
+         → File DEF-NNN.md against the developer's job
          → Developer agent re-executes the affected task
          
 Step 2b: Contract Ambiguity
          → Architect flags the contract doc for Human review
          → Human + Architect clarify and update CON-NNN.md
-         → Updated contract propagates to all affected sprints
+         → Updated contract propagates to all affected jobs
          
 Step 3: Re-audit. Loop until code matches contract.
 ```
@@ -190,11 +190,11 @@ When a new agent session starts, read CODEX in this order:
 3. `10_GOVERNANCE/GOV-005` — understand the development lifecycle
 4. `80_AGENTS/AGT-00N` — read your specific role definition
 5. `05_PROJECT/PRJ-001_Roadmap.md` — understand the project vision
-6. Your assigned `SPR-NNN.md` — understand your current tasks
+6. Your assigned `JOB-NNN.md` — understand your current tasks
 7. Referenced `BLU-` and `CON-` docs — your execution constraints
 
 **Architect Agent additionally reads:**
-- All active `SPR-NNN.md` docs to track team state
+- All active `JOB-NNN.md` docs to track team state
 - All `CON-NNN.md` docs to perform continuous auditing
 - `BCK-002_ArchitectBacklog.md` — own work stream
 
@@ -228,8 +228,8 @@ When bootstrapping a new project using this template:
 3. **Architect Agent reads** the roadmap and creates `05_PROJECT/BCK-001_Backlog.md`
 4. **Architect Agent creates** `20_BLUEPRINTS/CON-001...` contracts for all interfaces
 5. **Architect Agent creates** project-specific boot docs (`AGT-002-FE`, `AGT-003-BE`, etc.)
-6. **Architect creates** ALL sprint docs up front (`SPR-001` through `SPR-NNN`)
-7. **Architect creates** own backlog (`BCK-002`) and own first sprint (`SPR-001-ARCH`)
+6. **Architect creates** ALL job docs up front (`JOB-001` through `JOB-NNN`)
+7. **Architect creates** own backlog (`BCK-002`) and own first job (`JOB-001-ARCH`)
 8. **Architect Agent spins up** Developer Agents using project-specific boot docs
 9. **Developer Agents execute**, committing code against the contracts
 10. **Architect audits** (using VER-001 checklist) and loops the discrepancy protocol (§5) as needed
@@ -252,11 +252,11 @@ Generic agent role definitions (`AGT-002`) are insufficient for real projects. E
 - Governance compliance checklist
 - Communication protocol (how to report back, what NOT to do)
 
-**Rule:** The Architect creates agent-specific boot docs as part of sprint planning, not as an afterthought. These docs ARE the agent's onboarding — equivalent to briefing a new hire. Use `_templates/template_agent_boot.md`.
+**Rule:** The Architect creates agent-specific boot docs as part of job planning, not as an afterthought. These docs ARE the agent's onboarding — equivalent to briefing a new hire. Use `_templates/template_agent_boot.md`.
 
 ### 9.2 Infrastructure Governance Conversations
 
-Architecture documents (BLU-) assume an idealized environment. Before sprint planning, the Architect MUST have an **infrastructure governance conversation** with the Human to resolve operational reality:
+Architecture documents (BLU-) assume an idealized environment. Before job planning, the Architect MUST have an **infrastructure governance conversation** with the Human to resolve operational reality:
 
 - Cloud Run vs. VM deployment
 - Managed DB vs. self-managed
@@ -270,7 +270,7 @@ The output of this conversation becomes `GOV-008` and it overrides BLU- assumpti
 
 ### 9.3 Governance Compliance From Task One
 
-Testing, error handling, and logging are NOT late-phase polish items. Every sprint document includes a **mandatory compliance table** mapping GOV docs to specific deliverables for that sprint.
+Testing, error handling, and logging are NOT late-phase polish items. Every job document includes a **mandatory compliance table** mapping GOV docs to specific deliverables for that job.
 
 **Rule:** A task that works but violates governance gets a `DEF-` defect report. Compliance is an acceptance criterion, not a checkbox.
 
@@ -294,15 +294,15 @@ Developer agents test their own code (unit, integration). The Architect tests th
 | E2E | **Architect** | Full user workflows across both services |
 | Performance | **Architect** | System under load |
 
-### 9.6 Full Sprint Visibility
+### 9.6 Full Job Visibility
 
-All sprints should be created up front (not just-in-time) so that:
+All jobs should be created up front (not just-in-time) so that:
 - Agents can see the full project scope
-- Dependencies between sprints are visible
+- Dependencies between jobs are visible
 - The Human can audit the complete plan
-- Sprints can be adjusted as issues emerge
+- Jobs can be adjusted as issues emerge
 
-**Rule:** Create all sprint docs during planning. Sprint docs are living documents — adjust them as you learn.
+**Rule:** Create all job docs during planning. Job docs are living documents — adjust them as you learn.
 
 ### 9.7 Adaptation Tables
 
@@ -324,11 +324,11 @@ MANIFEST.yaml is the first file every agent reads. If it's stale, agents won't f
 The Architect is not idle while developers build. The Architect has parallel work:
 - Pre-staging production infrastructure
 - Creating audit checklists and compliance tooling
-- Running contract compliance tests at sprint boundaries
+- Running contract compliance tests at job boundaries
 - Deploying to production after successful audits
 - Maintaining CODEX documents and MANIFEST
 
-Use `BCK-002` for the architect backlog and `SPR-NNN-ARCH` for architect sprints.
+Use `BCK-002` for the architect backlog and `JOB-NNN-ARCH` for architect jobs.
 
 ---
 

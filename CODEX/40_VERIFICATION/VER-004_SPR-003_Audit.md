@@ -6,17 +6,17 @@ status: APPROVED
 owner: architect
 agents: [architect]
 tags: [verification, audit, testing, governance, sprint]
-related: [SPR-003, CON-001, CON-002]
+related: [JOB-003, CON-001, CON-002]
 created: 2026-04-09
 updated: 2026-04-09
 version: 1.0.0
 ---
 
-> **BLUF:** SPR-003 **PASSES**. Both agents delivered all 10 tasks. API builds (0 errors), 30/30 tests pass (8 unit + 11 SPR-002 integration + 4 new integration + 7 git unit tests), frontend builds clean (52 modules). Script worker image builds. Phase 2 exit criteria met.
+> **BLUF:** JOB-003 **PASSES**. Both agents delivered all 10 tasks. API builds (0 errors), 30/30 tests pass (8 unit + 11 JOB-002 integration + 4 new integration + 7 git unit tests), frontend builds clean (52 modules). Script worker image builds. Phase 2 exit criteria met.
 
 # VER-004: Sprint 003 Consolidated Audit
 
-**Sprint:** `SPR-003` — Real Repo Interaction
+**Sprint:** `JOB-003` — Real Repo Interaction
 **Audit date:** 2026-04-09
 
 ---
@@ -38,11 +38,11 @@ version: 1.0.0
 | Check | Status |
 |:------|:-------|
 | Commits: 3 (T-027, T-028+T-030+T-031, T-029) | ✅ PASS |
-| Commit format | ✅ `feat(SPR-003):` |
+| Commit format | ✅ `feat(JOB-003):` |
 | GOV-001: XML docs | ✅ 60+ doc blocks |
 | GOV-006: Logging | ✅ 13 structured log calls |
 | Migration 008 | ✅ 7 new columns (Branch, DiffSummary, CommitSha, Objective, Scope, ScriptJson, AcceptanceCriteriaJson) |
-| T-027: Run creation API | ✅ POST /api/runs with projectId + objective + script |
+| T-027: Run creation API | ✅ POST /api/jobs with projectId + objective + script |
 | T-028: Git wiring | ✅ ExecuteRunAsync clones, creates branch |
 | T-029: Script worker | ✅ Alpine Dockerfile + entrypoint.sh, CON-001 compliant |
 | T-030: Diff ingestion | ✅ CaptureDiffAsync, diff artifact stored |
@@ -55,7 +55,7 @@ version: 1.0.0
 | Check | Status |
 |:------|:-------|
 | Commits: 5 (one per task) | ✅ PASS |
-| Commit format | ✅ `feat(SPR-003):` |
+| Commit format | ✅ `feat(JOB-003):` |
 | GOV-001: JSDoc | ✅ 78 JSDoc blocks |
 | GOV-003: No `any` types | ✅ 0 found |
 | T-032: Create Run form | ✅ Project selector, objective, script, criteria |
@@ -70,10 +70,10 @@ version: 1.0.0
 
 | Category | Count | Source |
 |:---------|:------|:-------|
-| Unit (orchestration) | 8 | SPR-001 |
-| Integration (health, projects, runs) | 11 | SPR-002 |
-| Integration (run creation) | 4 | SPR-003 T-035 |
-| Unit (git operations) | 7 | SPR-003 T-036 |
+| Unit (orchestration) | 8 | JOB-001 |
+| Integration (health, projects, runs) | 11 | JOB-002 |
+| Integration (run creation) | 4 | JOB-003 T-035 |
+| Unit (git operations) | 7 | JOB-003 T-036 |
 | **Total** | **30** | |
 
 ---

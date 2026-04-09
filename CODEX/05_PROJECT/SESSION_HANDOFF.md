@@ -2,9 +2,9 @@
 
 > **Date:** 2026-04-09
 > **Branch State:** `main` (Clean, tested, fully merged)
-> **Prior Objective:** GitHub Integration + User System (`SPR-004`)
+> **Prior Objective:** GitHub Integration + User System (`JOB-004`)
 
-## 1. What Just Landed (`SPR-004`)
+## 1. What Just Landed (`JOB-004`)
 We successfully completed the **GitHub Integration + Auth sprint** with Dev Agents A & B.
 - **Backend:** Integrated JWT-based authentication (Bcrypt hashing, 24-hr sessions) and AES-256-CBC encrypted local storage for GitHub Personal Access Tokens (PATs).
 - **Frontend:** Built `AuthContext` with login and invite-only registration UI. Implemented a user Settings page to securely store the GitHub PAT, and updated the PR links in the Run Detail view.
@@ -21,4 +21,4 @@ The user has requested that **Repository Automation / Repo Creation** be the hig
 - **Primary Goal:** Since `IGitHubService` now possesses `CreateRepositoryAsync(owner, name, ...)`, we need to wire this into the `ProjectsController` so that generating a Project in Stewie provisions the corresponding remote git repository.
 - **Secondary Goal:** We need to update Stewie's worker pipeline to clone this repository, run tasks iteratively inside it, and invoke the automated PR pushing logic successfully.
 
-**To resume work**, proceed immediately into planning `SPR-005: Repository Automation`.
+**To resume work**, proceed immediately into planning `JOB-005: Repository Automation`.

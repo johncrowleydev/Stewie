@@ -88,7 +88,7 @@ Phases are **scope-bounded**, not time-bounded.
 **Goal:** Build a functional single-repo orchestrator with real task management.
 **Exit criteria:**
 - [x] Project entity with repo association
-- [x] Run supports multiple task states (not just test run)
+- [x] Job supports multiple task states (not just test run)
 - [x] Event entity for audit trail
 - [x] Workspace entity for lifecycle tracking
 - [x] API endpoints for CRUD on all core entities
@@ -99,8 +99,8 @@ Phases are **scope-bounded**, not time-bounded.
 - `CON-001` — Runtime Contract (task.json / result.json) — v1.1.0
 - `CON-002` — API Contract (HTTP endpoints) — v1.1.0
 - `BLU-001` — Stewie System Blueprint
-- `SPR-001` — Foundation sprint (CLOSED)
-- `SPR-002` — Phase 1 closure + Phase 2 plumbing (CLOSED)
+- `JOB-001` — Foundation sprint (CLOSED)
+- `JOB-002` — Phase 1 closure + Phase 2 plumbing (CLOSED)
 
 ---
 
@@ -115,7 +115,7 @@ Phases are **scope-bounded**, not time-bounded.
 **Key deliverables:**
 - `CON-001` — Runtime Contract v1.2.0 (script field, repoUrl, branch)
 - `CON-002` — API Contract v1.2.0 (Run creation body, diff/branch fields)
-- `SPR-003` — Real Repo Interaction sprint (CLOSED)
+- `JOB-003` — Real Repo Interaction sprint (CLOSED)
 
 ---
 
@@ -131,7 +131,7 @@ Phases are **scope-bounded**, not time-bounded.
 
 **Key deliverables:**
 - `CON-002` — API Contract v1.3.0 (auth endpoints, user endpoints, GitHub token)
-- `SPR-004` — GitHub Integration + User System sprint (CLOSED)
+- `JOB-004` — GitHub Integration + User System sprint (CLOSED)
 
 ---
 
@@ -145,7 +145,7 @@ Phases are **scope-bounded**, not time-bounded.
 
 **Key deliverables:**
 - `CON-002` — API Contract v1.4.0 (extended project creation, repoProvider field)
-- `SPR-005` — Repository Automation sprint (CLOSED)
+- `JOB-005` — Repository Automation sprint (CLOSED)
 
 ---
 
@@ -159,20 +159,20 @@ Phases are **scope-bounded**, not time-bounded.
 
 ---
 
-### Phase 4: Multi-Task Runs
+### Phase 4: Multi-Task Jobs
 **Goal:** A single Run can spawn and coordinate multiple parallel Tasks.
 **Exit criteria:**
-- [ ] Run with N tasks executing in parallel containers
+- [ ] Job with N tasks executing in parallel containers
 - [ ] Task dependency graph (sequential and parallel)
-- [ ] Aggregated Run status from constituent Tasks
-- [ ] Dashboard shows multi-task Run progress
+- [ ] Aggregated Job status from constituent Tasks
+- [ ] Dashboard shows multi-task Job progress
 
 ---
 
 ### Phase 5: Real-Time Interaction
 **Goal:** Human ↔ Architect interaction in real-time through the dashboard.
 **Exit criteria:**
-- [ ] WebSocket or SSE for live Run/Task updates
+- [ ] WebSocket or SSE for live Job/Task updates
 - [ ] Chat-like interface for Human ↔ Architect
 - [ ] Live container output streaming
 - [ ] RabbitMQ for async event distribution
@@ -183,8 +183,8 @@ Phases are **scope-bounded**, not time-bounded.
 
 | Role | Agent Type | Count | Primary CODEX Docs |
 |:-----|:-----------|:------|:-------------------|
-| Project manager | Architect Agent | 1 | `AGT-001`, all `SPR-`, all `CON-` |
-| Implementation | Developer Agent | 2 | `AGT-002`, assigned `SPR-` |
+| Project manager | Architect Agent | 1 | `AGT-001`, all `JOB-`, all `CON-` |
+| Implementation | Developer Agent | 2 | `AGT-002`, assigned `JOB-` |
 | Quality | Tester Agent | 0 (future) | `AGT-003`, `VER-`, `40_VERIFICATION/` |
 
 ---

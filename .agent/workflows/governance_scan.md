@@ -7,11 +7,11 @@ description: Comprehensive governance compliance scan — checks all 8 GOV docs 
 ## Overview
 
 This workflow scans source files against all 8 governance documents (GOV-001 through GOV-008).
-It is designed to be called by `/git_commit` as a pre-commit gate, or run standalone by the Architect for sprint audits.
+It is designed to be called by `/git_commit` as a pre-commit gate, or run standalone by the Architect for job audits.
 
 **Who runs this:**
 - **Developer agents** — automatically via `/git_commit` before every commit
-- **Architect agent** — standalone during sprint audits (`/governance_scan`)
+- **Architect agent** — standalone during job audits (`/governance_scan`)
 
 **Behavior:**
 - Each check produces a PASS/FAIL/WARN result
@@ -164,7 +164,7 @@ done
 ## Step 6: GOV-005 — Agentic Development Lifecycle
 
 **Checks:**
-1. **Branch naming:** Must match `feature/SPR-NNN-*` pattern (already in `/git_commit`).
+1. **Branch naming:** Must match `feature/JOB-NNN-*` pattern (already in `/git_commit`).
 2. **Commit message format:** Must match `type(scope): description` pattern.
 
 ```bash
@@ -244,7 +244,7 @@ Print a summary table:
 ║ GOV-004  ║ WARN  ║ 1 raw throw new Error()       ║
 ║ GOV-005  ║ PASS  ║ Branch naming OK              ║
 ║ GOV-006  ║ PASS  ║ Logging Specification         ║
-║ GOV-007  ║ SKIP  ║ Manual check (sprint doc)     ║
+║ GOV-007  ║ SKIP  ║ Manual check (job doc)     ║
 ║ GOV-008  ║ PASS  ║ Infrastructure & Operations   ║
 ╠══════════╩═══════╩═══════════════════════════════╣
 ║ RESULT: 1 FAIL — commit blocked                  ║

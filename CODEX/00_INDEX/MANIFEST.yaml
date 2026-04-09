@@ -136,8 +136,8 @@ documents:
       Architect's own work stream: CODEX bootstrap, sprint planning, audit
       preparation, contract compliance, and agent onboarding.
 
-  - id: SPR-001
-    path: 05_PROJECT/SPR-001_Phase1_MVP.md
+  - id: JOB-001
+    path: 05_PROJECT/JOB-001_Phase1_MVP.md
     title: "Sprint 001 — Phase 1 MVP"
     type: how-to
     status: CLOSED
@@ -148,8 +148,8 @@ documents:
       Agent A builds backend entities + API endpoints. Agent B builds React
       dashboard + xUnit test infrastructure. Non-overlapping file territories.
 
-  - id: SPR-002
-    path: 05_PROJECT/SPR-002_Phase1_Closure.md
+  - id: JOB-002
+    path: 05_PROJECT/JOB-002_Phase1_Closure.md
     title: "Sprint 002 — Phase 1 Closure + Phase 2 Plumbing"
     type: how-to
     status: CLOSED
@@ -159,8 +159,8 @@ documents:
       Phase 1 closure sprint: event emission, integration tests, and Phase 2
       plumbing (git clone, branch creation, workspace service extensions).
 
-  - id: SPR-003
-    path: 05_PROJECT/SPR-003_Real_Repo_Interaction.md
+  - id: JOB-003
+    path: 05_PROJECT/JOB-003_Real_Repo_Interaction.md
     title: "Sprint 003 — Real Repo Interaction"
     type: how-to
     status: CLOSED
@@ -170,8 +170,8 @@ documents:
       Phase 2 sprint: real repo clone/branch, script worker container, diff
       ingestion, auto-commit, frontend run creation form, dashboard auto-refresh.
 
-  - id: SPR-004
-    path: 05_PROJECT/SPR-004_GitHub_Integration.md
+  - id: JOB-004
+    path: 05_PROJECT/JOB-004_GitHub_Integration.md
     title: "Sprint 004 — GitHub Integration + User System"
     type: how-to
     status: CLOSED
@@ -182,8 +182,8 @@ documents:
       GitHub PAT storage, Octokit.net integration (push/PR/repo creation), auth
       UI, and protected endpoints.
 
-  - id: SPR-005
-    path: 05_PROJECT/SPR-005_Repository_Automation.md
+  - id: JOB-005
+    path: 05_PROJECT/JOB-005_Repository_Automation.md
     title: "Sprint 005 — Repository Automation + Platform Abstraction"
     type: how-to
     status: CLOSED
@@ -419,7 +419,7 @@ documents:
     summary: >
       Project-specific boot document for Dev Agent A. Defines backend file
       territory, binding contracts (CON-002), existing code patterns, database
-      tables, and branch rules for SPR-001.
+      tables, and branch rules for JOB-001.
 
   - id: AGT-002-B
     path: 80_AGENTS/AGT-002-B_Dev_Agent_B_Boot.md
@@ -431,7 +431,7 @@ documents:
     summary: >
       Project-specific boot document for Dev Agent B. Defines frontend file
       territory, React app structure, branding requirements, xUnit test project
-      setup, and merge order for SPR-001.
+      setup, and merge order for JOB-001.
 
   - id: AGT-003
     path: 80_AGENTS/AGT-003_Tester_Agent.md
