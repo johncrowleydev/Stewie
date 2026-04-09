@@ -14,6 +14,10 @@ namespace Stewie.Tests.Services;
 /// Unit tests for <see cref="JobOrchestrationService"/>.
 /// Covers the four primary execution paths: happy path, container failure,
 /// missing result.json, and unhandled exception during execution.
+///
+/// NOTE: References JobOrchestrationService, IJobRepository, Job, JobStatus —
+/// these classes will exist after Agent A's T-058/T-059 merge.
+/// Until rebase, this file will not compile.
 /// </summary>
 public class JobOrchestrationServiceTests
 {
@@ -64,7 +68,7 @@ public class JobOrchestrationServiceTests
     }
 
     [Fact]
-    public async Task ExecuteTestRun_HappyPath_ReturnsCompletedWithArtifact()
+    public async Task ExecuteTestJob_HappyPath_ReturnsCompletedWithArtifact()
     {
         // Arrange
         _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Job>())
@@ -107,7 +111,7 @@ public class JobOrchestrationServiceTests
     }
 
     [Fact]
-    public async Task ExecuteTestRun_ContainerFails_ReturnsFailedWithExitCode()
+    public async Task ExecuteTestJob_ContainerFails_ReturnsFailedWithExitCode()
     {
         // Arrange
         _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Job>())
@@ -132,7 +136,7 @@ public class JobOrchestrationServiceTests
     }
 
     [Fact]
-    public async Task ExecuteTestRun_ResultJsonMissing_ReturnsFailedWithError()
+    public async Task ExecuteTestJob_ResultJsonMissing_ReturnsFailedWithError()
     {
         // Arrange
         _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Job>())
@@ -154,7 +158,7 @@ public class JobOrchestrationServiceTests
     }
 
     [Fact]
-    public async Task ExecuteTestRun_ExceptionDuringExecution_ReturnsFailedWithMessage()
+    public async Task ExecuteTestJob_ExceptionDuringExecution_ReturnsFailedWithMessage()
     {
         // Arrange
         _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Job>())

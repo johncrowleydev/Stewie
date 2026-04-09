@@ -7,7 +7,7 @@
 /// Until then, auth endpoints return 404 (endpoint doesn't exist yet).
 /// Tests are written to tolerate both pre-auth (404) and post-auth behavior.
 ///
-/// REF: CON-002 §4.0, GOV-002, SPR-004 T-047
+/// REF: CON-002 §4.0, GOV-002, JOB-004 T-047
 /// </summary>
 using System.Net;
 using System.Net.Http.Json;

@@ -7,7 +7,7 @@
  * On 401, the token is cleared and user is redirected to /login.
  */
 import type {
-  Run, Project, CreateProjectRequest, CreateRunRequest,
+  Job, Project, CreateProjectRequest, CreateJobRequest,
   ApiError, Event, LoginRequest, RegisterRequest, AuthResponse, GitHubStatus
 } from "../types";
 
@@ -94,24 +94,24 @@ export async function register(data: RegisterRequest): Promise<AuthResponse> {
   });
 }
 
-// --- Run endpoints ---
+// --- Job endpoints ---
 
-/** Fetch all runs — GET /api/runs */
-export async function fetchRuns(): Promise<Run[]> {
-  return request<Run[]>("/api/runs");
+/** Fetch all jobs — GET /api/jobs */
+export async function fetchJobs(): Promise<Job[]> {
+  return request<Job[]>("/api/jobs");
 }
 
-/** Create a new run — POST /api/runs */
-export async function createRun(data: CreateRunRequest): Promise<Run> {
-  return request<Run>("/api/runs", {
+/** Create a new job — POST /api/jobs */
+export async function createJob(data: CreateJobRequest): Promise<Job> {
+  return request<Job>("/api/jobs", {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
 
-/** Fetch a single run by ID — GET /api/runs/{id} */
-export async function fetchRun(id: string): Promise<Run> {
-  return request<Run>(`/api/runs/${encodeURIComponent(id)}`);
+/** Fetch a single job by ID — GET /api/jobs/{id} */
+export async function fetchJob(id: string): Promise<Job> {
+  return request<Job>(`/api/jobs/${encodeURIComponent(id)}`);
 }
 
 // --- Project endpoints ---

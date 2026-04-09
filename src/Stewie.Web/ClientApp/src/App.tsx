@@ -10,9 +10,9 @@ import { Layout } from "./components/Layout";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { DashboardPage } from "./pages/DashboardPage";
-import { RunsPage } from "./pages/RunsPage";
-import { CreateRunPage } from "./pages/CreateRunPage";
-import { RunDetailPage } from "./pages/RunDetailPage";
+import { JobsPage } from "./pages/JobsPage";
+import { CreateJobPage } from "./pages/CreateJobPage";
+import { JobDetailPage } from "./pages/JobDetailPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { EventsPage } from "./pages/EventsPage";
 import { SettingsPage } from "./pages/SettingsPage";
@@ -28,9 +28,9 @@ function App() {
         {/* Protected routes */}
         <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route path="/" element={<DashboardPage />} />
-          <Route path="/runs" element={<RunsPage />} />
-          <Route path="/runs/new" element={<CreateRunPage />} />
-          <Route path="/runs/:id" element={<RunDetailPage />} />
+          <Route path="/jobs" element={<JobsPage />} />
+          <Route path="/jobs/new" element={<CreateJobPage />} />
+          <Route path="/jobs/:id" element={<JobDetailPage />} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
