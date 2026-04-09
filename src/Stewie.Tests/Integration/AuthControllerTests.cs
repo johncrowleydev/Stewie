@@ -7,7 +7,7 @@
 /// Until then, auth endpoints return 404 (endpoint doesn't exist yet).
 /// Tests are written to tolerate both pre-auth (404) and post-auth behavior.
 ///
-/// REF: CON-002 §4.0, GOV-002, SPR-004 T-047
+/// REF: CON-002 §4.0, GOV-002, JOB-004 T-047
 /// </summary>
 using System.Net;
 using System.Net.Http.Json;
@@ -82,13 +82,13 @@ public class AuthControllerTests : IClassFixture<StewieWebApplicationFactory>, I
     }
 
     /// <summary>
-    /// GET /api/runs without token — currently 200 (no auth), will become 401.
+    /// GET /api/jobs without token — currently 200 (no auth), will become 401.
     /// This test documents the expected transition.
     /// </summary>
     [Fact]
     public async Task ProtectedEndpoint_NoToken_Returns200Or401()
     {
-        var response = await _client.GetAsync("/api/runs");
+        var response = await _client.GetAsync("/api/jobs");
 
         // Pre-auth: 200 (no auth middleware). Post-auth: 401
         Assert.True(

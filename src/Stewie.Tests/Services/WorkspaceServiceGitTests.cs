@@ -158,7 +158,7 @@ public class WorkspaceServiceGitTests : IDisposable
         RunGit("add -A", repoDir);
         RunGit("config user.email \"stewie@test.dev\"", repoDir);
         RunGit("config user.name \"Stewie Worker\"", repoDir);
-        RunGit("commit -m \"feat(stewie): test objective [Run abc123]\"", repoDir);
+        RunGit("commit -m \"feat(stewie): test objective [Job abc123]\"", repoDir);
 
         // Verify commit SHA exists
         var sha = RunGitWithOutput("rev-parse HEAD", repoDir).Trim();

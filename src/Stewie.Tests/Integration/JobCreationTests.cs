@@ -1,6 +1,6 @@
 /// <summary>
-/// Integration tests for extended Run creation API.
-/// Tests the POST /api/runs endpoint per CON-002 §4.2 (v1.2.0).
+/// Integration tests for extended Job creation API.
+/// Tests the POST /api/jobs endpoint per CON-002 §4.2 (v1.5.0).
 ///
 /// NOTE: Tests are written against the current backend behavior.
 /// After Agent A's T-027 merges (extended validation), some tests may need
@@ -16,32 +16,32 @@ using Xunit;
 namespace Stewie.Tests.Integration;
 
 /// <summary>
-/// Verifies Run creation endpoint behavior per CON-002 contract.
+/// Verifies Job creation endpoint behavior per CON-002 contract.
 /// </summary>
-public class RunCreationTests : IClassFixture<StewieWebApplicationFactory>, IDisposable
+public class JobCreationTests : IClassFixture<StewieWebApplicationFactory>, IDisposable
 {
     private readonly HttpClient _client;
 
-    public RunCreationTests(StewieWebApplicationFactory factory)
+    public JobCreationTests(StewieWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
         _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", factory.GetAuthToken());
     }
 
-    /// <summary>POST /api/runs with valid projectId creates a run.</summary>
+    /// <summary>POST /api/jobs with valid projectId creates a job.</summary>
     [Fact]
-    public async Task Create_WithProjectId_ReturnsCreatedRun()
+    public async Task Create_WithProjectId_ReturnsCreatedJob()
     {
         // First create a project to reference
-        var projectPayload = new { name = "Run Test Project", repoUrl = "https://github.com/test/run-test" };
+        var projectPayload = new { name = "Job Test Project", repoUrl = "https://github.com/test/job-test" };
         var projectResponse = await _client.PostAsJsonAsync("/api/projects", projectPayload);
         var projectBody = await projectResponse.Content.ReadAsStringAsync();
         var project = JsonSerializer.Deserialize<JsonElement>(projectBody);
         var projectId = project.GetProperty("id").GetString();
 
-        // Create a run linked to the project
-        var runPayload = new { projectId, objective = "Integration test run" };
-        var response = await _client.PostAsJsonAsync("/api/runs", runPayload);
+        // Create a job linked to the project
+        var jobPayload = new { projectId, objective = "Integration test job" };
+        var response = await _client.PostAsJsonAsync("/api/jobs", jobPayload);
 
         Assert.True(
             response.StatusCode == HttpStatusCode.Created ||
@@ -54,12 +54,12 @@ public class RunCreationTests : IClassFixture<StewieWebApplicationFactory>, IDis
         Assert.Equal("Pending", doc.GetProperty("status").GetString());
     }
 
-    /// <summary>POST /api/runs without projectId creates a run (current behavior allows null).</summary>
+    /// <summary>POST /api/jobs without projectId creates a job (current behavior allows null).</summary>
     [Fact]
-    public async Task Create_WithoutProjectId_CreatesRunOrReturnsError()
+    public async Task Create_WithoutProjectId_CreatesJobOrReturnsError()
     {
         var payload = new { projectId = (Guid?)null };
-        var response = await _client.PostAsJsonAsync("/api/runs", payload);
+        var response = await _client.PostAsJsonAsync("/api/jobs", payload);
 
         // Current behavior: 201 (Agent A's T-027 may change to 400)
         Assert.True(
@@ -69,7 +69,7 @@ public class RunCreationTests : IClassFixture<StewieWebApplicationFactory>, IDis
             $"Expected 200, 201, or 400, got {(int)response.StatusCode}");
     }
 
-    /// <summary>POST /api/runs — response includes status field per CON-002 §5.2.</summary>
+    /// <summary>POST /api/jobs — response includes status field per CON-002 §5.2.</summary>
     [Fact]
     public async Task Create_ResponseHasRequiredFields()
     {
@@ -79,8 +79,8 @@ public class RunCreationTests : IClassFixture<StewieWebApplicationFactory>, IDis
         var project = JsonSerializer.Deserialize<JsonElement>(projectBody);
         var projectId = project.GetProperty("id").GetString();
 
-        var runPayload = new { projectId, objective = "Schema field check" };
-        var response = await _client.PostAsJsonAsync("/api/runs", runPayload);
+        var jobPayload = new { projectId, objective = "Schema field check" };
+        var response = await _client.PostAsJsonAsync("/api/jobs", jobPayload);
         var body = await response.Content.ReadAsStringAsync();
         var doc = JsonSerializer.Deserialize<JsonElement>(body);
 
@@ -91,9 +91,9 @@ public class RunCreationTests : IClassFixture<StewieWebApplicationFactory>, IDis
         Assert.True(doc.TryGetProperty("tasks", out _), "Missing 'tasks' field");
     }
 
-    /// <summary>GET /api/runs/{id} after creation returns the run with tasks array.</summary>
+    /// <summary>GET /api/jobs/{id} after creation returns the job with tasks array.</summary>
     [Fact]
-    public async Task GetById_AfterCreate_ReturnsRunWithTasks()
+    public async Task GetById_AfterCreate_ReturnsJobWithTasks()
     {
         var projectPayload = new { name = "Get Test Project", repoUrl = "https://github.com/test/get" };
         var projectResponse = await _client.PostAsJsonAsync("/api/projects", projectPayload);
@@ -101,13 +101,13 @@ public class RunCreationTests : IClassFixture<StewieWebApplicationFactory>, IDis
         var project = JsonSerializer.Deserialize<JsonElement>(projectBody);
         var projectId = project.GetProperty("id").GetString();
 
-        var runPayload = new { projectId, objective = "GetById test" };
-        var createResponse = await _client.PostAsJsonAsync("/api/runs", runPayload);
+        var jobPayload = new { projectId, objective = "GetById test" };
+        var createResponse = await _client.PostAsJsonAsync("/api/jobs", jobPayload);
         var createBody = await createResponse.Content.ReadAsStringAsync();
         var created = JsonSerializer.Deserialize<JsonElement>(createBody);
-        var runId = created.GetProperty("id").GetString();
+        var jobId = created.GetProperty("id").GetString();
 
-        var response = await _client.GetAsync($"/api/runs/{runId}");
+        var response = await _client.GetAsync($"/api/jobs/{jobId}");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync();

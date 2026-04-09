@@ -5,7 +5,7 @@
 ///
 /// REF: CON-002 §4.1, §5.1, §6
 /// REF: GOV-002 (testing protocol)
-/// REF: SPR-005 T-054
+/// REF: JOB-005 T-054
 /// </summary>
 using System.Net;
 using System.Net.Http.Json;
@@ -196,7 +196,7 @@ public class ProjectCreationTests : IClassFixture<ProjectCreationTestFactory>, I
 
 /// <summary>
 /// Custom WebApplicationFactory for project creation tests that
-/// registers a mock IGitPlatformService (to be renamed IGitPlatformService by Agent A).
+/// registers a mock IGitPlatformService.
 /// This allows testing the create-repo flow without actual GitHub API calls.
 /// </summary>
 public class ProjectCreationTestFactory : StewieWebApplicationFactory

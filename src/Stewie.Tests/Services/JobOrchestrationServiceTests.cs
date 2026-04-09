@@ -11,13 +11,17 @@ using Xunit;
 namespace Stewie.Tests.Services;
 
 /// <summary>
-/// Unit tests for <see cref="RunOrchestrationService"/>.
+/// Unit tests for <see cref="JobOrchestrationService"/>.
 /// Covers the four primary execution paths: happy path, container failure,
 /// missing result.json, and unhandled exception during execution.
+///
+/// NOTE: References JobOrchestrationService, IJobRepository, Job, JobStatus —
+/// these classes will exist after Agent A's T-058/T-059 merge.
+/// Until rebase, this file will not compile.
 /// </summary>
-public class RunOrchestrationServiceTests
+public class JobOrchestrationServiceTests
 {
-    private readonly IRunRepository _runRepository;
+    private readonly IJobRepository _jobRepository;
     private readonly IWorkTaskRepository _workTaskRepository;
     private readonly IArtifactRepository _artifactRepository;
     private readonly IEventRepository _eventRepository;
@@ -29,11 +33,11 @@ public class RunOrchestrationServiceTests
     private readonly IGitPlatformService _gitPlatformService;
     private readonly IEncryptionService _encryptionService;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly RunOrchestrationService _sut;
+    private readonly JobOrchestrationService _sut;
 
-    public RunOrchestrationServiceTests()
+    public JobOrchestrationServiceTests()
     {
-        _runRepository = Substitute.For<IRunRepository>();
+        _jobRepository = Substitute.For<IJobRepository>();
         _workTaskRepository = Substitute.For<IWorkTaskRepository>();
         _artifactRepository = Substitute.For<IArtifactRepository>();
         _eventRepository = Substitute.For<IEventRepository>();
@@ -46,8 +50,8 @@ public class RunOrchestrationServiceTests
         _encryptionService = Substitute.For<IEncryptionService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
 
-        _sut = new RunOrchestrationService(
-            _runRepository,
+        _sut = new JobOrchestrationService(
+            _jobRepository,
             _workTaskRepository,
             _artifactRepository,
             _eventRepository,
@@ -59,15 +63,15 @@ public class RunOrchestrationServiceTests
             _gitPlatformService,
             _encryptionService,
             _unitOfWork,
-            NullLogger<RunOrchestrationService>.Instance,
+            NullLogger<JobOrchestrationService>.Instance,
             "stewie-script-worker");
     }
 
     [Fact]
-    public async Task ExecuteTestRun_HappyPath_ReturnsCompletedWithArtifact()
+    public async Task ExecuteTestJob_HappyPath_ReturnsCompletedWithArtifact()
     {
         // Arrange
-        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Run>())
+        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Job>())
             .Returns("/tmp/workspaces/test-task");
 
         _containerService.LaunchWorkerAsync(Arg.Any<WorkTask>())
@@ -89,12 +93,12 @@ public class RunOrchestrationServiceTests
             .Returns(resultPacket);
 
         // Act
-        var result = await _sut.ExecuteTestRunAsync();
+        var result = await _sut.ExecuteTestJobAsync();
 
         // Assert
         Assert.Equal("Completed", result.Status);
         Assert.Equal("Dummy worker executed successfully.", result.Summary);
-        Assert.NotEqual(Guid.Empty, result.RunId);
+        Assert.NotEqual(Guid.Empty, result.JobId);
         Assert.NotEqual(Guid.Empty, result.TaskId);
         Assert.NotNull(result.ArtifactId);
         Assert.NotEqual(Guid.Empty, result.ArtifactId.Value);
@@ -107,17 +111,17 @@ public class RunOrchestrationServiceTests
     }
 
     [Fact]
-    public async Task ExecuteTestRun_ContainerFails_ReturnsFailedWithExitCode()
+    public async Task ExecuteTestJob_ContainerFails_ReturnsFailedWithExitCode()
     {
         // Arrange
-        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Run>())
+        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Job>())
             .Returns("/tmp/workspaces/test-task");
 
         _containerService.LaunchWorkerAsync(Arg.Any<WorkTask>())
             .Returns(1);
 
         // Act
-        var result = await _sut.ExecuteTestRunAsync();
+        var result = await _sut.ExecuteTestJobAsync();
 
         // Assert
         Assert.Equal("Failed", result.Status);
@@ -132,10 +136,10 @@ public class RunOrchestrationServiceTests
     }
 
     [Fact]
-    public async Task ExecuteTestRun_ResultJsonMissing_ReturnsFailedWithError()
+    public async Task ExecuteTestJob_ResultJsonMissing_ReturnsFailedWithError()
     {
         // Arrange
-        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Run>())
+        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Job>())
             .Returns("/tmp/workspaces/test-task");
 
         _containerService.LaunchWorkerAsync(Arg.Any<WorkTask>())
@@ -145,7 +149,7 @@ public class RunOrchestrationServiceTests
             .Throws(new FileNotFoundException("result.json not found at /tmp/workspaces/test-task/output/result.json"));
 
         // Act
-        var result = await _sut.ExecuteTestRunAsync();
+        var result = await _sut.ExecuteTestJobAsync();
 
         // Assert
         Assert.Equal("Failed", result.Status);
@@ -154,17 +158,17 @@ public class RunOrchestrationServiceTests
     }
 
     [Fact]
-    public async Task ExecuteTestRun_ExceptionDuringExecution_ReturnsFailedWithMessage()
+    public async Task ExecuteTestJob_ExceptionDuringExecution_ReturnsFailedWithMessage()
     {
         // Arrange
-        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Run>())
+        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Job>())
             .Returns("/tmp/workspaces/test-task");
 
         _containerService.LaunchWorkerAsync(Arg.Any<WorkTask>())
             .Throws(new InvalidOperationException("Docker daemon not available"));
 
         // Act
-        var result = await _sut.ExecuteTestRunAsync();
+        var result = await _sut.ExecuteTestJobAsync();
 
         // Assert
         Assert.Equal("Failed", result.Status);

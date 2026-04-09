@@ -1,16 +1,16 @@
 /// <summary>
-/// Unit tests for container timeout enforcement (SPR-005 T-051).
+/// Unit tests for container timeout enforcement (JOB-005 T-051).
 /// Tests verify that:
 ///   - Containers exceeding the timeout return exit code 124
 ///   - Containers completing within timeout return actual exit codes
 ///   - Timeout is configurable
 ///
-/// NOTE: These tests validate the EXPECTED behavior per SPR-005 T-051.
+/// NOTE: These tests validate the EXPECTED behavior per JOB-005 T-051.
 /// Agent A will implement the timeout logic in DockerContainerService.
 /// Until then, these tests mock IContainerService to validate the
-/// RunOrchestrationService's handling of exit code 124 (timeout convention).
+/// JobOrchestrationService's handling of exit code 124 (timeout convention).
 ///
-/// REF: CON-001 §7, GOV-002, SPR-005 T-051/T-055
+/// REF: CON-001 §7, GOV-002, JOB-005 T-051/T-055
 /// </summary>
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
@@ -26,11 +26,15 @@ namespace Stewie.Tests.Services;
 
 /// <summary>
 /// Validates container timeout behavior by simulating exit code 124 (Unix timeout convention).
-/// The RunOrchestrationService should treat exit code 124 as a timeout failure.
+/// The JobOrchestrationService should treat exit code 124 as a timeout failure.
+///
+/// NOTE: References JobOrchestrationService, IJobRepository, Job —
+/// these classes will exist after Agent A's T-058/T-059 merge.
+/// Until rebase, this file will not compile.
 /// </summary>
 public class ContainerTimeoutTests
 {
-    private readonly IRunRepository _runRepository;
+    private readonly IJobRepository _jobRepository;
     private readonly IWorkTaskRepository _workTaskRepository;
     private readonly IArtifactRepository _artifactRepository;
     private readonly IEventRepository _eventRepository;
@@ -39,14 +43,14 @@ public class ContainerTimeoutTests
     private readonly IUserCredentialRepository _credentialRepository;
     private readonly IWorkspaceService _workspaceService;
     private readonly IContainerService _containerService;
-    private readonly IGitPlatformService _gitHubService;
+    private readonly IGitPlatformService _gitPlatformService;
     private readonly IEncryptionService _encryptionService;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly RunOrchestrationService _sut;
+    private readonly JobOrchestrationService _sut;
 
     public ContainerTimeoutTests()
     {
-        _runRepository = Substitute.For<IRunRepository>();
+        _jobRepository = Substitute.For<IJobRepository>();
         _workTaskRepository = Substitute.For<IWorkTaskRepository>();
         _artifactRepository = Substitute.For<IArtifactRepository>();
         _eventRepository = Substitute.For<IEventRepository>();
@@ -55,12 +59,12 @@ public class ContainerTimeoutTests
         _credentialRepository = Substitute.For<IUserCredentialRepository>();
         _workspaceService = Substitute.For<IWorkspaceService>();
         _containerService = Substitute.For<IContainerService>();
-        _gitHubService = Substitute.For<IGitPlatformService>();
+        _gitPlatformService = Substitute.For<IGitPlatformService>();
         _encryptionService = Substitute.For<IEncryptionService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
 
-        _sut = new RunOrchestrationService(
-            _runRepository,
+        _sut = new JobOrchestrationService(
+            _jobRepository,
             _workTaskRepository,
             _artifactRepository,
             _eventRepository,
@@ -69,22 +73,22 @@ public class ContainerTimeoutTests
             _credentialRepository,
             _workspaceService,
             _containerService,
-            _gitHubService,
+            _gitPlatformService,
             _encryptionService,
             _unitOfWork,
-            NullLogger<RunOrchestrationService>.Instance,
+            NullLogger<JobOrchestrationService>.Instance,
             "stewie-script-worker");
     }
 
     /// <summary>
     /// When a container exits with code 124 (timeout), the orchestration service
-    /// should mark the run as Failed and include "code 124" in the summary.
+    /// should mark the job as Failed and include "code 124" in the summary.
     /// </summary>
     [Fact]
-    public async Task ExecuteTestRun_TimeoutExitCode124_ReturnsFailedWithTimeoutInfo()
+    public async Task ExecuteTestJob_TimeoutExitCode124_ReturnsFailedWithTimeoutInfo()
     {
         // Arrange
-        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Run>())
+        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Job>())
             .Returns("/tmp/workspaces/timeout-task");
 
         // Simulate container timeout with exit code 124
@@ -92,7 +96,7 @@ public class ContainerTimeoutTests
             .Returns(124);
 
         // Act
-        var result = await _sut.ExecuteTestRunAsync();
+        var result = await _sut.ExecuteTestJobAsync();
 
         // Assert
         Assert.Equal("Failed", result.Status);
@@ -110,10 +114,10 @@ public class ContainerTimeoutTests
     /// service should process the result normally — not treat it as a timeout.
     /// </summary>
     [Fact]
-    public async Task ExecuteTestRun_NormalExitCode0_ReturnsCompletedNormally()
+    public async Task ExecuteTestJob_NormalExitCode0_ReturnsCompletedNormally()
     {
         // Arrange
-        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Run>())
+        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Job>())
             .Returns("/tmp/workspaces/normal-task");
 
         _containerService.LaunchWorkerAsync(Arg.Any<WorkTask>())
@@ -135,7 +139,7 @@ public class ContainerTimeoutTests
             .Returns(resultPacket);
 
         // Act
-        var result = await _sut.ExecuteTestRunAsync();
+        var result = await _sut.ExecuteTestJobAsync();
 
         // Assert
         Assert.Equal("Completed", result.Status);
@@ -152,10 +156,10 @@ public class ContainerTimeoutTests
     /// This distinguishes a normal crash from a timeout.
     /// </summary>
     [Fact]
-    public async Task ExecuteTestRun_NonTimeoutFailure_ReportsActualExitCode()
+    public async Task ExecuteTestJob_NonTimeoutFailure_ReportsActualExitCode()
     {
         // Arrange
-        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Run>())
+        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Job>())
             .Returns("/tmp/workspaces/crash-task");
 
         // Non-timeout failure — exit code 1
@@ -163,7 +167,7 @@ public class ContainerTimeoutTests
             .Returns(1);
 
         // Act
-        var result = await _sut.ExecuteTestRunAsync();
+        var result = await _sut.ExecuteTestJobAsync();
 
         // Assert
         Assert.Equal("Failed", result.Status);
@@ -173,20 +177,20 @@ public class ContainerTimeoutTests
 
     /// <summary>
     /// When the Docker daemon throws an exception (container error),
-    /// the service should mark the run as failed with the error message.
+    /// the service should mark the job as failed with the error message.
     /// </summary>
     [Fact]
-    public async Task ExecuteTestRun_ContainerDaemonError_ReturnsFailedWithMessage()
+    public async Task ExecuteTestJob_ContainerDaemonError_ReturnsFailedWithMessage()
     {
         // Arrange
-        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Run>())
+        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Job>())
             .Returns("/tmp/workspaces/daemon-error");
 
         _containerService.LaunchWorkerAsync(Arg.Any<WorkTask>())
             .Throws(new InvalidOperationException("Docker socket connection refused"));
 
         // Act
-        var result = await _sut.ExecuteTestRunAsync();
+        var result = await _sut.ExecuteTestJobAsync();
 
         // Assert
         Assert.Equal("Failed", result.Status);

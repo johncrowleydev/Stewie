@@ -1,18 +1,22 @@
 /// <summary>
-/// Unit tests for retry logic and error taxonomy (SPR-005 T-052).
+/// Unit tests for retry logic and error taxonomy (JOB-005 T-052).
 /// Tests verify that:
 ///   - Transient failures (timeout=124, container error) trigger exactly one retry
 ///   - Permanent failures (crash=1, result missing, result invalid) do NOT retry
 ///   - The failure reason is classified correctly
 ///
-/// NOTE: These tests validate the EXPECTED behavior per SPR-005 T-052.
+/// NOTE: These tests validate the EXPECTED behavior per JOB-005 T-052.
 /// Agent A will implement the retry logic and TaskFailureReason enum.
-/// Until then, these tests exercise the existing RunOrchestrationService
+/// Until then, these tests exercise the existing JobOrchestrationService
 /// behavior (no retry) and verify the current failure handling paths.
 /// When Agent A's code lands, tests for retry will be updated to match
-/// the new RunOrchestrationService.ExecuteRunAsync behavior.
+/// the new JobOrchestrationService.ExecuteJobAsync behavior.
 ///
-/// REF: GOV-002, GOV-004, SPR-005 T-052/T-055
+/// NOTE: References JobOrchestrationService, IJobRepository, Job —
+/// these classes will exist after Agent A's T-058/T-059 merge.
+/// Until rebase, this file will not compile.
+///
+/// REF: GOV-002, GOV-004, JOB-005 T-052/T-055
 /// </summary>
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
@@ -32,7 +36,7 @@ namespace Stewie.Tests.Services;
 /// </summary>
 public class RetryLogicTests
 {
-    private readonly IRunRepository _runRepository;
+    private readonly IJobRepository _jobRepository;
     private readonly IWorkTaskRepository _workTaskRepository;
     private readonly IArtifactRepository _artifactRepository;
     private readonly IEventRepository _eventRepository;
@@ -41,14 +45,14 @@ public class RetryLogicTests
     private readonly IUserCredentialRepository _credentialRepository;
     private readonly IWorkspaceService _workspaceService;
     private readonly IContainerService _containerService;
-    private readonly IGitPlatformService _gitHubService;
+    private readonly IGitPlatformService _gitPlatformService;
     private readonly IEncryptionService _encryptionService;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly RunOrchestrationService _sut;
+    private readonly JobOrchestrationService _sut;
 
     public RetryLogicTests()
     {
-        _runRepository = Substitute.For<IRunRepository>();
+        _jobRepository = Substitute.For<IJobRepository>();
         _workTaskRepository = Substitute.For<IWorkTaskRepository>();
         _artifactRepository = Substitute.For<IArtifactRepository>();
         _eventRepository = Substitute.For<IEventRepository>();
@@ -57,12 +61,12 @@ public class RetryLogicTests
         _credentialRepository = Substitute.For<IUserCredentialRepository>();
         _workspaceService = Substitute.For<IWorkspaceService>();
         _containerService = Substitute.For<IContainerService>();
-        _gitHubService = Substitute.For<IGitPlatformService>();
+        _gitPlatformService = Substitute.For<IGitPlatformService>();
         _encryptionService = Substitute.For<IEncryptionService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
 
-        _sut = new RunOrchestrationService(
-            _runRepository,
+        _sut = new JobOrchestrationService(
+            _jobRepository,
             _workTaskRepository,
             _artifactRepository,
             _eventRepository,
@@ -71,10 +75,10 @@ public class RetryLogicTests
             _credentialRepository,
             _workspaceService,
             _containerService,
-            _gitHubService,
+            _gitPlatformService,
             _encryptionService,
             _unitOfWork,
-            NullLogger<RunOrchestrationService>.Instance,
+            NullLogger<JobOrchestrationService>.Instance,
             "stewie-script-worker");
     }
 
@@ -88,10 +92,10 @@ public class RetryLogicTests
     /// Expected after T-052: retry once, then succeed or fail.
     /// </summary>
     [Fact]
-    public async Task TransientFailure_Timeout_ExitCode124_MarksRunAsFailed()
+    public async Task TransientFailure_Timeout_ExitCode124_MarksJobAsFailed()
     {
         // Arrange
-        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Run>())
+        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Job>())
             .Returns("/tmp/workspaces/retry-timeout");
 
         // First call returns 124 (timeout)
@@ -99,7 +103,7 @@ public class RetryLogicTests
             .Returns(124);
 
         // Act
-        var result = await _sut.ExecuteTestRunAsync();
+        var result = await _sut.ExecuteTestJobAsync();
 
         // Assert — currently fails immediately (retry not yet implemented)
         Assert.Equal("Failed", result.Status);
@@ -112,17 +116,17 @@ public class RetryLogicTests
     /// Expected after T-052: retry once, then succeed or fail.
     /// </summary>
     [Fact]
-    public async Task TransientFailure_ContainerError_Exception_MarksRunAsFailed()
+    public async Task TransientFailure_ContainerError_Exception_MarksJobAsFailed()
     {
         // Arrange
-        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Run>())
+        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Job>())
             .Returns("/tmp/workspaces/retry-docker-error");
 
         _containerService.LaunchWorkerAsync(Arg.Any<WorkTask>())
             .Throws(new InvalidOperationException("Docker image not found: stewie-script-worker"));
 
         // Act
-        var result = await _sut.ExecuteTestRunAsync();
+        var result = await _sut.ExecuteTestJobAsync();
 
         // Assert — fails with exception message
         Assert.Equal("Failed", result.Status);
@@ -141,14 +145,14 @@ public class RetryLogicTests
     public async Task PermanentFailure_WorkerCrash_ExitCode1_NoRetry()
     {
         // Arrange
-        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Run>())
+        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Job>())
             .Returns("/tmp/workspaces/crash-no-retry");
 
         _containerService.LaunchWorkerAsync(Arg.Any<WorkTask>())
             .Returns(1);
 
         // Act
-        var result = await _sut.ExecuteTestRunAsync();
+        var result = await _sut.ExecuteTestJobAsync();
 
         // Assert — fails immediately, no retry
         Assert.Equal("Failed", result.Status);
@@ -166,7 +170,7 @@ public class RetryLogicTests
     public async Task PermanentFailure_ResultMissing_NoRetry()
     {
         // Arrange
-        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Run>())
+        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Job>())
             .Returns("/tmp/workspaces/no-result");
 
         _containerService.LaunchWorkerAsync(Arg.Any<WorkTask>())
@@ -176,7 +180,7 @@ public class RetryLogicTests
             .Throws(new FileNotFoundException("result.json not found"));
 
         // Act
-        var result = await _sut.ExecuteTestRunAsync();
+        var result = await _sut.ExecuteTestJobAsync();
 
         // Assert — fails due to missing result
         Assert.Equal("Failed", result.Status);
@@ -194,7 +198,7 @@ public class RetryLogicTests
     public async Task PermanentFailure_WorkerReportedFailure_NoRetry()
     {
         // Arrange
-        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Run>())
+        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Job>())
             .Returns("/tmp/workspaces/worker-failure");
 
         _containerService.LaunchWorkerAsync(Arg.Any<WorkTask>())
@@ -216,7 +220,7 @@ public class RetryLogicTests
             .Returns(failureResult);
 
         // Act
-        var result = await _sut.ExecuteTestRunAsync();
+        var result = await _sut.ExecuteTestJobAsync();
 
         // Assert — reports failure from worker
         Assert.Equal("Failed", result.Status);
@@ -235,26 +239,26 @@ public class RetryLogicTests
     /// for audit trail per GOV-004.
     /// </summary>
     [Fact]
-    public async Task FailedRun_EmitsTaskFailedAndRunFailedEvents()
+    public async Task FailedJob_EmitsTaskFailedAndJobFailedEvents()
     {
         // Arrange
-        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Run>())
+        _workspaceService.PrepareWorkspace(Arg.Any<WorkTask>(), Arg.Any<Job>())
             .Returns("/tmp/workspaces/event-test");
 
         _containerService.LaunchWorkerAsync(Arg.Any<WorkTask>())
             .Returns(137); // OOM kill
 
         // Act
-        var result = await _sut.ExecuteTestRunAsync();
+        var result = await _sut.ExecuteTestJobAsync();
 
-        // Assert — TaskFailed and RunFailed events should be emitted
+        // Assert — TaskFailed and JobFailed events should be emitted
         Assert.Equal("Failed", result.Status);
 
         // Verify events were saved (4 total: Created, Created, Started, Started happen before failure,
-        // then TaskFailed + RunFailed in MarkFailedAsync)
+        // then TaskFailed + JobFailed in MarkFailedAsync)
         await _eventRepository.Received().SaveAsync(
             Arg.Is<Event>(e => e.EventType == EventType.TaskFailed));
         await _eventRepository.Received().SaveAsync(
-            Arg.Is<Event>(e => e.EventType == EventType.RunFailed));
+            Arg.Is<Event>(e => e.EventType == EventType.JobFailed));
     }
 }
