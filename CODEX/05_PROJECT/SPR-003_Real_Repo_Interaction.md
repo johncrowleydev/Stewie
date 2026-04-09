@@ -2,7 +2,7 @@
 id: SPR-003
 title: "Real Repo Interaction"
 type: how-to
-status: ACTIVE
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, sprint, workflow]
@@ -252,16 +252,16 @@ T-031: Auto-commit                   T-036: Unit tests (diff/commit)
 
 | Task | Agent | Status | Description |
 |:-----|:------|:-------|:------------|
-| T-027 | A | [ ] | Run creation API |
-| T-028 | A | [ ] | Wire git into loop |
-| T-029 | A | [ ] | Script worker container |
-| T-030 | A | [ ] | Diff ingestion |
-| T-031 | A | [ ] | Auto-commit |
-| T-032 | B | [ ] | Create Run form |
-| T-033 | B | [ ] | Run detail git/diff viewer |
-| T-034 | B | [ ] | Dashboard auto-refresh |
-| T-035 | B | [ ] | Integration tests (Run creation) |
-| T-036 | B | [ ] | Unit tests (diff/commit) |
+| T-027 | A | [x] | Run creation API |
+| T-028 | A | [x] | Wire git into loop |
+| T-029 | A | [x] | Script worker container |
+| T-030 | A | [x] | Diff ingestion |
+| T-031 | A | [x] | Auto-commit |
+| T-032 | B | [x] | Create Run form |
+| T-033 | B | [x] | Run detail git/diff viewer |
+| T-034 | B | [x] | Dashboard auto-refresh |
+| T-035 | B | [x] | Integration tests (Run creation) |
+| T-036 | B | [x] | Unit tests (diff/commit) |
 
 ---
 
@@ -289,7 +289,14 @@ T-031: Auto-commit                   T-036: Unit tests (diff/commit)
 
 ## Audit Notes (Architect)
 
-[Architect fills this in during audit.]
+### Combined Audit (2026-04-09)
+- **Audit report:** `40_VERIFICATION/VER-004_SPR-003_Audit.md`
+- Build: ✅ API 0 errors, frontend 52 modules, 30/30 tests pass
+- Script worker: ✅ Alpine image builds and runs
+- Governance: ✅ All GOV docs compliant
+- Contract: ✅ CON-001 v1.2.0, CON-002 v1.2.0 fully implemented
+- **Verdict:** PASS
 
-**Verdict:** PENDING
-**Deploy approved:** NO
+**Sprint Verdict:** CLOSED ✅
+**Phase 2:** COMPLETE ✅
+**Deploy approved:** YES
