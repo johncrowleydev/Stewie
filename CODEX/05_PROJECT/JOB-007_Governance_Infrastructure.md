@@ -2,7 +2,7 @@
 id: JOB-007
 title: "Sequential Task Chains + Governance Infrastructure"
 type: how-to
-status: PLANNING
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, job, workflow, governance]
