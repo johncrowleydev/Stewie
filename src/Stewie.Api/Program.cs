@@ -72,3 +72,5 @@ app.UseAuthorization();
 app.MapControllers();
 app.Run();
 
+// Required for WebApplicationFactory<Program> in integration tests (GOV-002)
+public partial class Program { }
