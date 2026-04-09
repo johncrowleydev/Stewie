@@ -149,17 +149,21 @@ Phases are **scope-bounded**, not time-bounded.
 
 ---
 
-### Phase 3: Governance Engine
+### Phase 3: Governance Engine ✅ COMPLETE
 **Goal:** Stewie enforces CODEX governance on worker output automatically via a tester task that runs after every developer task. Includes sequential task chains (dev → tester → retry loop).
 **Exit criteria:**
-- [ ] Sequential task chains: dev task → tester task → accept/reject/retry
-- [ ] Governance worker container image (stack-extensible, .NET first)
-- [ ] All 8 GOV docs encoded as automated deterministic rules
-- [ ] GovernanceReport entity with per-rule pass/fail results
-- [ ] Rejection workflow: governance failure → re-run worker with violation feedback
-- [ ] Governance audit trail in Events (GovernanceStarted, Passed, Failed)
-- [ ] Dashboard displays task chain + governance report per job
-- [ ] Configurable max retry attempts (default: 2)
+- [x] Sequential task chains: dev task → tester task → accept/reject/retry (JOB-007)
+- [x] Governance worker container image (stack-extensible, .NET first) (JOB-007, JOB-008)
+- [x] All 8 GOV docs encoded as automated deterministic rules (JOB-008, 15 rules)
+- [x] GovernanceReport entity with per-rule pass/fail results (JOB-007)
+- [x] Rejection workflow: governance failure → re-run worker with violation feedback (JOB-007)
+- [x] Governance audit trail in Events (GovernanceStarted, Passed, Failed) (JOB-007)
+- [x] Dashboard displays task chain + governance report per job (JOB-008)
+- [x] Configurable max retry attempts (default: 2) (JOB-007)
+
+**Jobs:**
+- `JOB-007` — Sequential Task Chains + Governance Infrastructure (CLOSED)
+- `JOB-008` — Governance Rule Engine + Frontend (CLOSED)
 
 ---
 

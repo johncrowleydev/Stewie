@@ -29,7 +29,7 @@ areas:
     name: PROJECT
     slug: project
     description: "Active project state — roadmap, sprints, backlog"
-    category_codes: [PRJ, SPR, BCK]
+    category_codes: [PRJ, JOB, BCK]
 
   - number: 10
     name: GOVERNANCE
@@ -193,6 +193,42 @@ documents:
       Phase 3 sprint: rename IGitHubService to IGitPlatformService for multi-provider
       support, extend project creation with link-or-create repo flow, enforce 300s
       container timeout, add retry logic with error taxonomy.
+
+  - id: JOB-006
+    path: 05_PROJECT/JOB-006_Unified_Terminology.md
+    title: "Job 006 — Unified Terminology (Run → Job, SPR- → JOB-)"
+    type: how-to
+    status: CLOSED
+    tags: [project-management, job, workflow, refactor]
+    agents: [coder]
+    summary: >
+      Pre-Phase 3 cleanup job: renamed Run entity to Job across backend, frontend,
+      and tests. Renamed all SPR- document prefixes to JOB- in CODEX. Updated
+      contracts (CON-001 v1.3.0, CON-002 v1.5.0) and governance docs.
+
+  - id: JOB-007
+    path: 05_PROJECT/JOB-007_Governance_Infrastructure.md
+    title: "Job 007 — Sequential Task Chains + Governance Infrastructure"
+    type: how-to
+    status: CLOSED
+    tags: [project-management, job, workflow, governance]
+    agents: [coder]
+    summary: >
+      Phase 3 infrastructure: WorkTask entity extensions (ParentTaskId, AttemptNumber),
+      GovernanceReport entity, governance worker Docker image skeleton, sequential
+      task chaining in JobOrchestrationService, governance API endpoints.
+
+  - id: JOB-008
+    path: 05_PROJECT/JOB-008_Governance_Rules_Frontend.md
+    title: "Job 008 — Governance Rule Engine + Frontend"
+    type: how-to
+    status: CLOSED
+    tags: [project-management, job, workflow, governance]
+    agents: [coder]
+    summary: >
+      Phase 3 completion: 15 deterministic governance rules for .NET stack (all 8
+      GOV docs + SEC-001 secret scanning). Task chain timeline and GovernanceReportPanel
+      on the dashboard. Integration tests for happy path and retry flows.
 
   # ── 10_GOVERNANCE ───────────────────────────────────────────────────────────
   - id: GOV-001
@@ -444,3 +480,97 @@ documents:
       Defines the Tester Agent role: independently verifies developer output
       against contracts, files DEF- defect reports to Architect, issues
       pass/fail verdicts for sprint closure. No direct communication with Developer.
+
+  # ── 40_VERIFICATION ────────────────────────────────────────────────────────
+  - id: VER-001
+    path: 40_VERIFICATION/VER-001_SPR-001_Agent_A_Audit.md
+    title: "SPR-001 Agent A Audit Report"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-001 (Phase 1 MVP) Agent A backend work.
+
+  - id: VER-002
+    path: 40_VERIFICATION/VER-002_SPR-001_Agent_B_Audit.md
+    title: "SPR-001 Agent B Audit Report"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-001 (Phase 1 MVP) Agent B frontend work.
+
+  - id: VER-003
+    path: 40_VERIFICATION/VER-003_SPR-002_Audit.md
+    title: "SPR-002 Audit Report"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-002 (Phase 1 Closure).
+
+  - id: VER-004
+    path: 40_VERIFICATION/VER-004_SPR-003_Audit.md
+    title: "SPR-003 Audit Report"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-003 (Real Repo Interaction).
+
+  - id: VER-005
+    path: 40_VERIFICATION/VER-005_SPR-004_Audit.md
+    title: "SPR-004 Audit Report"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-004 (GitHub Integration + Auth).
+
+  - id: VER-006
+    path: 40_VERIFICATION/VER-006_SPR-005_Audit.md
+    title: "SPR-005 Audit Report"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-005 (Repository Automation).
+
+  - id: VER-007
+    path: 40_VERIFICATION/VER-007_JOB-006_Audit.md
+    title: "JOB-006 Audit — Unified Terminology"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-006 (Unified Terminology refactor). Zero stale references
+      to Run, SPR-, IRunRepository, or /api/runs.
+
+  - id: VER-008
+    path: 40_VERIFICATION/VER-008_JOB-007_Audit.md
+    title: "JOB-007 Audit — Governance Infrastructure"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, governance]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-007 (Sequential Task Chains + Governance Infrastructure).
+      58 tests pass, no merge conflicts.
+
+  - id: VER-009
+    path: 40_VERIFICATION/VER-009_JOB-008_Audit.md
+    title: "JOB-008 Audit — Governance Rule Engine + Frontend (Phase 3 Complete)"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, governance]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-008 and Phase 3 completion. 76 tests pass, 15 governance
+      rules verified, all Phase 3 exit criteria met.

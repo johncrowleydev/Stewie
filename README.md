@@ -13,16 +13,16 @@ Stewie coordinates multiple AI agents to build software in parallel — creating
 ```
 ┌─────────────────────────────────────────────────────┐
 │  React Dashboard (Vite)           :5173             │
-│  Projects · Runs · Tasks · Settings                 │
+│  Projects · Jobs · Governance · Settings             │
 └────────────────────┬────────────────────────────────┘
                      │ HTTP/JSON
 ┌────────────────────▼────────────────────────────────┐
 │  .NET 10 API                      :5275             │
-│  JWT Auth · Project CRUD · Run Orchestration        │
+│  JWT Auth · Project CRUD · Job Orchestration        │
 ├─────────────────────────────────────────────────────┤
-│  RunOrchestrationService                            │
-│  Clone → Branch → Launch Container → Diff →         │
-│  Commit → Push → Create PR                          │
+│  JobOrchestrationService                             │
+│  Clone → Branch → Launch Container → Diff →          │
+│  Commit → Push → Create PR → Governance Check        │
 ├─────────────────────────────────────────────────────┤
 │  SQL Server 2022     NHibernate     FluentMigrator  │
 └─────────────────────────────────────────────────────┘
@@ -63,6 +63,9 @@ docker build -t stewie-dummy-worker workers/dummy-worker/
 
 # Script worker (real execution — Alpine + bash + git)
 docker build -t stewie-script-worker workers/script-worker/
+
+# Governance worker (automated GOV compliance checks)
+docker build -t stewie-governance-worker workers/governance-worker/
 ```
 
 ### 3. Set Required Environment Variables
@@ -111,12 +114,29 @@ Dashboard available at `http://localhost:5173`. API at `http://localhost:5275`.
    - `workspaces/{taskId}/input/` — `task.json` with instructions
    - `workspaces/{taskId}/output/` — worker writes `result.json` here
    - `workspaces/{taskId}/repo/` — cloned repository
-3. Repository is cloned, a feature branch is created (`stewie/{runId}`)
+3. Repository is cloned, a feature branch is created (`stewie/{jobId}`)
 4. A Docker container is launched with the workspace mounted (300s timeout enforced)
 5. Worker reads `task.json`, executes, writes `result.json`
 6. Stewie ingests the result, captures `git diff`, commits changes
-7. Branch is pushed to remote, a pull request is created automatically
-8. Job/Task statuses updated, events logged for audit trail
+7. **Governance check**: a tester task runs 15 automated checks (build, tests, coding standards, secret scanning)
+8. If governance passes → branch is pushed, PR is created automatically
+9. If governance fails → worker retries with violation feedback (up to 2 attempts)
+10. Job/Task statuses updated, events logged for audit trail
+
+### Governance Engine
+
+Every worker's output is automatically validated against all 8 governance documents:
+
+| Category | Checks |
+|:---------|:-------|
+| GOV-001 Documentation | README exists, XML doc comments on public members |
+| GOV-002 Testing | Build succeeds, tests pass, test count > 0 |
+| GOV-003 Coding Standard | No `any` types, no `console.log`, no `Console.WriteLine` |
+| GOV-004 Error Handling | Error middleware present |
+| GOV-005 Dev Lifecycle | Branch naming, commit message format |
+| GOV-006 Logging | ILogger usage, no bare Console.Write |
+| GOV-008 Infrastructure | Dockerfile present |
+| SEC-001 Security | No secrets in git diff |
 
 ### Retry Logic
 
@@ -132,10 +152,11 @@ src/
   Stewie.Infrastructure/   # NHibernate, FluentMigrator, Docker, GitHub, filesystem
   Stewie.Api/              # ASP.NET Core API host + controllers
   Stewie.Web/ClientApp/    # React + Vite dashboard
-  Stewie.Tests/            # xUnit integration + unit tests (54 tests)
+  Stewie.Tests/            # xUnit integration + unit tests (76 tests)
 workers/
   dummy-worker/            # Test worker (proves container contract)
   script-worker/           # Real worker (Alpine + bash + git)
+  governance-worker/       # Governance checker (runs 15 GOV rules)
 CODEX/                     # Project governance documentation
   00_INDEX/                # MANIFEST.yaml — document registry
   05_PROJECT/              # Sprints, backlog, roadmap
@@ -158,11 +179,13 @@ All endpoints require `Authorization: Bearer {jwt}` (except `/api/auth/login`).
 | `GET` | `/api/jobs` | List jobs (optionally filter by `?projectId=`=`) |
 | `POST` | `/api/jobs` | Create and execute a job |
 | `GET` | `/api/jobs/{id}` | Get job details with nested tasks |
+| `GET` | `/api/jobs/{id}/governance` | Get latest governance report for a job |
+| `GET` | `/api/tasks/{id}/governance` | Get governance report for a tester task |
 | `POST` | `/jobs/test` | Trigger a test job (dummy worker) |
 | `POST` | `/api/users/github-token` | Store GitHub PAT (AES-256 encrypted) |
 | `GET` | `/api/users/github-token/status` | Check PAT configuration status |
 
-Full contract: `CODEX/20_BLUEPRINTS/CON-002_API_Contract.md` (v1.4.0)
+Full contract: `CODEX/20_BLUEPRINTS/CON-002_API_Contract.md` (v1.6.0)
 
 ## Configuration
 
@@ -179,6 +202,9 @@ Configuration via `src/Stewie.Api/appsettings.json` and environment variables:
 | `Stewie:EncryptionKey` | `STEWIE_ENCRYPTION_KEY` | **required** | AES-256 key for credential encryption |
 | `Stewie:AdminPassword` | `STEWIE_ADMIN_PASSWORD` | **required** | Initial admin password (first startup only) |
 | `Stewie:AdminUsername` | `STEWIE_ADMIN_USERNAME` | `admin` | Initial admin username |
+| `Stewie:MaxGovernanceRetries` | — | `2` | Max governance retry attempts per job |
+| `Stewie:GovernanceWorkerImage` | — | `stewie-governance-worker` | Docker image for governance checks |
+| `Stewie:WarningsBlockAcceptance` | — | `false` | Whether warning-severity governance failures block acceptance |
 
 ## Runtime Contract
 
@@ -215,12 +241,12 @@ Workers communicate with Stewie via JSON files mounted in the container.
 }
 ```
 
-Full contract: `CODEX/20_BLUEPRINTS/CON-001_Runtime_Contract.md` (v1.2.0)
+Full contract: `CODEX/20_BLUEPRINTS/CON-001_Runtime_Contract.md` (v1.4.0)
 
 ## Testing
 
 ```bash
-# Run all tests (54 passing)
+# Run all tests (76 passing)
 dotnet test src/Stewie.Tests/Stewie.Tests.csproj
 
 # Frontend build verification
@@ -236,8 +262,8 @@ cd src/Stewie.Web/ClientApp && npm run build
 | 2 | Real Repo Interaction | ✅ Complete |
 | 2.5 | GitHub Integration + Auth | ✅ Complete |
 | 2.75 | Repository Automation + Platform Abstraction | ✅ Complete |
-| **3** | **Governance Engine** | 🔜 Next |
-| 4 | Multi-Task Jobs | Planned |
+| 3 | Governance Engine | ✅ Complete |
+| **4** | **Multi-Task Jobs** | 🔜 Next |
 | 5 | Real-Time Interaction | Planned |
 
 Full roadmap: `CODEX/05_PROJECT/PRJ-001_Roadmap.md`
