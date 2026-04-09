@@ -7,6 +7,7 @@
 /// 2. If filtering returns wrong  → check entityType/entityId query param binding
 /// 3. If limit ignored            → check GetRecentAsync clamping logic
 /// </summary>
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stewie.Application.Interfaces;
 
@@ -18,6 +19,7 @@ namespace Stewie.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class EventsController : ControllerBase
 {
     private readonly IEventRepository _eventRepository;

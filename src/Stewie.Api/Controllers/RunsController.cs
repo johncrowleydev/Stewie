@@ -2,7 +2,9 @@
 /// Runs API controller — CRUD endpoints, test-run trigger, and real run execution.
 /// REF: CON-002 §4.2, §5.2
 /// </summary>
+using System.Security.Claims;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stewie.Application.Interfaces;
 using Stewie.Application.Services;
@@ -16,6 +18,7 @@ namespace Stewie.Api.Controllers;
 /// Combines the existing test-run trigger with full CRUD and real run execution.
 /// </summary>
 [ApiController]
+[Authorize]
 public class RunsController : ControllerBase
 {
     private readonly RunOrchestrationService _orchestrationService;
@@ -85,6 +88,7 @@ public class RunsController : ControllerBase
             branch = r.Branch,
             diffSummary = r.DiffSummary,
             commitSha = r.CommitSha,
+            pullRequestUrl = r.PullRequestUrl,
             createdAt = r.CreatedAt.ToString("o"),
             completedAt = r.CompletedAt?.ToString("o")
         });
@@ -127,12 +131,18 @@ public class RunsController : ControllerBase
             ? JsonSerializer.Serialize(request.AcceptanceCriteria)
             : null;
 
+        // Get current user ID from JWT claims
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? User.FindFirst("sub")?.Value;
+        Guid? createdByUserId = userIdClaim is not null ? Guid.Parse(userIdClaim) : null;
+
         // Create Run
         var run = new Run
         {
             Id = Guid.NewGuid(),
             ProjectId = request.ProjectId,
             Status = RunStatus.Pending,
+            CreatedByUserId = createdByUserId,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -168,6 +178,7 @@ public class RunsController : ControllerBase
             branch = run.Branch,
             diffSummary = run.DiffSummary,
             commitSha = run.CommitSha,
+            pullRequestUrl = run.PullRequestUrl,
             createdAt = run.CreatedAt.ToString("o"),
             completedAt = (string?)null,
             tasks = new[]
@@ -216,6 +227,7 @@ public class RunsController : ControllerBase
             branch = run.Branch,
             diffSummary = run.DiffSummary,
             commitSha = run.CommitSha,
+            pullRequestUrl = run.PullRequestUrl,
             createdAt = run.CreatedAt.ToString("o"),
             completedAt = run.CompletedAt?.ToString("o"),
             tasks = tasks.Select(t => new
