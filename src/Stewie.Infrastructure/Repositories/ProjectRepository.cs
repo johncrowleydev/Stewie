@@ -43,4 +43,14 @@ public class ProjectRepository : IProjectRepository
     {
         await _unitOfWork.Session.SaveOrUpdateAsync(project);
     }
+
+    /// <inheritdoc/>
+    public async Task DeleteAsync(Guid id)
+    {
+        var project = await _unitOfWork.Session.GetAsync<Project>(id);
+        if (project is not null)
+        {
+            await _unitOfWork.Session.DeleteAsync(project);
+        }
+    }
 }

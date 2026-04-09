@@ -23,4 +23,8 @@ public interface IProjectRepository
     /// <summary>Persists a new or updated project.</summary>
     /// <param name="project">The project entity to save.</param>
     Task SaveAsync(Project project);
+
+    /// <summary>Deletes a project by its unique identifier. Used for rollback on failed repo creation.</summary>
+    /// <param name="id">The project's GUID.</param>
+    Task DeleteAsync(Guid id);
 }
