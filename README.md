@@ -2,14 +2,50 @@
   <img src="docs/assets/stewie-logo.png" alt="Stewie" width="160" />
 </p>
 
-# Stewie
+# stewie
 
-Governance-first, multi-agent software development orchestration system.
+Governance-first orchestration system for AI-driven multi-agent software development.
+
+Stewie coordinates multiple AI agents to build software in parallel — creating isolated workspaces, launching worker containers, managing git branches, pushing code, and opening pull requests — all under strict governance. It does not write code itself; it orchestrates agents that do.
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│  React Dashboard (Vite)           :5173             │
+│  Projects · Runs · Tasks · Settings                 │
+└────────────────────┬────────────────────────────────┘
+                     │ HTTP/JSON
+┌────────────────────▼────────────────────────────────┐
+│  .NET 10 API                      :5275             │
+│  JWT Auth · Project CRUD · Run Orchestration        │
+├─────────────────────────────────────────────────────┤
+│  RunOrchestrationService                            │
+│  Clone → Branch → Launch Container → Diff →         │
+│  Commit → Push → Create PR                          │
+├─────────────────────────────────────────────────────┤
+│  SQL Server 2022     NHibernate     FluentMigrator  │
+└─────────────────────────────────────────────────────┘
+         │                              │
+    ┌────▼────┐                   ┌─────▼──────┐
+    │ Docker  │                   │ GitHub API │
+    │ Workers │                   │ (Octokit)  │
+    └─────────┘                   └────────────┘
+```
+
+### Three-Tier Agent Hierarchy
+
+| Role | Description |
+|:-----|:------------|
+| **Human** | Final authority. Sets vision, approves plans. |
+| **Architect Agent** | AI project manager. Plans sprints, audits output, enforces governance. Does not write code. |
+| **Developer/Tester Agents** | Execute tasks in isolated containers. Write code, run tests, produce results. |
 
 ## Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Node.js 20+](https://nodejs.org/) (for the React dashboard)
 
 ## Quick Start
 
@@ -19,104 +55,193 @@ Governance-first, multi-agent software development orchestration system.
 docker-compose up -d
 ```
 
-This starts a SQL Server 2022 container on port 1433.
-
-### 2. Build the Dummy Worker Image
+### 2. Build Worker Images
 
 ```bash
+# Test worker (proves container contract)
 docker build -t stewie-dummy-worker workers/dummy-worker/
+
+# Script worker (real execution — Alpine + bash + git)
+docker build -t stewie-script-worker workers/script-worker/
 ```
 
-### 3. Run the API
+### 3. Set Required Environment Variables
 
 ```bash
-dotnet run --project src/Stewie.Web
+export STEWIE_JWT_SECRET="your-32-char-minimum-secret-key-here"
+export STEWIE_ENCRYPTION_KEY="your-32-char-aes-encryption-key-here"
+export STEWIE_ADMIN_PASSWORD="YourAdminPassword123!"
+export STEWIE_ADMIN_USERNAME="admin"  # optional, defaults to "admin"
 ```
 
-On first start, FluentMigrator will create the `Stewie` database and run all migrations (Runs, Tasks, Artifacts tables).
-
-### 4. Trigger a Test Run
+### 4. Run the API
 
 ```bash
-curl -X POST http://localhost:5275/runs/test
+dotnet run --project src/Stewie.Api
 ```
 
-Expected response:
+On first start:
+- FluentMigrator creates the database and runs all migrations
+- An admin user is seeded with the credentials from `STEWIE_ADMIN_USERNAME` / `STEWIE_ADMIN_PASSWORD`
 
-```json
-{
-  "runId": "...",
-  "taskId": "...",
-  "artifactId": "...",
-  "status": "Completed",
-  "summary": "Dummy worker executed successfully. Runtime contract verified.",
-  "resultPayload": { ... }
-}
+### 5. Run the Dashboard
+
+```bash
+cd src/Stewie.Web/ClientApp
+npm install
+npm run dev
 ```
 
-### What Happens
+Dashboard available at `http://localhost:5173`. API at `http://localhost:5275`.
 
-1. Stewie creates a **Run** (persisted to SQL Server)
-2. Stewie creates a **Task** with role `developer`
-3. A workspace is created on disk: `workspaces/{taskId}/input/`, `output/`, `repo/`
-4. `task.json` is written to the workspace input directory
-5. A Docker container is launched using the dummy worker image
-6. The container reads `task.json` and writes `result.json`
-7. Stewie ingests `result.json`, stores it as an **Artifact**
-8. Run and Task statuses are updated to `Completed`
-9. The result is returned via the API
+### 6. Login and Configure
+
+1. Open `http://localhost:5173` → Login with your admin credentials
+2. Navigate to **Settings** → Add your GitHub PAT (stored AES-256-CBC encrypted)
+3. Create a **Project** — link an existing repo or create a new one on GitHub
+4. Create a **Run** — define an objective, scope, and optional script commands
+5. Stewie clones the repo, creates a branch, executes the worker, captures diffs, commits, pushes, and opens a PR
+
+## How It Works
+
+### Run Execution Flow
+
+1. User creates a **Run** against a **Project** (with objective and optional script)
+2. Stewie creates a **Task** and prepares an isolated workspace:
+   - `workspaces/{taskId}/input/` — `task.json` with instructions
+   - `workspaces/{taskId}/output/` — worker writes `result.json` here
+   - `workspaces/{taskId}/repo/` — cloned repository
+3. Repository is cloned, a feature branch is created (`stewie/{runId}`)
+4. A Docker container is launched with the workspace mounted (300s timeout enforced)
+5. Worker reads `task.json`, executes, writes `result.json`
+6. Stewie ingests the result, captures `git diff`, commits changes
+7. Branch is pushed to remote, a pull request is created automatically
+8. Run/Task statuses updated, events logged for audit trail
+
+### Retry Logic
+
+- **Transient failures** (timeout, Docker errors) → automatic 1 retry
+- **Permanent failures** (worker crash, bad results) → no retry, failure reason recorded
 
 ## Project Structure
 
 ```
 src/
-  Stewie.Domain/         # Entities, enums, contracts (DTOs)
-  Stewie.Application/    # Service interfaces, orchestration use cases
-  Stewie.Infrastructure/ # NHibernate, FluentMigrator, Docker, filesystem
-  Stewie.Web/            # ASP.NET Core API host
+  Stewie.Domain/           # Entities, enums, contracts (DTOs)
+  Stewie.Application/      # Service interfaces, orchestration logic
+  Stewie.Infrastructure/   # NHibernate, FluentMigrator, Docker, GitHub, filesystem
+  Stewie.Api/              # ASP.NET Core API host + controllers
+  Stewie.Web/ClientApp/    # React + Vite dashboard
+  Stewie.Tests/            # xUnit integration + unit tests (54 tests)
 workers/
-  dummy-worker/          # Dummy worker runtime (proves container contract)
-workspaces/              # Runtime-created per-task directories (ephemeral)
+  dummy-worker/            # Test worker (proves container contract)
+  script-worker/           # Real worker (Alpine + bash + git)
+CODEX/                     # Project governance documentation
+  00_INDEX/                # MANIFEST.yaml — document registry
+  05_PROJECT/              # Sprints, backlog, roadmap
+  10_GOVERNANCE/           # Standards (GOV-001 through GOV-008)
+  20_BLUEPRINTS/           # Design specs, API/runtime contracts
+  40_VERIFICATION/         # Audit reports
+  80_AGENTS/               # Agent role definitions
 ```
+
+## API Overview
+
+All endpoints require `Authorization: Bearer {jwt}` (except `/api/auth/login`).
+
+| Method | Endpoint | Description |
+|:-------|:---------|:------------|
+| `POST` | `/api/auth/login` | Authenticate, receive JWT (24hr expiry) |
+| `POST` | `/api/auth/register` | Register new user (requires invite code) |
+| `GET` | `/api/projects` | List all projects |
+| `POST` | `/api/projects` | Create project (link existing repo or create new) |
+| `GET` | `/api/runs` | List runs (optionally filter by `?projectId=`) |
+| `POST` | `/api/runs` | Create and execute a run |
+| `GET` | `/api/runs/{id}` | Get run details with nested tasks |
+| `POST` | `/runs/test` | Trigger a test run (dummy worker) |
+| `POST` | `/api/users/github-token` | Store GitHub PAT (AES-256 encrypted) |
+| `GET` | `/api/users/github-token/status` | Check PAT configuration status |
+
+Full contract: `CODEX/20_BLUEPRINTS/CON-002_API_Contract.md` (v1.4.0)
 
 ## Configuration
 
-Configuration is in `src/Stewie.Web/appsettings.json`:
+Configuration via `src/Stewie.Api/appsettings.json` and environment variables:
 
-| Key | Default | Description |
-|-----|---------|-------------|
-| `ConnectionStrings:Stewie` | `Server=localhost,1433;...` | SQL Server connection string |
-| `Stewie:WorkspaceRoot` | `./workspaces` | Base directory for task workspaces |
-| `Stewie:DockerImageName` | `stewie-dummy-worker` | Docker image name for worker containers |
+| Key | Env Variable | Default | Description |
+|:----|:-------------|:--------|:------------|
+| `ConnectionStrings:Stewie` | — | localhost SQL Server | Database connection string |
+| `Stewie:WorkspaceRoot` | — | `./workspaces` | Base directory for task workspaces |
+| `Stewie:DockerImageName` | — | `stewie-dummy-worker` | Default Docker image for test runs |
+| `Stewie:ScriptWorkerImage` | — | `stewie-script-worker` | Docker image for real task execution |
+| `Stewie:TaskTimeoutSeconds` | — | `300` | Hard timeout for container execution (seconds) |
+| `Stewie:JwtSecret` | `STEWIE_JWT_SECRET` | **required** | JWT signing key (min 32 chars) |
+| `Stewie:EncryptionKey` | `STEWIE_ENCRYPTION_KEY` | **required** | AES-256 key for credential encryption |
+| `Stewie:AdminPassword` | `STEWIE_ADMIN_PASSWORD` | **required** | Initial admin password (first startup only) |
+| `Stewie:AdminUsername` | `STEWIE_ADMIN_USERNAME` | `admin` | Initial admin username |
 
 ## Runtime Contract
 
-### task.json (input)
+Workers communicate with Stewie via JSON files mounted in the container.
+
+### task.json (input → `/workspace/input/task.json`)
 
 ```json
 {
   "taskId": "guid",
   "runId": "guid",
   "role": "developer",
-  "objective": "...",
-  "scope": "...",
-  "allowedPaths": [],
-  "forbiddenPaths": [],
-  "acceptanceCriteria": ["..."]
+  "objective": "Implement feature X",
+  "scope": "src/services/",
+  "repoUrl": "https://github.com/org/repo.git",
+  "branch": "stewie/run-id",
+  "script": ["npm install", "npm test"],
+  "acceptanceCriteria": ["All tests pass", "No lint errors"]
 }
 ```
 
-### result.json (output)
+### result.json (output → `/workspace/output/result.json`)
 
 ```json
 {
   "taskId": "guid",
   "status": "success",
-  "summary": "...",
-  "filesChanged": [],
-  "testsPassed": false,
+  "summary": "Implemented feature X with 3 new files",
+  "filesChanged": ["src/services/foo.ts", "src/services/bar.ts"],
+  "testsPassed": true,
   "errors": [],
-  "notes": "...",
+  "notes": "Added unit tests for edge cases",
   "nextAction": "review"
 }
 ```
+
+Full contract: `CODEX/20_BLUEPRINTS/CON-001_Runtime_Contract.md` (v1.2.0)
+
+## Testing
+
+```bash
+# Run all tests (54 passing)
+dotnet test src/Stewie.Tests/Stewie.Tests.csproj
+
+# Frontend build verification
+cd src/Stewie.Web/ClientApp && npm run build
+```
+
+## Roadmap
+
+| Phase | Name | Status |
+|:------|:-----|:-------|
+| 0 | Foundation | ✅ Complete |
+| 1 | Core Orchestration MVP | ✅ Complete |
+| 2 | Real Repo Interaction | ✅ Complete |
+| 2.5 | GitHub Integration + Auth | ✅ Complete |
+| 2.75 | Repository Automation + Platform Abstraction | ✅ Complete |
+| **3** | **Governance Engine** | 🔜 Next |
+| 4 | Multi-Task Runs | Planned |
+| 5 | Real-Time Interaction | Planned |
+
+Full roadmap: `CODEX/05_PROJECT/PRJ-001_Roadmap.md`
+
+## License
+
+Private — all rights reserved.
