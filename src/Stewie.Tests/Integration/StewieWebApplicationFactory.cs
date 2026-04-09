@@ -10,6 +10,7 @@ using FluentNHibernate.Cfg.Db;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using NHibernate;
 using NHibernate.Cfg;
 using NHibernate.Tool.hbm2ddl;
@@ -28,10 +29,17 @@ public class StewieWebApplicationFactory : WebApplicationFactory<Program>
     private ISessionFactory? _sessionFactory;
     private System.Data.SQLite.SQLiteConnection? _keepAliveConnection;
 
+    public StewieWebApplicationFactory()
+    {
+        System.Environment.SetEnvironmentVariable("Stewie__JwtSecret", "test-jwt-secret-minimum-32-characters-long!!");
+        System.Environment.SetEnvironmentVariable("Stewie__EncryptionKey", "dGVzdC1lbmNyeXB0aW9uLWtleS1taW5pbXVtMzJjaHI=");
+        System.Environment.SetEnvironmentVariable("Stewie__AdminPassword", "Admin@Stewie123!");
+        System.Environment.SetEnvironmentVariable("Stewie__AdminUsername", "admin");
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-
         builder.ConfigureServices(services =>
         {
             // Remove the production NHibernate session factory

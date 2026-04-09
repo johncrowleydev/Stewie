@@ -2,7 +2,7 @@
 id: SPR-004
 title: "GitHub Integration + User System"
 type: how-to
-status: ACTIVE
+status: BLOCKED
 owner: architect
 agents: [coder]
 tags: [project-management, sprint, workflow]
@@ -354,5 +354,5 @@ New environment variables for Sprint 004:
 
 [Architect fills this in during audit.]
 
-**Verdict:** PENDING
+**Verdict:** ❌ FAIL
 **Deploy approved:** NO
