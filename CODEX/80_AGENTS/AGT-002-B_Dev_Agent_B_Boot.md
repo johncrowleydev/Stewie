@@ -1,31 +1,29 @@
 ---
-id: AGT-002-B-SPR003
-title: "Dev Agent B Boot — SPR-003 Frontend + Tests"
+id: AGT-002-B-SPR004
+title: "Dev Agent B Boot — SPR-004 Frontend + Tests"
 type: how-to
 status: ACTIVE
 owner: architect
 agents: [coder]
 tags: [agent, boot, sprint]
-related: [SPR-003, AGT-002, CON-002]
+related: [SPR-004, AGT-002, CON-002]
 created: 2026-04-09
 updated: 2026-04-09
 version: 1.0.0
 ---
 
-> **BLUF:** You are Dev Agent B for Sprint 003. You handle the Create Run form, Run detail git/diff viewer, dashboard auto-refresh, and tests. 5 tasks. Work on `feature/SPR-003-frontend-tests`.
+> **BLUF:** You are Dev Agent B for Sprint 004. You build the login/registration UI, auth context, GitHub settings page, PR link display, and all tests for auth + GitHub flows. 5 tasks. Work on `feature/SPR-004-frontend-tests`.
 
-# Dev Agent B — SPR-003 Boot Document
+# Dev Agent B — SPR-004 Boot Document
 
 ## 1. Your Identity
 
 - **Role:** Developer Agent B (Frontend + Tests)
-- **Sprint:** SPR-003
-- **Branch:** `feature/SPR-003-frontend-tests`
+- **Sprint:** SPR-004
+- **Branch:** `feature/SPR-004-frontend-tests`
 - **Merge order:** Agent A merges first. You rebase onto updated `main` before merging.
 
 ## 2. ⚠️ MANDATORY: Read These Before ANY Action
-
-> **You MUST read these workflow files before running any terminal command or making any git commit. Non-negotiable.**
 
 1. **`.agent/workflows/safe_commands.md`** — Rules for safe terminal command execution
 2. **`.agent/workflows/git_commit.md`** — Rules for every git commit
@@ -52,69 +50,73 @@ You may ONLY modify files in these directories:
 
 | Document | Path | Read Before |
 |:---------|:-----|:------------|
-| Sprint tasks | `CODEX/05_PROJECT/SPR-003_Real_Repo_Interaction.md` | Starting work |
-| API contract | `CODEX/20_BLUEPRINTS/CON-002_API_Contract.md` (v1.2.0) | T-032, T-033, T-035 |
-| CSS design system | `src/Stewie.Web/ClientApp/src/index.css` | T-032, T-033, T-034 |
-| API client | `src/Stewie.Web/ClientApp/src/api/client.ts` | T-032, T-033 |
-| Types | `src/Stewie.Web/ClientApp/src/types/index.ts` | T-033 |
-| Test factory | `src/Stewie.Tests/Integration/StewieWebApplicationFactory.cs` | T-035 |
+| Sprint tasks | `CODEX/05_PROJECT/SPR-004_GitHub_Integration.md` | Starting work |
+| API contract | `CODEX/20_BLUEPRINTS/CON-002_API_Contract.md` (v1.3.0) | All tasks |
+| CSS design system | `src/Stewie.Web/ClientApp/src/index.css` | T-043, T-044, T-045 |
+| API client | `src/Stewie.Web/ClientApp/src/api/client.ts` | T-043 |
+| Types | `src/Stewie.Web/ClientApp/src/types/index.ts` | T-046 |
+| Test factory | `src/Stewie.Tests/Integration/StewieWebApplicationFactory.cs` | T-047 |
 
 ## 6. Task Execution Order
 
-1. **T-032** — Create Run form (build against CON-002 §4.2 —  `POST /api/runs` body)
-2. **T-033** — Run detail git/diff viewer (branch badge, diff colors, commit SHA)
-3. **T-034** — Dashboard auto-refresh (usePolling hook, live indicator)
-4. **T-035** — Integration tests for Run creation API
-5. **T-036** — Unit tests for diff/commit services
+1. **T-043** — Login page + AuthContext (JWT in localStorage, axios interceptor, route guard)
+2. **T-044** — Registration page (invite code, password confirmation, auto-login)
+3. **T-045** — GitHub settings page (PAT input, connect/disconnect, status indicator)
+4. **T-046** — PR link on Run detail + GitHub-enabled project creation
+5. **T-047** — All auth + GitHub integration/unit tests
 
-## 7. Run Creation API Contract (for T-032)
+## 7. Auth API Contract (for T-043, T-044)
 
-Build the form against this spec from CON-002 §4.2:
-
-**POST /api/runs:**
+**POST /api/auth/login:**
 ```json
-{
-  "projectId": "uuid",
-  "objective": "string",
-  "scope": "string | null",
-  "script": ["string"] | null,
-  "acceptanceCriteria": ["string"] | null
-}
+// Request
+{ "username": "string", "password": "string" }
+// Response (200)
+{ "token": "jwt", "expiresAt": "ISO 8601", "user": { "id": "uuid", "username": "string", "role": "admin|user" } }
+// Error (401)
+{ "error": { "code": "INVALID_CREDENTIALS", "message": "..." } }
 ```
 
-**Updated Run response** (for T-033):
+**POST /api/auth/register:**
 ```json
-{
-  "id": "uuid",
-  "projectId": "uuid",
-  "status": "Pending | Running | Completed | Failed",
-  "branch": "string | null",
-  "diffSummary": "string | null",
-  "commitSha": "string | null",
-  "tasks": [...]
-}
+// Request
+{ "username": "string", "password": "string", "inviteCode": "string" }
+// Response (200)
+{ "token": "jwt", "expiresAt": "ISO 8601", "user": { ... } }
+// Error (400)
+{ "error": { "code": "INVALID_INVITE_CODE", "message": "..." } }
 ```
 
-**Diff artifact** (for T-033):
+**GitHub Token (for T-045):**
 ```json
-{
-  "type": "diff",
-  "contentJson": "{ \"diffStat\": \"...\", \"diffPatch\": \"...\" }"
-}
+// PUT /api/users/me/github-token
+{ "token": "ghp_xxxxxxxxxxxx" }
+// GET /api/users/me/github-status
+{ "connected": true, "username": "johncrowleydev" }
 ```
 
 ## 8. Design Notes
 
-- The Create Run form should fit the existing design system (dark/light theme support)
-- Diff viewer: monospaced text, green for `+` lines, red for `-` lines, gray for context
-- Polling indicator: small green dot + subtle pulse animation next to "Live" text
-- Use `usePolling(fetchFn, intervalMs, enabled)` as a reusable hook pattern
+- Login + Register pages: centered form card, Stewie logo above, green primary button, dark/light theme compatible
+- Auth guard: `<ProtectedRoute>` component wrapping all app routes
+- JWT stored in `localStorage` as `stewie_token`
+- On 401 response anywhere: clear token, redirect to `/login`
+- GitHub settings: show a green/gray connection dot, "Connected as {username}" text when connected
+- PR link badge: GitHub icon + "View PR" as a green link/badge on Run detail
 
-## 9. Governance Checklist Per Task
+## 9. Test Factory Updates (T-047)
+
+The `StewieWebApplicationFactory` needs to be updated for auth:
+1. Auto-seed a test admin user + test invite code during test setup
+2. Provide `GetAuthToken()` helper method that returns a valid JWT for the test user
+3. ALL existing tests must be updated to include `Authorization: Bearer {token}` header
+4. This is a breaking change to existing tests — update them all
+
+## 10. Governance Checklist Per Task
 
 - [ ] JSDoc comments on all exported components and functions
 - [ ] No `any` types in TypeScript
-- [ ] Commit: `feat(SPR-003): T-XXX description`
+- [ ] Commit: `feat(SPR-004): T-XXX description`
 - [ ] Frontend build: `cd src/Stewie.Web/ClientApp && npm run build`
 - [ ] Test build: `dotnet build src/Stewie.Tests/Stewie.Tests.csproj`
 - [ ] Tests pass: `dotnet test src/Stewie.Tests/Stewie.Tests.csproj`

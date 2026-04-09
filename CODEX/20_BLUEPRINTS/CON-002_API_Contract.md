@@ -46,7 +46,7 @@ version: 1.2.0
 
 | Field | Value |
 |:------|:------|
-| Contract version | `1.2.0` |
+| Contract version | `1.3.0` |
 | Stability | `EXPERIMENTAL` |
 | Base URL | `http://localhost:5275` |
 | Content-Type | `application/json` |
@@ -95,7 +95,69 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
 
 ## 4. Endpoints — Phase 1 (Planned)
 
-> These endpoints will be implemented during Phase 1 sprints.
+> These endpoints are implemented across Phase 1-3 sprints.
+
+### 4.0 Authentication
+
+> `/api/auth/*` and `/health` do NOT require authentication. All other endpoints require `Authorization: Bearer {jwt}` header.
+
+| Method | Path | Description |
+|:-------|:-----|:------------|
+| `POST` | `/api/auth/register` | Register with invite code |
+| `POST` | `/api/auth/login` | Login, receive JWT |
+
+**POST /api/auth/register** request body:
+```json
+{
+  "username": "string",
+  "password": "string",
+  "inviteCode": "string"
+}
+```
+
+**POST /api/auth/login** request body:
+```json
+{
+  "username": "string",
+  "password": "string"
+}
+```
+
+**Auth response (both endpoints):**
+```json
+{
+  "token": "string (JWT)",
+  "expiresAt": "ISO 8601 datetime",
+  "user": {
+    "id": "uuid",
+    "username": "string",
+    "role": "admin | user"
+  }
+}
+```
+
+### 4.0.1 Users
+
+| Method | Path | Description |
+|:-------|:-----|:------------|
+| `GET` | `/api/users/me` | Get current user profile |
+| `PUT` | `/api/users/me/github-token` | Store encrypted GitHub PAT |
+| `DELETE` | `/api/users/me/github-token` | Remove GitHub PAT |
+| `GET` | `/api/users/me/github-status` | Check GitHub connection status |
+
+**PUT /api/users/me/github-token** request body:
+```json
+{
+  "token": "string (GitHub PAT)"
+}
+```
+
+### 4.0.2 Invite Codes (admin only)
+
+| Method | Path | Description |
+|:-------|:-----|:------------|
+| `POST` | `/api/invites` | Generate a new invite code |
+| `GET` | `/api/invites` | List invite codes |
 
 ### 4.1 Projects
 
@@ -164,7 +226,7 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
 
 ---
 
-## 5. Request/Response Schemas — Phase 1
+## 5. Request/Response Schemas
 
 ### 5.1 Project
 
@@ -187,6 +249,7 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
   "branch": "string | null",
   "diffSummary": "string | null",
   "commitSha": "string | null",
+  "pullRequestUrl": "string | null",
   "createdAt": "ISO 8601 datetime",
   "completedAt": "ISO 8601 datetime | null",
   "tasks": ["Task[]"]
