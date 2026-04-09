@@ -1,8 +1,10 @@
 /**
  * Layout — App shell component with sidebar navigation and main content area.
  * Provides consistent structure across all pages with Stewie branding.
+ * Includes theme toggle (DEF-001) and Events nav link (T-025).
  */
 import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { useTheme } from "../hooks/useTheme";
 
 /** SVG icon components for sidebar navigation */
 function DashboardIcon() {
@@ -32,12 +34,23 @@ function ProjectsIcon() {
   );
 }
 
+/** Events timeline icon */
+function EventsIcon() {
+  return (
+    <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  );
+}
+
 /** Maps route paths to page titles for the header bar */
 function getPageTitle(pathname: string): string {
   if (pathname === "/") return "Dashboard";
   if (pathname === "/runs") return "Runs";
   if (pathname.startsWith("/runs/")) return "Run Details";
   if (pathname === "/projects") return "Projects";
+  if (pathname === "/events") return "Events";
   return "Stewie";
 }
 
@@ -45,6 +58,7 @@ function getPageTitle(pathname: string): string {
 export function Layout() {
   const location = useLocation();
   const pageTitle = getPageTitle(location.pathname);
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className="app-layout">
@@ -67,10 +81,22 @@ export function Layout() {
             <ProjectsIcon />
             Projects
           </NavLink>
+          <NavLink to="/events" className={({ isActive }) => isActive ? "active" : ""}>
+            <EventsIcon />
+            Events
+          </NavLink>
         </nav>
 
         <div className="sidebar-footer">
-          Stewie v0.1.0 — Governance-first orchestration
+          <button
+            className="theme-toggle"
+            onClick={toggleTheme}
+            id="theme-toggle-btn"
+            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
+          >
+            <span className="theme-icon">{theme === "dark" ? "☀️" : "🌙"}</span>
+            {theme === "dark" ? "Light mode" : "Dark mode"}
+          </button>
         </div>
       </aside>
 
