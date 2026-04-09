@@ -71,7 +71,7 @@ builder.Services.AddSingleton(sessionFactory);
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Repositories
-builder.Services.AddScoped<IRunRepository, RunRepository>();
+builder.Services.AddScoped<IJobRepository, JobRepository>();
 builder.Services.AddScoped<IWorkTaskRepository, WorkTaskRepository>();
 builder.Services.AddScoped<IArtifactRepository, ArtifactRepository>();
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
@@ -88,9 +88,9 @@ builder.Services.AddSingleton<IContainerService>(sp =>
     new DockerContainerService(dockerImageName, taskTimeoutSeconds, sp.GetRequiredService<ILogger<DockerContainerService>>()));
 builder.Services.AddSingleton<IEncryptionService>(new AesEncryptionService(encryptionKey));
 builder.Services.AddScoped<IGitPlatformService, GitHubService>();
-builder.Services.AddScoped<RunOrchestrationService>(sp =>
-    new RunOrchestrationService(
-        sp.GetRequiredService<IRunRepository>(),
+builder.Services.AddScoped<JobOrchestrationService>(sp =>
+    new JobOrchestrationService(
+        sp.GetRequiredService<IJobRepository>(),
         sp.GetRequiredService<IWorkTaskRepository>(),
         sp.GetRequiredService<IArtifactRepository>(),
         sp.GetRequiredService<IEventRepository>(),
@@ -102,7 +102,7 @@ builder.Services.AddScoped<RunOrchestrationService>(sp =>
         sp.GetRequiredService<IGitPlatformService>(),
         sp.GetRequiredService<IEncryptionService>(),
         sp.GetRequiredService<IUnitOfWork>(),
-        sp.GetRequiredService<ILogger<RunOrchestrationService>>(),
+        sp.GetRequiredService<ILogger<JobOrchestrationService>>(),
         scriptWorkerImage));
 
 var app = builder.Build();

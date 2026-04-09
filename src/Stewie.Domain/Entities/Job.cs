@@ -11,21 +11,21 @@ namespace Stewie.Domain.Entities;
 /// Represents a top-level execution unit that orchestrates one or more WorkTasks.
 /// Optionally associated with a Project for grouping.
 /// </summary>
-public class Run
+public class Job
 {
-    /// <summary>Unique identifier for the run.</summary>
+    /// <summary>Unique identifier for the job.</summary>
     public virtual Guid Id { get; set; }
 
-    /// <summary>Optional project this run belongs to. Null for standalone runs.</summary>
+    /// <summary>Optional project this job belongs to. Null for standalone jobs.</summary>
     public virtual Guid? ProjectId { get; set; }
 
-    /// <summary>Navigation to the associated project. Null for standalone runs.</summary>
+    /// <summary>Navigation to the associated project. Null for standalone jobs.</summary>
     public virtual Project? Project { get; set; }
 
     /// <summary>Current execution status.</summary>
-    public virtual RunStatus Status { get; set; }
+    public virtual JobStatus Status { get; set; }
 
-    /// <summary>Git branch name created for this run. Null for test runs.</summary>
+    /// <summary>Git branch name created for this job. Null for test jobs.</summary>
     public virtual string? Branch { get; set; }
 
     /// <summary>Summary of file changes (git diff --stat output). Null if no changes.</summary>
@@ -37,12 +37,12 @@ public class Run
     /// <summary>URL of the created GitHub pull request. Null if no PR.</summary>
     public virtual string? PullRequestUrl { get; set; }
 
-    /// <summary>User who created this run. Null for legacy/test runs.</summary>
+    /// <summary>User who created this job. Null for legacy/test jobs.</summary>
     public virtual Guid? CreatedByUserId { get; set; }
 
-    /// <summary>Timestamp when the run was created.</summary>
+    /// <summary>Timestamp when the job was created.</summary>
     public virtual DateTime CreatedAt { get; set; }
 
-    /// <summary>Timestamp when the run completed. Null if still in progress.</summary>
+    /// <summary>Timestamp when the job completed. Null if still in progress.</summary>
     public virtual DateTime? CompletedAt { get; set; }
 }

@@ -1,6 +1,6 @@
 namespace Stewie.Domain.Enums;
 
-public enum RunStatus
+public enum JobStatus
 {
     Pending = 0,
     Running = 1,

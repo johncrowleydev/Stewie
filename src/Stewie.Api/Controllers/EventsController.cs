@@ -3,7 +3,7 @@
 /// REF: CON-002 §4.5, §5.5
 ///
 /// READING GUIDE FOR INCIDENT RESPONDERS:
-/// 1. If events list is empty     → check event emission in RunOrchestrationService
+/// 1. If events list is empty     → check event emission in JobOrchestrationService
 /// 2. If filtering returns wrong  → check entityType/entityId query param binding
 /// 3. If limit ignored            → check GetRecentAsync clamping logic
 /// </summary>
@@ -38,7 +38,7 @@ public class EventsController : ControllerBase
     /// Lists events with optional filtering by entity type and entity ID.
     /// Returns most recent events first. Default limit 100, max 500.
     /// </summary>
-    /// <param name="entityType">Optional: filter by entity type (e.g. "Run", "Task").</param>
+    /// <param name="entityType">Optional: filter by entity type (e.g. "Job", "Task").</param>
     /// <param name="entityId">Optional: filter by entity ID (requires entityType).</param>
     /// <param name="limit">Optional: max results (default 100, max 500).</param>
     /// <returns>200 OK with array of event objects per CON-002 §5.5.</returns>

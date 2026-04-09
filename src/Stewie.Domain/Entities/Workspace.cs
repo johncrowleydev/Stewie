@@ -1,6 +1,6 @@
 /// <summary>
 /// Workspace entity — tracks the lifecycle of a task workspace on the host filesystem.
-/// Used by: WorkspaceService, RunOrchestrationService.
+/// Used by: WorkspaceService, JobOrchestrationService.
 /// REF: BLU-001 §3.2
 /// </summary>
 using Stewie.Domain.Enums;

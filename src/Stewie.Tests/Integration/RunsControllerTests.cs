@@ -15,21 +15,21 @@ namespace Stewie.Tests.Integration;
 /// <summary>
 /// Verifies Runs and Tasks controller behavior against CON-002 contracts.
 /// </summary>
-public class RunsControllerTests : IClassFixture<StewieWebApplicationFactory>, IDisposable
+public class JobsControllerTests : IClassFixture<StewieWebApplicationFactory>, IDisposable
 {
     private readonly HttpClient _client;
 
-    public RunsControllerTests(StewieWebApplicationFactory factory)
+    public JobsControllerTests(StewieWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
         _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", factory.GetAuthToken());
     }
 
-    /// <summary>GET /api/runs returns 200 with array.</summary>
+    /// <summary>GET /api/jobs returns 200 with array.</summary>
     [Fact]
     public async Task GetAll_Returns200WithArray()
     {
-        var response = await _client.GetAsync("/api/runs");
+        var response = await _client.GetAsync("/api/jobs");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -38,7 +38,7 @@ public class RunsControllerTests : IClassFixture<StewieWebApplicationFactory>, I
         Assert.NotNull(runs);
     }
 
-    /// <summary>POST /api/runs with valid body creates a run and returns 201.</summary>
+    /// <summary>POST /api/jobs with valid body creates a job and returns 201.</summary>
     [Fact]
     public async Task Create_ValidRun_Returns201()
     {
@@ -50,7 +50,7 @@ public class RunsControllerTests : IClassFixture<StewieWebApplicationFactory>, I
         var projectId = projDoc.GetProperty("id").GetString();
 
         var payload = new { projectId, objective = "Test objective", scope = "test scope" };
-        var response = await _client.PostAsJsonAsync("/api/runs", payload);
+        var response = await _client.PostAsJsonAsync("/api/jobs", payload);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
@@ -63,7 +63,7 @@ public class RunsControllerTests : IClassFixture<StewieWebApplicationFactory>, I
         Assert.Equal(JsonValueKind.Array, tasks.ValueKind);
     }
 
-    /// <summary>GET /api/runs/{id} returns 200 with tasks for existing run.</summary>
+    /// <summary>GET /api/jobs/{id} returns 200 with tasks for existing run.</summary>
     [Fact]
     public async Task GetById_ExistingRun_Returns200WithTasks()
     {
@@ -74,13 +74,13 @@ public class RunsControllerTests : IClassFixture<StewieWebApplicationFactory>, I
         var projectId = projDoc.GetProperty("id").GetString();
 
         var payload = new { projectId, objective = "Test for getById" };
-        var createResponse = await _client.PostAsJsonAsync("/api/runs", payload);
+        var createResponse = await _client.PostAsJsonAsync("/api/jobs", payload);
         var createBody = await createResponse.Content.ReadAsStringAsync();
         var created = JsonSerializer.Deserialize<JsonElement>(createBody);
         var id = created.GetProperty("id").GetString();
 
         // Act
-        var response = await _client.GetAsync($"/api/runs/{id}");
+        var response = await _client.GetAsync($"/api/jobs/{id}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -89,12 +89,12 @@ public class RunsControllerTests : IClassFixture<StewieWebApplicationFactory>, I
         Assert.True(doc.TryGetProperty("tasks", out _));
     }
 
-    /// <summary>GET /api/runs/{id} returns 404 with structured error for missing run.</summary>
+    /// <summary>GET /api/jobs/{id} returns 404 with structured error for missing job.</summary>
     [Fact]
     public async Task GetById_MissingRun_Returns404()
     {
         var missingId = Guid.NewGuid();
-        var response = await _client.GetAsync($"/api/runs/{missingId}");
+        var response = await _client.GetAsync($"/api/jobs/{missingId}");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
 

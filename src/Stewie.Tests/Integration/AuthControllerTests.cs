@@ -82,13 +82,13 @@ public class AuthControllerTests : IClassFixture<StewieWebApplicationFactory>, I
     }
 
     /// <summary>
-    /// GET /api/runs without token — currently 200 (no auth), will become 401.
+    /// GET /api/jobs without token — currently 200 (no auth), will become 401.
     /// This test documents the expected transition.
     /// </summary>
     [Fact]
     public async Task ProtectedEndpoint_NoToken_Returns200Or401()
     {
-        var response = await _client.GetAsync("/api/runs");
+        var response = await _client.GetAsync("/api/jobs");
 
         // Pre-auth: 200 (no auth middleware). Post-auth: 401
         Assert.True(

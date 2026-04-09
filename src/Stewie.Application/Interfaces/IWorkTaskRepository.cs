@@ -16,10 +16,10 @@ public interface IWorkTaskRepository
     /// <returns>The task, or null if not found.</returns>
     Task<WorkTask?> GetByIdAsync(Guid id);
 
-    /// <summary>Retrieves all tasks for a specific run.</summary>
-    /// <param name="runId">The run's GUID.</param>
-    /// <returns>Tasks belonging to the run, ordered by creation time ascending.</returns>
-    Task<IList<WorkTask>> GetByRunIdAsync(Guid runId);
+    /// <summary>Retrieves all tasks for a specific job.</summary>
+    /// <param name="jobId">The job's GUID.</param>
+    /// <returns>Tasks belonging to the job, ordered by creation time ascending.</returns>
+    Task<IList<WorkTask>> GetByJobIdAsync(Guid jobId);
 
     /// <summary>Persists a new or updated task.</summary>
     /// <param name="workTask">The task entity to save.</param>

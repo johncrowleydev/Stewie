@@ -40,11 +40,11 @@ public class WorkspaceServiceTests : IDisposable
     public void PrepareWorkspace_CreatesDirectoryStructure()
     {
         // Arrange
-        var run = CreateTestRun();
-        var task = CreateTestTask(run);
+        var job = CreateTestJob();
+        var task = CreateTestTask(job);
 
         // Act
-        var workspacePath = _sut.PrepareWorkspace(task, run);
+        var workspacePath = _sut.PrepareWorkspace(task, job);
 
         // Assert
         Assert.True(Directory.Exists(workspacePath), "Workspace root should exist");
@@ -57,11 +57,11 @@ public class WorkspaceServiceTests : IDisposable
     public void PrepareWorkspace_WritesValidTaskJson()
     {
         // Arrange
-        var run = CreateTestRun();
-        var task = CreateTestTask(run);
+        var job = CreateTestJob();
+        var task = CreateTestTask(job);
 
         // Act
-        var workspacePath = _sut.PrepareWorkspace(task, run);
+        var workspacePath = _sut.PrepareWorkspace(task, job);
 
         // Assert
         var taskJsonPath = Path.Combine(workspacePath, "input", "task.json");
@@ -72,7 +72,7 @@ public class WorkspaceServiceTests : IDisposable
 
         Assert.NotNull(packet);
         Assert.Equal(task.Id, packet.TaskId);
-        Assert.Equal(run.Id, packet.RunId);
+        Assert.Equal(job.Id, packet.JobId);
         Assert.Equal("developer", packet.Role);
         Assert.NotEmpty(packet.Objective);
         Assert.NotEmpty(packet.AcceptanceCriteria);
@@ -82,9 +82,9 @@ public class WorkspaceServiceTests : IDisposable
     public void ReadResult_DeserializesCorrectly()
     {
         // Arrange
-        var run = CreateTestRun();
-        var task = CreateTestTask(run);
-        var workspacePath = _sut.PrepareWorkspace(task, run);
+        var job = CreateTestJob();
+        var task = CreateTestTask(job);
+        var workspacePath = _sut.PrepareWorkspace(task, job);
         task.WorkspacePath = workspacePath;
 
         var expected = new ResultPacket
@@ -122,9 +122,9 @@ public class WorkspaceServiceTests : IDisposable
     public void ReadResult_ThrowsWhenFileMissing()
     {
         // Arrange
-        var run = CreateTestRun();
-        var task = CreateTestTask(run);
-        var workspacePath = _sut.PrepareWorkspace(task, run);
+        var job = CreateTestJob();
+        var task = CreateTestTask(job);
+        var workspacePath = _sut.PrepareWorkspace(task, job);
         task.WorkspacePath = workspacePath;
 
         // Do NOT write result.json — it should be missing
@@ -134,25 +134,25 @@ public class WorkspaceServiceTests : IDisposable
         Assert.Contains("result.json not found", ex.Message);
     }
 
-    /// <summary>Creates a test Run entity with a new GUID and Pending status.</summary>
-    private static Run CreateTestRun()
+    /// <summary>Creates a test Job entity with a new GUID and Pending status.</summary>
+    private static Job CreateTestJob()
     {
-        return new Run
+        return new Job
         {
             Id = Guid.NewGuid(),
-            Status = RunStatus.Pending,
+            Status = JobStatus.Pending,
             CreatedAt = DateTime.UtcNow
         };
     }
 
-    /// <summary>Creates a test WorkTask entity linked to the given Run.</summary>
-    private static WorkTask CreateTestTask(Run run)
+    /// <summary>Creates a test WorkTask entity linked to the given Job.</summary>
+    private static WorkTask CreateTestTask(Job job)
     {
         return new WorkTask
         {
             Id = Guid.NewGuid(),
-            RunId = run.Id,
-            Run = run,
+            JobId = job.Id,
+            Job = job,
             Role = "developer",
             Status = WorkTaskStatus.Pending,
             WorkspacePath = string.Empty,

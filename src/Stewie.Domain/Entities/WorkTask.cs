@@ -1,5 +1,5 @@
 /// <summary>
-/// Represents a single unit of work within a Run, assigned to a worker container.
+/// Represents a single unit of work within a Job, assigned to a worker container.
 /// REF: CON-002 §5.3, BLU-001 §3.1
 /// </summary>
 using Stewie.Domain.Enums;
@@ -7,18 +7,18 @@ using Stewie.Domain.Enums;
 namespace Stewie.Domain.Entities;
 
 /// <summary>
-/// Represents a single unit of work within a Run, assigned to a worker container.
+/// Represents a single unit of work within a Job, assigned to a worker container.
 /// </summary>
 public class WorkTask
 {
     /// <summary>Unique identifier for the task.</summary>
     public virtual Guid Id { get; set; }
 
-    /// <summary>Parent run identifier.</summary>
-    public virtual Guid RunId { get; set; }
+    /// <summary>Parent job identifier.</summary>
+    public virtual Guid JobId { get; set; }
 
-    /// <summary>Navigation to the parent run.</summary>
-    public virtual Run Run { get; set; } = null!;
+    /// <summary>Navigation to the parent job.</summary>
+    public virtual Job Job { get; set; } = null!;
 
     /// <summary>Agent role executing this task (developer, tester, researcher).</summary>
     public virtual string Role { get; set; } = string.Empty;
@@ -26,10 +26,10 @@ public class WorkTask
     /// <summary>Current execution status.</summary>
     public virtual WorkTaskStatus Status { get; set; }
 
-    /// <summary>What the worker should accomplish. Null for legacy test runs.</summary>
+    /// <summary>What the worker should accomplish. Null for legacy test jobs.</summary>
     public virtual string? Objective { get; set; }
 
-    /// <summary>Boundaries of the work. Null for legacy test runs.</summary>
+    /// <summary>Boundaries of the work. Null for legacy test jobs.</summary>
     public virtual string? Scope { get; set; }
 
     /// <summary>JSON array of bash commands for the script worker. Null if not provided.</summary>

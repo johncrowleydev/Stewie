@@ -5,7 +5,7 @@
 /// READING GUIDE FOR INCIDENT RESPONDERS:
 /// 1. If task detail missing artifacts → check GetByTaskIdAsync in ArtifactRepository
 /// 2. If 404 on task lookup           → check GetByIdAsync return value
-/// 3. If tasks for run are empty      → check GetByRunIdAsync filter logic
+/// 3. If tasks for job are empty      → check GetByJobIdAsync filter logic
 /// </summary>
 using Microsoft.AspNetCore.Mvc;
 using Stewie.Application.Interfaces;
@@ -56,7 +56,7 @@ public class TasksController : ControllerBase
         return Ok(new
         {
             id = task.Id,
-            runId = task.RunId,
+            jobId = task.JobId,
             role = task.Role,
             status = task.Status.ToString(),
             workspacePath = task.WorkspacePath,
@@ -73,21 +73,21 @@ public class TasksController : ControllerBase
     }
 
     /// <summary>
-    /// Lists all tasks for a specific run.
+    /// Lists all tasks for a specific job.
     /// </summary>
-    /// <param name="runId">The run's GUID.</param>
+    /// <param name="jobId">The job's GUID.</param>
     /// <returns>200 OK with array of task objects per CON-002 §5.3.</returns>
-    [HttpGet("api/runs/{runId:guid}/tasks")]
-    public async Task<IActionResult> GetByRunId(Guid runId)
+    [HttpGet("api/jobs/{jobId:guid}/tasks")]
+    public async Task<IActionResult> GetByJobId(Guid jobId)
     {
-        _logger.LogInformation("Listing tasks for run {RunId}", runId);
+        _logger.LogInformation("Listing tasks for job {JobId}", jobId);
 
-        var tasks = await _workTaskRepository.GetByRunIdAsync(runId);
+        var tasks = await _workTaskRepository.GetByJobIdAsync(jobId);
 
         var response = tasks.Select(t => new
         {
             id = t.Id,
-            runId = t.RunId,
+            jobId = t.JobId,
             role = t.Role,
             status = t.Status.ToString(),
             workspacePath = t.WorkspacePath,

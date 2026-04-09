@@ -22,8 +22,8 @@ public class WorkTaskMap : ClassMap<WorkTask>
     {
         Table("Tasks");
         Id(x => x.Id).GeneratedBy.Assigned();
-        Map(x => x.RunId);
-        References(x => x.Run).Column("RunId").ReadOnly();
+        Map(x => x.JobId);
+        References(x => x.Job).Column("JobId").ReadOnly();
         Map(x => x.Role);
         Map(x => x.Status).CustomType<WorkTaskStatus>();
         Map(x => x.Objective).Length(2000);

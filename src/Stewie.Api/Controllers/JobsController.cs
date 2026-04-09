@@ -1,5 +1,5 @@
 /// <summary>
-/// Runs API controller — CRUD endpoints, test-run trigger, and real run execution.
+/// Jobs API controller — CRUD endpoints, test-job trigger, and real job execution.
 /// REF: CON-002 §4.2, §5.2
 /// </summary>
 using System.Security.Claims;
@@ -14,31 +14,31 @@ using Stewie.Domain.Enums;
 namespace Stewie.Api.Controllers;
 
 /// <summary>
-/// Exposes endpoints for managing Runs — the top-level execution units.
-/// Combines the existing test-run trigger with full CRUD and real run execution.
+/// Exposes endpoints for managing Jobs — the top-level execution units.
+/// Combines the existing test-job trigger with full CRUD and real job execution.
 /// </summary>
 [ApiController]
 [Authorize]
-public class RunsController : ControllerBase
+public class JobsController : ControllerBase
 {
-    private readonly RunOrchestrationService _orchestrationService;
-    private readonly IRunRepository _runRepository;
+    private readonly JobOrchestrationService _orchestrationService;
+    private readonly IJobRepository _jobRepository;
     private readonly IWorkTaskRepository _workTaskRepository;
     private readonly IProjectRepository _projectRepository;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly ILogger<RunsController> _logger;
+    private readonly ILogger<JobsController> _logger;
 
-    /// <summary>Initializes the RunsController with required dependencies.</summary>
-    public RunsController(
-        RunOrchestrationService orchestrationService,
-        IRunRepository runRepository,
+    /// <summary>Initializes the JobsController with required dependencies.</summary>
+    public JobsController(
+        JobOrchestrationService orchestrationService,
+        IJobRepository jobRepository,
         IWorkTaskRepository workTaskRepository,
         IProjectRepository projectRepository,
         IUnitOfWork unitOfWork,
-        ILogger<RunsController> logger)
+        ILogger<JobsController> logger)
     {
         _orchestrationService = orchestrationService;
-        _runRepository = runRepository;
+        _jobRepository = jobRepository;
         _workTaskRepository = workTaskRepository;
         _projectRepository = projectRepository;
         _unitOfWork = unitOfWork;
@@ -46,64 +46,64 @@ public class RunsController : ControllerBase
     }
 
     /// <summary>
-    /// Triggers a test run using the dummy worker container.
+    /// Triggers a test job using the dummy worker container.
     /// Backward-compatible Milestone 0 endpoint.
     /// </summary>
-    /// <returns>200 OK with test run result per CON-002 §3.1.</returns>
-    [HttpPost("runs/test")]
-    public async Task<IActionResult> TriggerTestRun()
+    /// <returns>200 OK with test job result per CON-002 §3.1.</returns>
+    [HttpPost("jobs/test")]
+    public async Task<IActionResult> TriggerTestJob()
     {
-        _logger.LogInformation("Test run triggered");
-        var result = await _orchestrationService.ExecuteTestRunAsync();
-        _logger.LogInformation("Test run completed: {Status}", result.Status);
+        _logger.LogInformation("Test job triggered");
+        var result = await _orchestrationService.ExecuteTestJobAsync();
+        _logger.LogInformation("Test job completed: {Status}", result.Status);
         return Ok(result);
     }
 
     /// <summary>
-    /// Lists all runs, optionally filtered by projectId query parameter.
+    /// Lists all jobs, optionally filtered by projectId query parameter.
     /// </summary>
-    /// <param name="projectId">Optional project ID to filter runs.</param>
-    /// <returns>200 OK with array of run objects per CON-002 §5.2.</returns>
-    [HttpGet("api/runs")]
+    /// <param name="projectId">Optional project ID to filter jobs.</param>
+    /// <returns>200 OK with array of job objects per CON-002 §5.2.</returns>
+    [HttpGet("api/jobs")]
     public async Task<IActionResult> GetAll([FromQuery] Guid? projectId = null)
     {
-        _logger.LogInformation("Listing runs, projectId filter: {ProjectId}", projectId);
+        _logger.LogInformation("Listing jobs, projectId filter: {ProjectId}", projectId);
 
-        IList<Run> runs;
+        IList<Job> jobs;
 
         if (projectId.HasValue)
         {
-            runs = await _runRepository.GetByProjectIdAsync(projectId.Value);
+            jobs = await _jobRepository.GetByProjectIdAsync(projectId.Value);
         }
         else
         {
-            runs = await _runRepository.GetAllAsync();
+            jobs = await _jobRepository.GetAllAsync();
         }
 
-        var response = runs.Select(r => new
+        var response = jobs.Select(j => new
         {
-            id = r.Id,
-            projectId = r.ProjectId,
-            status = r.Status.ToString(),
-            branch = r.Branch,
-            diffSummary = r.DiffSummary,
-            commitSha = r.CommitSha,
-            pullRequestUrl = r.PullRequestUrl,
-            createdAt = r.CreatedAt.ToString("o"),
-            completedAt = r.CompletedAt?.ToString("o")
+            id = j.Id,
+            projectId = j.ProjectId,
+            status = j.Status.ToString(),
+            branch = j.Branch,
+            diffSummary = j.DiffSummary,
+            commitSha = j.CommitSha,
+            pullRequestUrl = j.PullRequestUrl,
+            createdAt = j.CreatedAt.ToString("o"),
+            completedAt = j.CompletedAt?.ToString("o")
         });
 
         return Ok(response);
     }
 
     /// <summary>
-    /// Creates a new run with task definition, validates project, and triggers execution.
-    /// Per CON-002 v1.2.0: projectId and objective are required.
+    /// Creates a new job with task definition, validates project, and triggers execution.
+    /// Per CON-002 v1.5.0: projectId and objective are required.
     /// </summary>
-    /// <param name="request">The run creation request.</param>
-    /// <returns>201 Created with the run, then execution proceeds asynchronously.</returns>
-    [HttpPost("api/runs")]
-    public async Task<IActionResult> Create([FromBody] CreateRunRequest request)
+    /// <param name="request">The job creation request.</param>
+    /// <returns>201 Created with the job, then execution proceeds asynchronously.</returns>
+    [HttpPost("api/jobs")]
+    public async Task<IActionResult> Create([FromBody] CreateJobRequest request)
     {
         // Validate required fields
         if (!request.ProjectId.HasValue)
@@ -136,12 +136,12 @@ public class RunsController : ControllerBase
             ?? User.FindFirst("sub")?.Value;
         Guid? createdByUserId = userIdClaim is not null ? Guid.Parse(userIdClaim) : null;
 
-        // Create Run
-        var run = new Run
+        // Create Job
+        var job = new Job
         {
             Id = Guid.NewGuid(),
             ProjectId = request.ProjectId,
-            Status = RunStatus.Pending,
+            Status = JobStatus.Pending,
             CreatedByUserId = createdByUserId,
             CreatedAt = DateTime.UtcNow
         };
@@ -150,8 +150,8 @@ public class RunsController : ControllerBase
         var task = new WorkTask
         {
             Id = Guid.NewGuid(),
-            RunId = run.Id,
-            Run = run,
+            JobId = job.Id,
+            Job = job,
             Role = "developer",
             Status = WorkTaskStatus.Pending,
             Objective = request.Objective.Trim(),
@@ -163,30 +163,30 @@ public class RunsController : ControllerBase
         };
 
         _unitOfWork.BeginTransaction();
-        await _runRepository.SaveAsync(run);
+        await _jobRepository.SaveAsync(job);
         await _workTaskRepository.SaveAsync(task);
         await _unitOfWork.CommitAsync();
 
-        _logger.LogInformation("Created run {RunId} with task {TaskId} for project {ProjectId}",
-            run.Id, task.Id, run.ProjectId);
+        _logger.LogInformation("Created job {JobId} with task {TaskId} for project {ProjectId}",
+            job.Id, task.Id, job.ProjectId);
 
-        return CreatedAtAction(nameof(GetById), new { id = run.Id }, new
+        return CreatedAtAction(nameof(GetById), new { id = job.Id }, new
         {
-            id = run.Id,
-            projectId = run.ProjectId,
-            status = run.Status.ToString(),
-            branch = run.Branch,
-            diffSummary = run.DiffSummary,
-            commitSha = run.CommitSha,
-            pullRequestUrl = run.PullRequestUrl,
-            createdAt = run.CreatedAt.ToString("o"),
+            id = job.Id,
+            projectId = job.ProjectId,
+            status = job.Status.ToString(),
+            branch = job.Branch,
+            diffSummary = job.DiffSummary,
+            commitSha = job.CommitSha,
+            pullRequestUrl = job.PullRequestUrl,
+            createdAt = job.CreatedAt.ToString("o"),
             completedAt = (string?)null,
             tasks = new[]
             {
                 new
                 {
                     id = task.Id,
-                    runId = task.RunId,
+                    jobId = task.JobId,
                     role = task.Role,
                     status = task.Status.ToString(),
                     objective = task.Objective,
@@ -201,39 +201,39 @@ public class RunsController : ControllerBase
     }
 
     /// <summary>
-    /// Gets a single run by ID, including its nested tasks.
+    /// Gets a single job by ID, including its nested tasks.
     /// </summary>
-    /// <param name="id">The run's GUID.</param>
-    /// <returns>200 OK with run + tasks per CON-002 §5.2, or 404 if not found.</returns>
-    [HttpGet("api/runs/{id:guid}")]
+    /// <param name="id">The job's GUID.</param>
+    /// <returns>200 OK with job + tasks per CON-002 §5.2, or 404 if not found.</returns>
+    [HttpGet("api/jobs/{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        _logger.LogInformation("Getting run {RunId}", id);
+        _logger.LogInformation("Getting job {JobId}", id);
 
-        var run = await _runRepository.GetByIdAsync(id);
+        var job = await _jobRepository.GetByIdAsync(id);
 
-        if (run is null)
+        if (job is null)
         {
-            throw new KeyNotFoundException($"Run with ID '{id}' was not found.");
+            throw new KeyNotFoundException($"Job with ID '{id}' was not found.");
         }
 
-        var tasks = await _workTaskRepository.GetByRunIdAsync(id);
+        var tasks = await _workTaskRepository.GetByJobIdAsync(id);
 
         return Ok(new
         {
-            id = run.Id,
-            projectId = run.ProjectId,
-            status = run.Status.ToString(),
-            branch = run.Branch,
-            diffSummary = run.DiffSummary,
-            commitSha = run.CommitSha,
-            pullRequestUrl = run.PullRequestUrl,
-            createdAt = run.CreatedAt.ToString("o"),
-            completedAt = run.CompletedAt?.ToString("o"),
+            id = job.Id,
+            projectId = job.ProjectId,
+            status = job.Status.ToString(),
+            branch = job.Branch,
+            diffSummary = job.DiffSummary,
+            commitSha = job.CommitSha,
+            pullRequestUrl = job.PullRequestUrl,
+            createdAt = job.CreatedAt.ToString("o"),
+            completedAt = job.CompletedAt?.ToString("o"),
             tasks = tasks.Select(t => new
             {
                 id = t.Id,
-                runId = t.RunId,
+                jobId = t.JobId,
                 role = t.Role,
                 status = t.Status.ToString(),
                 objective = t.Objective,
@@ -247,10 +247,10 @@ public class RunsController : ControllerBase
     }
 }
 
-/// <summary>Request body for creating a new run per CON-002 §4.2.</summary>
-public class CreateRunRequest
+/// <summary>Request body for creating a new job per CON-002 §4.2.</summary>
+public class CreateJobRequest
 {
-    /// <summary>Project ID to associate this run with. Required.</summary>
+    /// <summary>Project ID to associate this job with. Required.</summary>
     public Guid? ProjectId { get; set; }
 
     /// <summary>What the worker should accomplish. Required.</summary>

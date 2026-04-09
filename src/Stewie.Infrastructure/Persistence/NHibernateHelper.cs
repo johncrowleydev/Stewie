@@ -13,7 +13,7 @@ public static class NHibernateHelper
                 .ConnectionString(connectionString)
                 .Driver<NHibernate.Driver.MicrosoftDataSqlClientDriver>()
                 .ShowSql())
-            .Mappings(m => m.FluentMappings.AddFromAssemblyOf<Mappings.RunMap>())
+            .Mappings(m => m.FluentMappings.AddFromAssemblyOf<Mappings.JobMap>())
             .BuildSessionFactory();
     }
 }

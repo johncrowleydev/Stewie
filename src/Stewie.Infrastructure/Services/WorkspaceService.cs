@@ -30,7 +30,7 @@ public class WorkspaceService : IWorkspaceService
     }
 
     /// <inheritdoc/>
-    public string PrepareWorkspace(WorkTask task, Run run)
+    public string PrepareWorkspace(WorkTask task, Job job)
     {
         var taskDir = Path.Combine(_workspaceRoot, task.Id.ToString());
         var repoDir = Path.Combine(taskDir, "repo");
@@ -46,7 +46,7 @@ public class WorkspaceService : IWorkspaceService
         var taskPacket = new TaskPacket
         {
             TaskId = task.Id,
-            RunId = run.Id,
+            JobId = job.Id,
             Role = task.Role,
             Objective = "Execute the first Stewie worker runtime contract",
             Scope = "Read this task packet and produce a valid result packet",
@@ -65,7 +65,7 @@ public class WorkspaceService : IWorkspaceService
     }
 
     /// <inheritdoc/>
-    public string PrepareWorkspaceForRun(WorkTask task, Run run, string? repoUrl,
+    public string PrepareWorkspaceForRun(WorkTask task, Job job, string? repoUrl,
         string? branch, List<string>? script, List<string>? acceptanceCriteria)
     {
         var taskDir = Path.Combine(_workspaceRoot, task.Id.ToString());
@@ -82,7 +82,7 @@ public class WorkspaceService : IWorkspaceService
         var taskPacket = new TaskPacket
         {
             TaskId = task.Id,
-            RunId = run.Id,
+            JobId = job.Id,
             Role = task.Role,
             Objective = task.Objective ?? string.Empty,
             Scope = task.Scope ?? string.Empty,

@@ -31,10 +31,10 @@ public class WorkTaskRepository : IWorkTaskRepository
     }
 
     /// <inheritdoc/>
-    public async Task<IList<WorkTask>> GetByRunIdAsync(Guid runId)
+    public async Task<IList<WorkTask>> GetByJobIdAsync(Guid jobId)
     {
         return await _unitOfWork.Session.Query<WorkTask>()
-            .Where(t => t.RunId == runId)
+            .Where(t => t.JobId == jobId)
             .OrderBy(t => t.CreatedAt)
             .ToListAsync();
     }

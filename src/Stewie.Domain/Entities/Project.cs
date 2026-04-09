@@ -1,6 +1,6 @@
 /// <summary>
 /// Project entity — groups Runs under a repository/project context.
-/// Used by: RunOrchestrationService, ProjectsController.
+/// Used by: JobOrchestrationService, ProjectsController.
 /// REF: CON-002 §5.1, BLU-001 §3.2
 /// </summary>
 namespace Stewie.Domain.Entities;

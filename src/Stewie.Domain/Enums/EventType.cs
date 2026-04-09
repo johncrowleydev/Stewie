@@ -6,23 +6,23 @@ namespace Stewie.Domain.Enums;
 
 /// <summary>
 /// Defines the types of events tracked in the audit trail.
-/// Each value corresponds to a lifecycle state change on a Run or WorkTask.
+/// Each value corresponds to a lifecycle state change on a Job or WorkTask.
 /// </summary>
 public enum EventType
 {
-    /// <summary>A new run was created.</summary>
-    RunCreated = 0,
+    /// <summary>A new job was created.</summary>
+    JobCreated = 0,
 
-    /// <summary>A run transitioned to the Running state.</summary>
-    RunStarted = 1,
+    /// <summary>A job transitioned to the Running state.</summary>
+    JobStarted = 1,
 
-    /// <summary>A run completed successfully.</summary>
-    RunCompleted = 2,
+    /// <summary>A job completed successfully.</summary>
+    JobCompleted = 2,
 
-    /// <summary>A run failed.</summary>
-    RunFailed = 3,
+    /// <summary>A job failed.</summary>
+    JobFailed = 3,
 
-    /// <summary>A new task was created within a run.</summary>
+    /// <summary>A new task was created within a job.</summary>
     TaskCreated = 4,
 
     /// <summary>A task transitioned to the Running state.</summary>

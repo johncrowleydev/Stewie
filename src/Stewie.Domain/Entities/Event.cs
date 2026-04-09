@@ -1,6 +1,6 @@
 /// <summary>
 /// Event entity — immutable audit trail record for all state changes.
-/// Used by: RunOrchestrationService (emits events), future event query endpoints.
+/// Used by: JobOrchestrationService (emits events), future event query endpoints.
 /// REF: BLU-001 §3.2
 /// </summary>
 using Stewie.Domain.Enums;

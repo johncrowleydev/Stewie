@@ -15,21 +15,21 @@ public interface IWorkspaceService
 {
     /// <summary>Prepares a workspace directory structure and writes task.json.</summary>
     /// <param name="task">The task entity.</param>
-    /// <param name="run">The parent run entity.</param>
+    /// <param name="job">The parent job entity.</param>
     /// <returns>The absolute path to the workspace directory.</returns>
-    string PrepareWorkspace(WorkTask task, Run run);
+    string PrepareWorkspace(WorkTask task, Job job);
 
     /// <summary>
-    /// Prepares a workspace and writes task.json with full fields for real runs.
+    /// Prepares a workspace and writes task.json with full fields for real jobs.
     /// </summary>
     /// <param name="task">The task entity with Objective, Scope, etc.</param>
-    /// <param name="run">The parent run entity.</param>
+    /// <param name="job">The parent job entity.</param>
     /// <param name="repoUrl">Optional repo URL for cloning.</param>
     /// <param name="branch">Optional branch name.</param>
     /// <param name="script">Optional script commands.</param>
     /// <param name="acceptanceCriteria">Optional acceptance criteria.</param>
     /// <returns>The absolute path to the workspace directory.</returns>
-    string PrepareWorkspaceForRun(WorkTask task, Run run, string? repoUrl,
+    string PrepareWorkspaceForRun(WorkTask task, Job job, string? repoUrl,
         string? branch, List<string>? script, List<string>? acceptanceCriteria);
 
     /// <summary>Reads and deserializes result.json from the task's workspace output directory.</summary>

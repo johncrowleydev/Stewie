@@ -99,7 +99,7 @@ public class StewieWebApplicationFactory : WebApplicationFactory<Program>
                 .Database(SQLiteConfiguration.Standard
                     .ConnectionString("Data Source=:memory:;Version=3;New=True;"))
                 .Mappings(m => m.FluentMappings
-                    .AddFromAssemblyOf<Stewie.Infrastructure.Mappings.RunMap>())
+                    .AddFromAssemblyOf<Stewie.Infrastructure.Mappings.JobMap>())
                 .BuildConfiguration();
 
             // Export schema to the keep-alive connection

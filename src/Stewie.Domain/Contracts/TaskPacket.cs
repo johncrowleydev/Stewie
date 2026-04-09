@@ -16,9 +16,9 @@ public class TaskPacket
     [JsonPropertyName("taskId")]
     public Guid TaskId { get; set; }
 
-    /// <summary>Parent Run identifier.</summary>
-    [JsonPropertyName("runId")]
-    public Guid RunId { get; set; }
+    /// <summary>Parent Job identifier.</summary>
+    [JsonPropertyName("jobId")]
+    public Guid JobId { get; set; }
 
     /// <summary>Agent role executing this task.</summary>
     [JsonPropertyName("role")]
