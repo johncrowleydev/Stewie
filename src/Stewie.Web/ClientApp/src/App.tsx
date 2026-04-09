@@ -1,10 +1,24 @@
+/**
+ * App — Root component with route definitions.
+ * Wraps all pages in the Layout shell component.
+ */
+import { Routes, Route } from "react-router-dom";
+import { Layout } from "./components/Layout";
+import { DashboardPage } from "./pages/DashboardPage";
+import { RunsPage } from "./pages/RunsPage";
+import { RunDetailPage } from "./pages/RunDetailPage";
+import { ProjectsPage } from "./pages/ProjectsPage";
+
 function App() {
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif", color: "#767573", maxWidth: 600, margin: "80px auto", textAlign: "center" }}>
-      <img src="/stewie-logo.png" alt="Stewie" style={{ width: 160, height: 160 }} />
-      <h1 style={{ color: "#767573", fontWeight: 700, fontSize: "2rem", marginTop: 16 }}>stewie</h1>
-      <p>Governance-first software development orchestration.</p>
-    </div>
+    <Routes>
+      <Route element={<Layout />}>
+        <Route path="/" element={<DashboardPage />} />
+        <Route path="/runs" element={<RunsPage />} />
+        <Route path="/runs/:id" element={<RunDetailPage />} />
+        <Route path="/projects" element={<ProjectsPage />} />
+      </Route>
+    </Routes>
   );
 }
 

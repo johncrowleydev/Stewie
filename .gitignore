@@ -64,3 +64,5 @@ build/
 tmp/
 .tmp/
 *.pdf
+# Vite build output
+wwwroot/
