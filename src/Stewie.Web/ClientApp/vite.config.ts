@@ -8,7 +8,12 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       "/api": {
-        target: "https://localhost:7214",
+        target: "http://localhost:5275",
+        changeOrigin: true,
+        secure: false,
+      },
+      "/health": {
+        target: "http://localhost:5275",
         changeOrigin: true,
         secure: false,
       },
