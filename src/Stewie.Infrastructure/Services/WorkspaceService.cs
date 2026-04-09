@@ -1,14 +1,8 @@
 /// <summary>
 /// Workspace filesystem service — manages workspace directories, task.json I/O,
-/// and git repository operations (clone, branch).
+/// git repository operations (clone, branch, diff, commit).
 ///
-/// READING GUIDE FOR INCIDENT RESPONDERS:
-/// 1. If task.json missing        → check PrepareWorkspace directory creation
-/// 2. If result.json not found    → check WorkspacePath on the task entity
-/// 3. If git clone fails          → check repoUrl format and network access
-/// 4. If git branch fails         → check that repo was cloned first
-///
-/// REF: BLU-001 §3.2, CON-001 §3, §4
+/// REF: BLU-001 §3.2, CON-001 §3, §4, CON-002 §5.6
 /// </summary>
 using System.Diagnostics;
 using System.Text.Json;
@@ -28,11 +22,7 @@ public class WorkspaceService : IWorkspaceService
     private readonly string _workspaceRoot;
     private readonly ILogger<WorkspaceService> _logger;
 
-    /// <summary>
-    /// Initializes the workspace service.
-    /// </summary>
-    /// <param name="workspaceRoot">Root directory for all task workspaces.</param>
-    /// <param name="logger">Structured logger.</param>
+    /// <summary>Initializes the workspace service.</summary>
     public WorkspaceService(string workspaceRoot, ILogger<WorkspaceService> logger)
     {
         _workspaceRoot = Path.GetFullPath(workspaceRoot);
@@ -70,12 +60,41 @@ public class WorkspaceService : IWorkspaceService
             ]
         };
 
-        var taskJsonPath = Path.Combine(inputDir, "task.json");
-        var json = JsonSerializer.Serialize(taskPacket, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(taskJsonPath, json);
+        WriteTaskJson(taskDir, taskPacket);
+        return taskDir;
+    }
 
-        _logger.LogInformation("Wrote task.json to {Path}", taskJsonPath);
+    /// <inheritdoc/>
+    public string PrepareWorkspaceForRun(WorkTask task, Run run, string? repoUrl,
+        string? branch, List<string>? script, List<string>? acceptanceCriteria)
+    {
+        var taskDir = Path.Combine(_workspaceRoot, task.Id.ToString());
+        var repoDir = Path.Combine(taskDir, "repo");
+        var inputDir = Path.Combine(taskDir, "input");
+        var outputDir = Path.Combine(taskDir, "output");
 
+        Directory.CreateDirectory(repoDir);
+        Directory.CreateDirectory(inputDir);
+        Directory.CreateDirectory(outputDir);
+
+        _logger.LogInformation("Created workspace directories at {TaskDir}", taskDir);
+
+        var taskPacket = new TaskPacket
+        {
+            TaskId = task.Id,
+            RunId = run.Id,
+            Role = task.Role,
+            Objective = task.Objective ?? string.Empty,
+            Scope = task.Scope ?? string.Empty,
+            AllowedPaths = [],
+            ForbiddenPaths = [],
+            AcceptanceCriteria = acceptanceCriteria ?? [],
+            RepoUrl = repoUrl,
+            Branch = branch,
+            Script = script
+        };
+
+        WriteTaskJson(taskDir, taskPacket);
         return taskDir;
     }
 
@@ -107,16 +126,13 @@ public class WorkspaceService : IWorkspaceService
         var repoDir = Path.Combine(workspacePath, "repo");
         _logger.LogInformation("Cloning {RepoUrl} into {RepoDir}", repoUrl, repoDir);
 
-        // Clean out the repo dir if it already has content (fresh clone)
         if (Directory.Exists(repoDir) && Directory.EnumerateFileSystemEntries(repoDir).Any())
         {
             Directory.Delete(repoDir, recursive: true);
             Directory.CreateDirectory(repoDir);
         }
 
-        var exitCode = await RunGitCommandAsync(
-            $"clone \"{repoUrl}\" \"{repoDir}\"",
-            workspacePath);
+        var exitCode = await RunGitCommandAsync($"clone \"{repoUrl}\" \"{repoDir}\"", workspacePath);
 
         if (exitCode != 0)
         {
@@ -145,9 +161,7 @@ public class WorkspaceService : IWorkspaceService
 
         _logger.LogInformation("Creating branch {BranchName} in {RepoDir}", branchName, repoDir);
 
-        var exitCode = await RunGitCommandAsync(
-            $"checkout -b \"{branchName}\"",
-            repoDir);
+        var exitCode = await RunGitCommandAsync($"checkout -b \"{branchName}\"", repoDir);
 
         if (exitCode != 0)
         {
@@ -158,14 +172,101 @@ public class WorkspaceService : IWorkspaceService
         _logger.LogInformation("Successfully created branch {BranchName}", branchName);
     }
 
-    /// <summary>
-    /// Runs a git command via Process.Start and returns the exit code.
-    /// Uses GIT_TERMINAL_PROMPT=0 to prevent interactive auth prompts from hanging.
-    /// </summary>
-    /// <param name="arguments">The git command arguments (without "git" prefix).</param>
-    /// <param name="workingDirectory">The working directory for the git command.</param>
-    /// <returns>The process exit code (0 = success).</returns>
+    /// <inheritdoc/>
+    public async Task<DiffResult> CaptureDiffAsync(string workspacePath)
+    {
+        var repoDir = Path.Combine(workspacePath, "repo");
+
+        if (!Directory.Exists(Path.Combine(repoDir, ".git")))
+        {
+            _logger.LogWarning("No git repo at {RepoDir}, returning empty diff", repoDir);
+            return new DiffResult();
+        }
+
+        _logger.LogInformation("Capturing diff in {RepoDir}", repoDir);
+
+        var (statExit, statOutput) = await RunGitCommandWithOutputAsync("diff --stat", repoDir);
+        var (patchExit, patchOutput) = await RunGitCommandWithOutputAsync("diff", repoDir);
+
+        return new DiffResult
+        {
+            DiffStat = statExit == 0 ? statOutput : string.Empty,
+            DiffPatch = patchExit == 0 ? patchOutput : string.Empty
+        };
+    }
+
+    /// <inheritdoc/>
+    public async Task<string?> CommitChangesAsync(string workspacePath, string message)
+    {
+        var repoDir = Path.Combine(workspacePath, "repo");
+
+        if (!Directory.Exists(Path.Combine(repoDir, ".git")))
+        {
+            _logger.LogWarning("No git repo at {RepoDir}, nothing to commit", repoDir);
+            return null;
+        }
+
+        // Configure git user for the commit
+        await RunGitCommandAsync("config user.email \"stewie@stewie.dev\"", repoDir);
+        await RunGitCommandAsync("config user.name \"Stewie\"", repoDir);
+
+        // Stage all changes
+        var addExit = await RunGitCommandAsync("add -A", repoDir);
+        if (addExit != 0)
+        {
+            _logger.LogWarning("git add -A failed with exit code {ExitCode}", addExit);
+            return null;
+        }
+
+        // Check if there's anything to commit
+        var (statusExit, statusOutput) = await RunGitCommandWithOutputAsync("status --porcelain", repoDir);
+        if (statusExit != 0 || string.IsNullOrWhiteSpace(statusOutput))
+        {
+            _logger.LogInformation("Nothing to commit in {RepoDir}", repoDir);
+            return null;
+        }
+
+        // Commit
+        var commitExit = await RunGitCommandAsync($"commit -m \"{message}\"", repoDir);
+        if (commitExit != 0)
+        {
+            _logger.LogWarning("git commit failed with exit code {ExitCode}", commitExit);
+            return null;
+        }
+
+        // Get commit SHA
+        var (shaExit, sha) = await RunGitCommandWithOutputAsync("rev-parse HEAD", repoDir);
+        if (shaExit != 0)
+        {
+            _logger.LogWarning("Failed to get commit SHA");
+            return null;
+        }
+
+        var commitSha = sha.Trim();
+        _logger.LogInformation("Committed changes in {RepoDir}: {CommitSha}", repoDir, commitSha);
+        return commitSha;
+    }
+
+    /// <summary>Writes task.json to the workspace input directory.</summary>
+    private void WriteTaskJson(string taskDir, TaskPacket taskPacket)
+    {
+        var inputDir = Path.Combine(taskDir, "input");
+        var taskJsonPath = Path.Combine(inputDir, "task.json");
+        var json = JsonSerializer.Serialize(taskPacket, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(taskJsonPath, json);
+        _logger.LogInformation("Wrote task.json to {Path}", taskJsonPath);
+    }
+
+    /// <summary>Runs a git command and returns the exit code.</summary>
     private async Task<int> RunGitCommandAsync(string arguments, string workingDirectory)
+    {
+        var (exitCode, _) = await RunGitCommandWithOutputAsync(arguments, workingDirectory);
+        return exitCode;
+    }
+
+    /// <summary>Runs a git command and returns both exit code and stdout.</summary>
+    private async Task<(int ExitCode, string Output)> RunGitCommandWithOutputAsync(
+        string arguments, string workingDirectory)
     {
         var startInfo = new ProcessStartInfo
         {
@@ -178,13 +279,11 @@ public class WorkspaceService : IWorkspaceService
             CreateNoWindow = true
         };
 
-        // Prevent interactive prompts per safe_commands workflow
         startInfo.Environment["GIT_TERMINAL_PROMPT"] = "0";
 
         using var process = new Process { StartInfo = startInfo };
         process.Start();
 
-        // Read output streams to prevent deadlocks
         var stdout = await process.StandardOutput.ReadToEndAsync();
         var stderr = await process.StandardError.ReadToEndAsync();
 
@@ -195,11 +294,7 @@ public class WorkspaceService : IWorkspaceService
             _logger.LogWarning("git {Arguments} failed (exit {ExitCode}): {Stderr}",
                 arguments, process.ExitCode, stderr);
         }
-        else if (!string.IsNullOrWhiteSpace(stdout))
-        {
-            _logger.LogDebug("git {Arguments} output: {Stdout}", arguments, stdout);
-        }
 
-        return process.ExitCode;
+        return (process.ExitCode, stdout);
     }
 }
