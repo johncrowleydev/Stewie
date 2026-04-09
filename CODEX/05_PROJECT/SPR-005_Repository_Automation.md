@@ -16,7 +16,7 @@ version: 1.0.0
 
 # Sprint 005: Repository Automation + Platform Abstraction
 
-**Phase:** Phase 3 — Repository Automation + Platform Abstraction
+**Phase:** Phase 2.75 — Repository Automation + Platform Abstraction
 **Target:** Scope-bounded
 **Agent(s):** Dev Agent A (Backend), Dev Agent B (Frontend + Tests)
 **Dependencies:** SPR-004 complete (merged)
@@ -318,5 +318,5 @@ New/updated configuration for Sprint 005:
 - **Verdict:** PASS
 
 **Sprint Verdict:** CLOSED ✅
-**Phase 3:** COMPLETE ✅
+**Phase 2.75:** COMPLETE ✅
 **Deploy approved:** YES

@@ -135,6 +135,20 @@ Phases are **scope-bounded**, not time-bounded.
 
 ---
 
+### Phase 2.75: Repository Automation + Platform Abstraction ✅ COMPLETE
+**Goal:** Abstract the git hosting interface for multi-provider support, wire repo creation into project creation, and harden the worker pipeline with timeout enforcement and retry logic.
+**Exit criteria:**
+- [x] Platform-agnostic `IGitPlatformService` interface (GitHub as first implementation)
+- [x] Project creation supports both linking existing repos and creating new repos via platform API
+- [x] 300s container timeout enforced (CON-001 §7)
+- [x] Retry logic for transient container failures with error taxonomy
+
+**Key deliverables:**
+- `CON-002` — API Contract v1.4.0 (extended project creation, repoProvider field)
+- `SPR-005` — Repository Automation sprint (CLOSED)
+
+---
+
 ### Phase 3: Governance Engine
 **Goal:** Stewie enforces CODEX governance on worker output automatically.
 **Exit criteria:**

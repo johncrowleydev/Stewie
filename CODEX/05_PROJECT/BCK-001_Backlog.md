@@ -106,7 +106,7 @@ version: 1.1.0
 
 ---
 
-## Phase 3: Repository Automation + Platform Abstraction (SPR-005)
+## Phase 2.75: Repository Automation + Platform Abstraction (SPR-005)
 
 | ID | Task | Description | Priority | Status |
 |:---|:-----|:------------|:---------|:-------|
@@ -141,4 +141,4 @@ version: 1.1.0
 | 2026-04-09 | Initial backlog created from PRJ-001 Phase 1 |
 | 2026-04-09 | SPR-001 items marked complete. B-020, B-043 → SPR-002. Phase 2 items unchanged. |
 | 2026-04-09 | Phase 2 items assigned to SPR-003. Added Phase 2.5 (GitHub/Users) and future backlog. |
-| 2026-04-09 | Phase 2.5 marked complete (SPR-004). Added Phase 3 (Repo Automation) for SPR-005. Relabeled from "Phase 3" → "Phase 2.5". |
+| 2026-04-09 | Phase 2.5 marked complete (SPR-004). Added Phase 2.75 (Repo Automation) for SPR-005. |
