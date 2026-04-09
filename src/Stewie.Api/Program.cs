@@ -19,6 +19,8 @@ var connectionString = builder.Configuration.GetConnectionString("Stewie")
 var workspaceRoot = builder.Configuration.GetValue<string>("Stewie:WorkspaceRoot") ?? "./workspaces";
 var dockerImageName = builder.Configuration.GetValue<string>("Stewie:DockerImageName") ?? "stewie-dummy-worker";
 var scriptWorkerImage = builder.Configuration.GetValue<string>("Stewie:ScriptWorkerImage") ?? "stewie-script-worker";
+var governanceWorkerImage = builder.Configuration.GetValue<string>("Stewie:GovernanceWorkerImage") ?? "stewie-governance-worker";
+var maxGovernanceRetries = builder.Configuration.GetValue<int>("Stewie:MaxGovernanceRetries", 2);
 var taskTimeoutSeconds = builder.Configuration.GetValue<int>("Stewie:TaskTimeoutSeconds", 300);
 var jwtSecret = builder.Configuration["Stewie:JwtSecret"]
     ?? throw new InvalidOperationException("JWT secret is required. Set Stewie:JwtSecret or STEWIE_JWT_SECRET.");
@@ -80,6 +82,7 @@ builder.Services.AddScoped<IWorkspaceRepository, WorkspaceEntityRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IInviteCodeRepository, InviteCodeRepository>();
 builder.Services.AddScoped<IUserCredentialRepository, UserCredentialRepository>();
+builder.Services.AddScoped<IGovernanceReportRepository, GovernanceReportRepository>();
 
 // Services
 builder.Services.AddSingleton<IWorkspaceService>(sp =>
@@ -103,7 +106,10 @@ builder.Services.AddScoped<JobOrchestrationService>(sp =>
         sp.GetRequiredService<IEncryptionService>(),
         sp.GetRequiredService<IUnitOfWork>(),
         sp.GetRequiredService<ILogger<JobOrchestrationService>>(),
-        scriptWorkerImage));
+        sp.GetRequiredService<IGovernanceReportRepository>(),
+        scriptWorkerImage,
+        governanceWorkerImage,
+        maxGovernanceRetries));
 
 var app = builder.Build();
 

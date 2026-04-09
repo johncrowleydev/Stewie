@@ -1,0 +1,3 @@
+# Rule scripts go here — JOB-008 will populate this directory.
+# Each script receives two arguments: $1 = repo directory, $2 = task.json path
+# Output: JSON object with ruleId, ruleName, category, passed, details, severity

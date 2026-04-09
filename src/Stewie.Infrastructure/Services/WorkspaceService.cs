@@ -60,7 +60,7 @@ public class WorkspaceService : IWorkspaceService
             ]
         };
 
-        WriteTaskJson(taskDir, taskPacket);
+        WriteTaskJsonInternal(taskDir, taskPacket);
         return taskDir;
     }
 
@@ -94,7 +94,7 @@ public class WorkspaceService : IWorkspaceService
             Script = script
         };
 
-        WriteTaskJson(taskDir, taskPacket);
+        WriteTaskJsonInternal(taskDir, taskPacket);
         return taskDir;
     }
 
@@ -247,8 +247,31 @@ public class WorkspaceService : IWorkspaceService
         return commitSha;
     }
 
-    /// <summary>Writes task.json to the workspace input directory.</summary>
-    private void WriteTaskJson(string taskDir, TaskPacket taskPacket)
+    /// <inheritdoc/>
+    public GovernanceReportPacket ReadGovernanceReport(string workspacePath)
+    {
+        var reportPath = Path.Combine(workspacePath, "output", "governance-report.json");
+
+        if (!File.Exists(reportPath))
+        {
+            throw new FileNotFoundException($"governance-report.json not found at {reportPath}");
+        }
+
+        var json = File.ReadAllText(reportPath);
+        _logger.LogInformation("Read governance-report.json from {Path}", reportPath);
+
+        return JsonSerializer.Deserialize<Domain.Contracts.GovernanceReportPacket>(json)
+            ?? throw new InvalidOperationException("Failed to deserialize governance-report.json");
+    }
+
+    /// <inheritdoc/>
+    public void WriteTaskJson(string workspacePath, TaskPacket taskPacket)
+    {
+        WriteTaskJsonInternal(workspacePath, taskPacket);
+    }
+
+    /// <summary>Writes task.json to the workspace input directory. Internal use.</summary>
+    private void WriteTaskJsonInternal(string taskDir, TaskPacket taskPacket)
     {
         var inputDir = Path.Combine(taskDir, "input");
         var taskJsonPath = Path.Combine(inputDir, "task.json");

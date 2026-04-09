@@ -59,6 +59,8 @@ public class ContainerTimeoutTests
         _encryptionService = Substitute.For<IEncryptionService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
 
+        var governanceReportRepository = Substitute.For<IGovernanceReportRepository>();
+
         _sut = new JobOrchestrationService(
             _jobRepository,
             _workTaskRepository,
@@ -73,6 +75,7 @@ public class ContainerTimeoutTests
             _encryptionService,
             _unitOfWork,
             NullLogger<JobOrchestrationService>.Instance,
+            governanceReportRepository,
             "stewie-script-worker");
     }
 

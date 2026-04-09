@@ -61,6 +61,8 @@ public class RetryLogicTests
         _encryptionService = Substitute.For<IEncryptionService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
 
+        var governanceReportRepository = Substitute.For<IGovernanceReportRepository>();
+
         _sut = new JobOrchestrationService(
             _jobRepository,
             _workTaskRepository,
@@ -75,6 +77,7 @@ public class RetryLogicTests
             _encryptionService,
             _unitOfWork,
             NullLogger<JobOrchestrationService>.Instance,
+            governanceReportRepository,
             "stewie-script-worker");
     }
 

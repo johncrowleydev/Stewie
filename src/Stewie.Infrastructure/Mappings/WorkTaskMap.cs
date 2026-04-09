@@ -34,6 +34,9 @@ public class WorkTaskMap : ClassMap<WorkTask>
         Map(x => x.CreatedAt);
         Map(x => x.StartedAt);
         Map(x => x.FailureReason);
+        Map(x => x.ParentTaskId);
+        Map(x => x.AttemptNumber);
+        Map(x => x.GovernanceViolationsJson).Length(4001);
         Map(x => x.CompletedAt);
     }
 }

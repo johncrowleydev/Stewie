@@ -32,5 +32,17 @@ public enum EventType
     TaskCompleted = 6,
 
     /// <summary>A task failed.</summary>
-    TaskFailed = 7
+    TaskFailed = 7,
+
+    /// <summary>Governance checks started for a job.</summary>
+    GovernanceStarted = 8,
+
+    /// <summary>Governance checks passed — job accepted.</summary>
+    GovernancePassed = 9,
+
+    /// <summary>Governance checks failed — job rejected or exhausted retries.</summary>
+    GovernanceFailed = 10,
+
+    /// <summary>Governance checks failed — retrying with violation feedback.</summary>
+    GovernanceRetry = 11
 }

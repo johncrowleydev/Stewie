@@ -50,6 +50,15 @@ public class WorkTask
     /// <summary>Classified failure reason from TaskFailureReason enum. Null for successful tasks.</summary>
     public virtual string? FailureReason { get; set; }
 
+    /// <summary>FK to parent task — tester task points to its dev task. Null for root tasks.</summary>
+    public virtual Guid? ParentTaskId { get; set; }
+
+    /// <summary>Which retry iteration this task belongs to. Starts at 1.</summary>
+    public virtual int AttemptNumber { get; set; } = 1;
+
+    /// <summary>JSON array of governance violations from prior tester, injected for retry feedback. Null if first attempt.</summary>
+    public virtual string? GovernanceViolationsJson { get; set; }
+
     /// <summary>Timestamp when the task completed. Null if still in progress.</summary>
     public virtual DateTime? CompletedAt { get; set; }
 }

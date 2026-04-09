@@ -33,6 +33,9 @@ public partial class JobOrchestrationService
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<JobOrchestrationService> _logger;
     private readonly string _scriptWorkerImage;
+    private readonly IGovernanceReportRepository _governanceReportRepository;
+    private readonly string _governanceWorkerImage;
+    private readonly int _maxGovernanceRetries;
 
     /// <summary>Initializes the orchestration service with all required dependencies.</summary>
     public JobOrchestrationService(
@@ -49,7 +52,10 @@ public partial class JobOrchestrationService
         IEncryptionService encryptionService,
         IUnitOfWork unitOfWork,
         ILogger<JobOrchestrationService> logger,
-        string scriptWorkerImage = "stewie-script-worker")
+        IGovernanceReportRepository governanceReportRepository,
+        string scriptWorkerImage = "stewie-script-worker",
+        string governanceWorkerImage = "stewie-governance-worker",
+        int maxGovernanceRetries = 2)
     {
         _jobRepository = jobRepository;
         _workTaskRepository = workTaskRepository;
@@ -64,7 +70,10 @@ public partial class JobOrchestrationService
         _encryptionService = encryptionService;
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _governanceReportRepository = governanceReportRepository;
         _scriptWorkerImage = scriptWorkerImage;
+        _governanceWorkerImage = governanceWorkerImage;
+        _maxGovernanceRetries = maxGovernanceRetries;
     }
 
     /// <summary>
@@ -276,16 +285,16 @@ public partial class JobOrchestrationService
                 await TryGitHubPushAndPrAsync(job, task, project, workspacePath);
             }
 
-            // Update final statuses
+            // Update dev task final status
             var isSuccess = string.Equals(result.Status, "success", StringComparison.OrdinalIgnoreCase);
             task.Status = isSuccess ? WorkTaskStatus.Completed : WorkTaskStatus.Failed;
             task.CompletedAt = DateTime.UtcNow;
-            job.Status = isSuccess ? JobStatus.Completed : JobStatus.Failed;
-            job.CompletedAt = DateTime.UtcNow;
 
             if (!isSuccess)
             {
                 task.FailureReason = TaskFailureReason.WorkerReportedFailure.ToString();
+                job.Status = JobStatus.Failed;
+                job.CompletedAt = DateTime.UtcNow;
             }
 
             await _workTaskRepository.SaveAsync(task);
@@ -295,28 +304,43 @@ public partial class JobOrchestrationService
             {
                 await EmitEventAsync("Task", task.Id, EventType.TaskCompleted,
                     new { taskId = task.Id, summary = result.Summary });
-                await EmitEventAsync("Job", job.Id, EventType.JobCompleted,
-                    new { jobId = job.Id, summary = result.Summary, commitSha });
+
+                // Dev task succeeded — enter governance cycle
+                await _unitOfWork.CommitAsync();
+
+                var governanceResult = await RunGovernanceCycleAsync(
+                    job, task, workspacePath, project, task.AttemptNumber);
+
+                return new TestJobResult
+                {
+                    JobId = job.Id,
+                    TaskId = task.Id,
+                    ArtifactId = resultArtifact.Id,
+                    Status = job.Status.ToString(),
+                    Summary = governanceResult,
+                    ResultPayload = result
+                };
             }
             else
             {
+                // Dev task failed — mark job failed
                 await EmitEventAsync("Task", task.Id, EventType.TaskFailed,
                     new { taskId = task.Id, reason = result.Summary, failureReason = task.FailureReason });
                 await EmitEventAsync("Job", job.Id, EventType.JobFailed,
                     new { jobId = job.Id, reason = result.Summary, failureReason = task.FailureReason });
+
+                await _unitOfWork.CommitAsync();
+
+                return new TestJobResult
+                {
+                    JobId = job.Id,
+                    TaskId = task.Id,
+                    ArtifactId = resultArtifact.Id,
+                    Status = job.Status.ToString(),
+                    Summary = result.Summary,
+                    ResultPayload = result
+                };
             }
-
-            await _unitOfWork.CommitAsync();
-
-            return new TestJobResult
-            {
-                JobId = job.Id,
-                TaskId = task.Id,
-                ArtifactId = resultArtifact.Id,
-                Status = job.Status.ToString(),
-                Summary = result.Summary,
-                ResultPayload = result
-            };
         }
         catch (Exception ex)
         {
@@ -555,6 +579,416 @@ public partial class JobOrchestrationService
     /// <summary>Returns true if the failure reason is transient and eligible for retry.</summary>
     private static bool IsTransient(TaskFailureReason reason) =>
         reason is TaskFailureReason.Timeout or TaskFailureReason.ContainerError;
+
+    /// <summary>
+    /// Runs the governance cycle after a dev task completes successfully.
+    /// Spawns a tester task, launches governance container, ingests report,
+    /// and decides: pass → complete, fail + retries left → retry, fail + no retries → fail.
+    /// REF: JOB-007 T-069
+    /// </summary>
+    private async Task<string> RunGovernanceCycleAsync(
+        Job job, WorkTask devTask, string workspacePath, Project? project, int currentAttempt)
+    {
+        _logger.LogInformation(
+            "Starting governance cycle for job {JobId}, dev task {DevTaskId}, attempt {Attempt}",
+            job.Id, devTask.Id, currentAttempt);
+
+        _unitOfWork.BeginTransaction();
+
+        // 1. Create tester task
+        var testerTask = new WorkTask
+        {
+            Id = Guid.NewGuid(),
+            JobId = job.Id,
+            Job = job,
+            Role = "tester",
+            Status = WorkTaskStatus.Pending,
+            ParentTaskId = devTask.Id,
+            AttemptNumber = currentAttempt,
+            Objective = "Run governance checks against developer output",
+            Scope = "Validate code quality, testing, and security compliance",
+            WorkspacePath = workspacePath,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _workTaskRepository.SaveAsync(testerTask);
+        await EmitEventAsync("Task", testerTask.Id, EventType.TaskCreated,
+            new { taskId = testerTask.Id, jobId = job.Id, role = "tester", parentTaskId = devTask.Id });
+        await EmitEventAsync("Job", job.Id, EventType.GovernanceStarted,
+            new { jobId = job.Id, testerTaskId = testerTask.Id, attempt = currentAttempt });
+
+        // 2. Write governance task.json to the workspace
+        var governanceTaskPacket = new Domain.Contracts.TaskPacket
+        {
+            TaskId = testerTask.Id,
+            JobId = job.Id,
+            Role = "tester",
+            Objective = "Run governance checks against developer output",
+            Scope = workspacePath,
+            ParentTaskId = devTask.Id,
+            AttemptNumber = currentAttempt,
+            AllowedPaths = [],
+            ForbiddenPaths = [],
+            AcceptanceCriteria = []
+        };
+        _workspaceService.WriteTaskJson(workspacePath, governanceTaskPacket);
+
+        // 3. Transition tester task to Running
+        testerTask.Status = WorkTaskStatus.Running;
+        testerTask.StartedAt = DateTime.UtcNow;
+        await _workTaskRepository.SaveAsync(testerTask);
+        await EmitEventAsync("Task", testerTask.Id, EventType.TaskStarted,
+            new { taskId = testerTask.Id, role = "tester", workspacePath });
+
+        await _unitOfWork.CommitAsync();
+
+        // 4. Launch governance container
+        try
+        {
+            var exitCode = await _containerService.LaunchWorkerAsync(testerTask, _governanceWorkerImage);
+
+            if (exitCode != 0)
+            {
+                _logger.LogError("Governance worker failed with exit code {ExitCode}", exitCode);
+                testerTask.FailureReason = TaskFailureReason.WorkerCrash.ToString();
+                await MarkTaskFailedAsync(testerTask, $"Governance worker exited with code {exitCode}");
+                await MarkJobFailedAsync(job, $"Governance worker crashed (exit code {exitCode})");
+                return $"Governance worker failed (exit code {exitCode})";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Governance container error for job {JobId}", job.Id);
+            testerTask.FailureReason = TaskFailureReason.ContainerError.ToString();
+            await MarkTaskFailedAsync(testerTask, $"Governance container error: {ex.Message}");
+            await MarkJobFailedAsync(job, $"Governance container error: {ex.Message}");
+            return $"Governance container error: {ex.Message}";
+        }
+
+        // 5. Ingest governance-report.json
+        GovernanceReport report;
+        try
+        {
+            report = await IngestGovernanceReportAsync(testerTask, workspacePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to ingest governance report for job {JobId}", job.Id);
+            testerTask.FailureReason = TaskFailureReason.ResultMissing.ToString();
+            await MarkTaskFailedAsync(testerTask, $"Governance report error: {ex.Message}");
+            await MarkJobFailedAsync(job, $"Governance report ingest failed: {ex.Message}");
+            return $"Governance report error: {ex.Message}";
+        }
+
+        // 6. Evaluate verdict
+        if (report.Passed)
+        {
+            _logger.LogInformation("Governance PASSED for job {JobId}", job.Id);
+
+            _unitOfWork.BeginTransaction();
+
+            testerTask.Status = WorkTaskStatus.Completed;
+            testerTask.CompletedAt = DateTime.UtcNow;
+            await _workTaskRepository.SaveAsync(testerTask);
+
+            job.Status = JobStatus.Completed;
+            job.CompletedAt = DateTime.UtcNow;
+            await _jobRepository.SaveAsync(job);
+
+            await EmitEventAsync("Task", testerTask.Id, EventType.TaskCompleted,
+                new { taskId = testerTask.Id, summary = $"{report.PassedChecks}/{report.TotalChecks} checks passed" });
+            await EmitEventAsync("Job", job.Id, EventType.GovernancePassed,
+                new { jobId = job.Id, totalChecks = report.TotalChecks, passedChecks = report.PassedChecks });
+            await EmitEventAsync("Job", job.Id, EventType.JobCompleted,
+                new { jobId = job.Id, summary = $"Governance passed ({report.PassedChecks}/{report.TotalChecks})" });
+
+            await _unitOfWork.CommitAsync();
+            return $"Governance passed: {report.PassedChecks}/{report.TotalChecks} checks passed";
+        }
+
+        // Governance FAILED
+        _logger.LogWarning("Governance FAILED for job {JobId}: {PassedChecks}/{TotalChecks}",
+            job.Id, report.PassedChecks, report.TotalChecks);
+
+        _unitOfWork.BeginTransaction();
+
+        testerTask.Status = WorkTaskStatus.Completed;
+        testerTask.CompletedAt = DateTime.UtcNow;
+        await _workTaskRepository.SaveAsync(testerTask);
+
+        await EmitEventAsync("Task", testerTask.Id, EventType.TaskCompleted,
+            new { taskId = testerTask.Id, summary = $"{report.FailedChecks} checks failed" });
+
+        if (currentAttempt < _maxGovernanceRetries)
+        {
+            // Retry: spawn new dev task with violation feedback
+            await EmitEventAsync("Job", job.Id, EventType.GovernanceRetry,
+                new { jobId = job.Id, attempt = currentAttempt, nextAttempt = currentAttempt + 1,
+                      failedChecks = report.FailedChecks });
+
+            await _unitOfWork.CommitAsync();
+
+            return await SpawnRetryDevTaskAsync(job, devTask, report, workspacePath, project, currentAttempt + 1);
+        }
+        else
+        {
+            // Max retries exhausted — fail the job
+            job.Status = JobStatus.Failed;
+            job.CompletedAt = DateTime.UtcNow;
+            await _jobRepository.SaveAsync(job);
+
+            await EmitEventAsync("Job", job.Id, EventType.GovernanceFailed,
+                new { jobId = job.Id, totalAttempts = currentAttempt, failedChecks = report.FailedChecks });
+            await EmitEventAsync("Job", job.Id, EventType.JobFailed,
+                new { jobId = job.Id, reason = $"Governance failed after {currentAttempt} attempts",
+                      failureReason = TaskFailureReason.GovernanceFailed.ToString() });
+
+            await _unitOfWork.CommitAsync();
+            return $"Governance failed after {currentAttempt} attempts: {report.FailedChecks}/{report.TotalChecks} checks failed";
+        }
+    }
+
+    /// <summary>
+    /// Reads governance-report.json, creates GovernanceReport entity, persists it.
+    /// </summary>
+    private async Task<GovernanceReport> IngestGovernanceReportAsync(WorkTask testerTask, string workspacePath)
+    {
+        var reportPacket = _workspaceService.ReadGovernanceReport(workspacePath);
+
+        var report = new GovernanceReport
+        {
+            Id = Guid.NewGuid(),
+            TaskId = testerTask.Id,
+            Passed = string.Equals(reportPacket.Status, "pass", StringComparison.OrdinalIgnoreCase),
+            TotalChecks = reportPacket.TotalChecks,
+            PassedChecks = reportPacket.PassedChecks,
+            FailedChecks = reportPacket.FailedChecks,
+            CheckResultsJson = JsonSerializer.Serialize(reportPacket.Checks),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _unitOfWork.BeginTransaction();
+        await _governanceReportRepository.SaveAsync(report);
+
+        // Store raw governance report as artifact
+        var artifact = new Artifact
+        {
+            Id = Guid.NewGuid(),
+            TaskId = testerTask.Id,
+            WorkTask = testerTask,
+            Type = "governance-report",
+            ContentJson = JsonSerializer.Serialize(reportPacket),
+            CreatedAt = DateTime.UtcNow
+        };
+        await _artifactRepository.SaveAsync(artifact);
+        await _unitOfWork.CommitAsync();
+
+        _logger.LogInformation("Ingested governance report for task {TaskId}: passed={Passed}, {Passed}/{Total}",
+            testerTask.Id, report.Passed, report.PassedChecks, report.TotalChecks);
+
+        return report;
+    }
+
+    /// <summary>
+    /// Spawns a new dev task with governance violation feedback for retry.
+    /// Re-enters the ExecuteJobAsync flow with the new dev task.
+    /// </summary>
+    private async Task<string> SpawnRetryDevTaskAsync(
+        Job job, WorkTask originalDevTask, GovernanceReport report,
+        string workspacePath, Project? project, int nextAttempt)
+    {
+        _logger.LogInformation("Spawning retry dev task for job {JobId}, attempt {Attempt}",
+            job.Id, nextAttempt);
+
+        // Extract violations from failed checks
+        var failedChecks = JsonSerializer.Deserialize<List<Domain.Contracts.GovernanceCheckResult>>(
+            report.CheckResultsJson) ?? [];
+        var violations = failedChecks
+            .Where(c => !c.Passed && string.Equals(c.Severity, "error", StringComparison.OrdinalIgnoreCase))
+            .Select(c => new Domain.Contracts.GovernanceViolation
+            {
+                RuleId = c.RuleId,
+                RuleName = c.RuleName,
+                Details = c.Details ?? string.Empty
+            })
+            .ToList();
+
+        var violationsJson = JsonSerializer.Serialize(violations);
+
+        _unitOfWork.BeginTransaction();
+
+        // Create retry dev task
+        var retryTask = new WorkTask
+        {
+            Id = Guid.NewGuid(),
+            JobId = job.Id,
+            Job = job,
+            Role = "developer",
+            Status = WorkTaskStatus.Pending,
+            ParentTaskId = originalDevTask.Id,
+            AttemptNumber = nextAttempt,
+            Objective = originalDevTask.Objective,
+            Scope = originalDevTask.Scope,
+            ScriptJson = originalDevTask.ScriptJson,
+            AcceptanceCriteriaJson = originalDevTask.AcceptanceCriteriaJson,
+            GovernanceViolationsJson = violationsJson,
+            WorkspacePath = workspacePath,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _workTaskRepository.SaveAsync(retryTask);
+
+        // Write updated task.json with violation feedback
+        List<string>? script = null;
+        if (!string.IsNullOrWhiteSpace(retryTask.ScriptJson))
+        {
+            script = JsonSerializer.Deserialize<List<string>>(retryTask.ScriptJson);
+        }
+
+        var retryPacket = new Domain.Contracts.TaskPacket
+        {
+            TaskId = retryTask.Id,
+            JobId = job.Id,
+            Role = "developer",
+            Objective = retryTask.Objective ?? string.Empty,
+            Scope = retryTask.Scope ?? string.Empty,
+            ParentTaskId = originalDevTask.Id,
+            AttemptNumber = nextAttempt,
+            GovernanceViolations = violations,
+            Script = script,
+            AllowedPaths = [],
+            ForbiddenPaths = [],
+            AcceptanceCriteria = []
+        };
+        _workspaceService.WriteTaskJson(workspacePath, retryPacket);
+
+        await EmitEventAsync("Task", retryTask.Id, EventType.TaskCreated,
+            new { taskId = retryTask.Id, jobId = job.Id, role = "developer",
+                  attempt = nextAttempt, violationCount = violations.Count });
+
+        // Transition to Running
+        retryTask.Status = WorkTaskStatus.Running;
+        retryTask.StartedAt = DateTime.UtcNow;
+        await _workTaskRepository.SaveAsync(retryTask);
+
+        await EmitEventAsync("Task", retryTask.Id, EventType.TaskStarted,
+            new { taskId = retryTask.Id, role = "developer", workspacePath, attempt = nextAttempt });
+
+        await _unitOfWork.CommitAsync();
+
+        // Launch the script worker for the retry task
+        try
+        {
+            var (exitCode, failureReason) = await LaunchWithRetryAsync(retryTask, job.Id);
+
+            if (exitCode != 0)
+            {
+                retryTask.FailureReason = failureReason?.ToString();
+                await MarkTaskFailedAsync(retryTask,
+                    $"Retry script worker exited with code {exitCode} ({failureReason})");
+                await MarkJobFailedAsync(job,
+                    $"Retry dev task failed (attempt {nextAttempt}): exit code {exitCode}");
+                return $"Retry dev task failed (exit code {exitCode})";
+            }
+
+            // Read result
+            Domain.Contracts.ResultPacket result;
+            try
+            {
+                result = _workspaceService.ReadResult(retryTask);
+            }
+            catch (Exception ex)
+            {
+                retryTask.FailureReason = TaskFailureReason.ResultMissing.ToString();
+                await MarkTaskFailedAsync(retryTask, $"result.json error: {ex.Message}");
+                await MarkJobFailedAsync(job, $"Retry result ingest failed: {ex.Message}");
+                return $"Retry result.json error: {ex.Message}";
+            }
+
+            var isSuccess = string.Equals(result.Status, "success", StringComparison.OrdinalIgnoreCase);
+
+            _unitOfWork.BeginTransaction();
+
+            retryTask.Status = isSuccess ? WorkTaskStatus.Completed : WorkTaskStatus.Failed;
+            retryTask.CompletedAt = DateTime.UtcNow;
+            if (!isSuccess)
+            {
+                retryTask.FailureReason = TaskFailureReason.WorkerReportedFailure.ToString();
+            }
+            await _workTaskRepository.SaveAsync(retryTask);
+
+            if (isSuccess)
+            {
+                await EmitEventAsync("Task", retryTask.Id, EventType.TaskCompleted,
+                    new { taskId = retryTask.Id, summary = result.Summary });
+                await _unitOfWork.CommitAsync();
+
+                // Re-enter governance cycle
+                return await RunGovernanceCycleAsync(job, retryTask, workspacePath, project, nextAttempt);
+            }
+            else
+            {
+                // Retry dev task failed
+                job.Status = JobStatus.Failed;
+                job.CompletedAt = DateTime.UtcNow;
+                await _jobRepository.SaveAsync(job);
+
+                await EmitEventAsync("Task", retryTask.Id, EventType.TaskFailed,
+                    new { taskId = retryTask.Id, reason = result.Summary });
+                await EmitEventAsync("Job", job.Id, EventType.JobFailed,
+                    new { jobId = job.Id, reason = $"Retry dev task failed (attempt {nextAttempt})" });
+
+                await _unitOfWork.CommitAsync();
+                return $"Retry dev task failed (attempt {nextAttempt}): {result.Summary}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during retry dev task for Job {JobId}", job.Id);
+            retryTask.FailureReason ??= TaskFailureReason.ContainerError.ToString();
+            await MarkTaskFailedAsync(retryTask, ex.Message);
+            await MarkJobFailedAsync(job, $"Retry error: {ex.Message}");
+            return $"Retry error: {ex.Message}";
+        }
+    }
+
+    /// <summary>Marks a single task as failed without affecting the job.</summary>
+    private async Task MarkTaskFailedAsync(WorkTask task, string reason)
+    {
+        try
+        {
+            _unitOfWork.BeginTransaction();
+            task.Status = WorkTaskStatus.Failed;
+            task.CompletedAt = DateTime.UtcNow;
+            await _workTaskRepository.SaveAsync(task);
+            await EmitEventAsync("Task", task.Id, EventType.TaskFailed,
+                new { taskId = task.Id, reason, failureReason = task.FailureReason });
+            await _unitOfWork.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to mark task {TaskId} as failed: {Reason}", task.Id, reason);
+        }
+    }
+
+    /// <summary>Marks a job as failed without affecting any specific task.</summary>
+    private async Task MarkJobFailedAsync(Job job, string reason)
+    {
+        try
+        {
+            _unitOfWork.BeginTransaction();
+            job.Status = JobStatus.Failed;
+            job.CompletedAt = DateTime.UtcNow;
+            await _jobRepository.SaveAsync(job);
+            await EmitEventAsync("Job", job.Id, EventType.JobFailed,
+                new { jobId = job.Id, reason });
+            await _unitOfWork.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to mark job {JobId} as failed: {Reason}", job.Id, reason);
+        }
+    }
 
     /// <summary>Marks a job and task as failed, emitting failure events.</summary>
     private async Task MarkFailedAsync(Job job, WorkTask task, string reason)

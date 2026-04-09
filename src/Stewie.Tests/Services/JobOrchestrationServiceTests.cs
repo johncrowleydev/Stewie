@@ -33,6 +33,7 @@ public class JobOrchestrationServiceTests
     private readonly IGitPlatformService _gitPlatformService;
     private readonly IEncryptionService _encryptionService;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IGovernanceReportRepository _governanceReportRepository;
     private readonly JobOrchestrationService _sut;
 
     public JobOrchestrationServiceTests()
@@ -49,6 +50,7 @@ public class JobOrchestrationServiceTests
         _gitPlatformService = Substitute.For<IGitPlatformService>();
         _encryptionService = Substitute.For<IEncryptionService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
+        _governanceReportRepository = Substitute.For<IGovernanceReportRepository>();
 
         _sut = new JobOrchestrationService(
             _jobRepository,
@@ -64,6 +66,7 @@ public class JobOrchestrationServiceTests
             _encryptionService,
             _unitOfWork,
             NullLogger<JobOrchestrationService>.Instance,
+            _governanceReportRepository,
             "stewie-script-worker");
     }
 

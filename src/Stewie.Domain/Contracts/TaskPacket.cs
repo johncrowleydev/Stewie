@@ -55,4 +55,16 @@ public class TaskPacket
     /// <summary>Bash commands to execute sequentially in /workspace/repo/. Optional.</summary>
     [JsonPropertyName("script")]
     public List<string>? Script { get; set; }
+
+    /// <summary>FK to parent task — tester task points to its dev task. Null for root tasks.</summary>
+    [JsonPropertyName("parentTaskId")]
+    public Guid? ParentTaskId { get; set; }
+
+    /// <summary>Governance violations from prior tester, injected for retry feedback. Null if first attempt.</summary>
+    [JsonPropertyName("governanceViolations")]
+    public List<GovernanceViolation>? GovernanceViolations { get; set; }
+
+    /// <summary>Which retry iteration this task belongs to. Starts at 1.</summary>
+    [JsonPropertyName("attemptNumber")]
+    public int AttemptNumber { get; set; } = 1;
 }

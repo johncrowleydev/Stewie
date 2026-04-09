@@ -56,6 +56,16 @@ public interface IWorkspaceService
     /// <param name="message">The commit message.</param>
     /// <returns>The commit SHA string, or null if nothing to commit.</returns>
     Task<string?> CommitChangesAsync(string workspacePath, string message);
+
+    /// <summary>Reads and deserializes governance-report.json from the task's workspace output directory.</summary>
+    /// <param name="workspacePath">The workspace root directory.</param>
+    /// <returns>The deserialized governance report packet.</returns>
+    GovernanceReportPacket ReadGovernanceReport(string workspacePath);
+
+    /// <summary>Writes a task.json to the workspace input directory for a governance worker.</summary>
+    /// <param name="workspacePath">The workspace root directory.</param>
+    /// <param name="taskPacket">The task packet to serialize.</param>
+    void WriteTaskJson(string workspacePath, TaskPacket taskPacket);
 }
 
 /// <summary>Result of a git diff capture operation.</summary>

@@ -26,5 +26,8 @@ public enum TaskFailureReason
     ResultInvalid,
 
     /// <summary>result.json deserialized successfully but status != "success". Permanent — do not retry.</summary>
-    WorkerReportedFailure
+    WorkerReportedFailure,
+
+    /// <summary>Governance checks failed after all retry attempts exhausted. Permanent.</summary>
+    GovernanceFailed
 }
