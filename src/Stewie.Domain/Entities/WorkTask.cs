@@ -47,6 +47,9 @@ public class WorkTask
     /// <summary>Timestamp when the task started execution. Null if not yet started.</summary>
     public virtual DateTime? StartedAt { get; set; }
 
+    /// <summary>Classified failure reason from TaskFailureReason enum. Null for successful tasks.</summary>
+    public virtual string? FailureReason { get; set; }
+
     /// <summary>Timestamp when the task completed. Null if still in progress.</summary>
     public virtual DateTime? CompletedAt { get; set; }
 }

@@ -33,6 +33,7 @@ public class WorkTaskMap : ClassMap<WorkTask>
         Map(x => x.WorkspacePath);
         Map(x => x.CreatedAt);
         Map(x => x.StartedAt);
+        Map(x => x.FailureReason);
         Map(x => x.CompletedAt);
     }
 }

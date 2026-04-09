@@ -173,24 +173,53 @@ public partial class RunOrchestrationService
 
         try
         {
-            // Launch script worker container (writable repo mount)
-            _logger.LogInformation("Launching script worker for task {TaskId}", task.Id);
-            var exitCode = await _containerService.LaunchWorkerAsync(task, _scriptWorkerImage);
+            // Launch script worker container (writable repo mount) — with retry for transient failures
+            var (exitCode, failureReason) = await LaunchWithRetryAsync(task, run.Id);
 
             if (exitCode != 0)
             {
-                _logger.LogError("Script worker exited with code {ExitCode}", exitCode);
-                await MarkFailedAsync(run, task, $"Script worker exited with code {exitCode}");
+                task.FailureReason = failureReason?.ToString();
+                _logger.LogError("Script worker failed with exit code {ExitCode}, reason: {FailureReason}",
+                    exitCode, failureReason);
+                await MarkFailedAsync(run, task,
+                    $"Script worker exited with code {exitCode} ({failureReason})");
                 return new TestRunResult
                 {
                     RunId = run.Id, TaskId = task.Id,
                     Status = "Failed",
-                    Summary = $"Script worker exited with code {exitCode}"
+                    Summary = $"Script worker exited with code {exitCode} ({failureReason})"
                 };
             }
 
-            // Read result
-            var result = _workspaceService.ReadResult(task);
+            // Read result — classify read failures
+            Domain.Contracts.ResultPacket result;
+            try
+            {
+                result = _workspaceService.ReadResult(task);
+            }
+            catch (FileNotFoundException)
+            {
+                task.FailureReason = TaskFailureReason.ResultMissing.ToString();
+                await MarkFailedAsync(run, task, "result.json not found after successful container exit");
+                return new TestRunResult
+                {
+                    RunId = run.Id, TaskId = task.Id,
+                    Status = "Failed",
+                    Summary = "result.json not found after successful container exit (ResultMissing)"
+                };
+            }
+            catch (JsonException ex)
+            {
+                task.FailureReason = TaskFailureReason.ResultInvalid.ToString();
+                await MarkFailedAsync(run, task, $"result.json deserialization failed: {ex.Message}");
+                return new TestRunResult
+                {
+                    RunId = run.Id, TaskId = task.Id,
+                    Status = "Failed",
+                    Summary = $"result.json deserialization failed (ResultInvalid): {ex.Message}"
+                };
+            }
+
             _logger.LogInformation("Result: status={Status}, summary={Summary}",
                 result.Status, result.Summary);
 
@@ -254,6 +283,11 @@ public partial class RunOrchestrationService
             run.Status = isSuccess ? RunStatus.Completed : RunStatus.Failed;
             run.CompletedAt = DateTime.UtcNow;
 
+            if (!isSuccess)
+            {
+                task.FailureReason = TaskFailureReason.WorkerReportedFailure.ToString();
+            }
+
             await _workTaskRepository.SaveAsync(task);
             await _runRepository.SaveAsync(run);
 
@@ -267,9 +301,9 @@ public partial class RunOrchestrationService
             else
             {
                 await EmitEventAsync("Task", task.Id, EventType.TaskFailed,
-                    new { taskId = task.Id, reason = result.Summary });
+                    new { taskId = task.Id, reason = result.Summary, failureReason = task.FailureReason });
                 await EmitEventAsync("Run", run.Id, EventType.RunFailed,
-                    new { runId = run.Id, reason = result.Summary });
+                    new { runId = run.Id, reason = result.Summary, failureReason = task.FailureReason });
             }
 
             await _unitOfWork.CommitAsync();
@@ -287,6 +321,7 @@ public partial class RunOrchestrationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error during run execution for Run {RunId}", run.Id);
+            task.FailureReason ??= TaskFailureReason.ContainerError.ToString();
             await MarkFailedAsync(run, task, ex.Message);
             return new TestRunResult
             {
@@ -447,6 +482,80 @@ public partial class RunOrchestrationService
         }
     }
 
+    /// <summary>
+    /// Launches a worker container with retry for transient failures (Timeout, ContainerError).
+    /// Retries exactly once. Permanent failures (WorkerCrash) are not retried.
+    /// REF: SPR-005 T-052
+    /// </summary>
+    private async Task<(int ExitCode, TaskFailureReason? FailureReason)> LaunchWithRetryAsync(
+        WorkTask task, Guid runId)
+    {
+        const int maxAttempts = 2;
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            _logger.LogInformation("Launching script worker for task {TaskId} (attempt {Attempt}/{MaxAttempts})",
+                task.Id, attempt, maxAttempts);
+
+            int exitCode;
+            try
+            {
+                exitCode = await _containerService.LaunchWorkerAsync(task, _scriptWorkerImage);
+            }
+            catch (Exception ex)
+            {
+                // Docker daemon errors (image not found, socket error, etc.)
+                var reason = TaskFailureReason.ContainerError;
+
+                if (attempt < maxAttempts)
+                {
+                    _logger.LogWarning(ex,
+                        "Retrying task {TaskId} due to transient failure: {Reason} (attempt {Next}/{Max})",
+                        task.Id, reason, attempt + 1, maxAttempts);
+                    continue;
+                }
+
+                _logger.LogError(ex,
+                    "Task {TaskId} failed after {MaxAttempts} attempts due to {Reason}",
+                    task.Id, maxAttempts, reason);
+                return (-1, reason);
+            }
+
+            if (exitCode == 0)
+            {
+                return (0, null); // Success
+            }
+
+            var failureReason = ClassifyContainerFailure(exitCode);
+
+            // Only retry transient failures
+            if (IsTransient(failureReason) && attempt < maxAttempts)
+            {
+                _logger.LogWarning(
+                    "Retrying task {TaskId} due to transient failure: {Reason} (attempt {Next}/{Max})",
+                    task.Id, failureReason, attempt + 1, maxAttempts);
+                continue;
+            }
+
+            return (exitCode, failureReason);
+        }
+
+        // Should not reach here, but guard
+        return (-1, TaskFailureReason.WorkerCrash);
+    }
+
+    /// <summary>Classifies a non-zero container exit code into the failure taxonomy.</summary>
+    private static TaskFailureReason ClassifyContainerFailure(int exitCode) => exitCode switch
+    {
+        124 => TaskFailureReason.Timeout,
+        125 or 126 or 127 => TaskFailureReason.ContainerError, // Docker run failures
+        _ => TaskFailureReason.WorkerCrash
+    };
+
+    /// <summary>Returns true if the failure reason is transient and eligible for retry.</summary>
+    private static bool IsTransient(TaskFailureReason reason) =>
+        reason is TaskFailureReason.Timeout or TaskFailureReason.ContainerError;
+
     /// <summary>Marks a run and task as failed, emitting failure events.</summary>
     private async Task MarkFailedAsync(Run run, WorkTask task, string reason)
     {
@@ -461,9 +570,9 @@ public partial class RunOrchestrationService
             await _runRepository.SaveAsync(run);
 
             await EmitEventAsync("Task", task.Id, EventType.TaskFailed,
-                new { taskId = task.Id, reason });
+                new { taskId = task.Id, reason, failureReason = task.FailureReason });
             await EmitEventAsync("Run", run.Id, EventType.RunFailed,
-                new { runId = run.Id, reason });
+                new { runId = run.Id, reason, failureReason = task.FailureReason });
 
             await _unitOfWork.CommitAsync();
         }
