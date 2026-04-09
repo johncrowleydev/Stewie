@@ -150,22 +150,27 @@ Phases are **scope-bounded**, not time-bounded.
 ---
 
 ### Phase 3: Governance Engine
-**Goal:** Stewie enforces CODEX governance on worker output automatically.
+**Goal:** Stewie enforces CODEX governance on worker output automatically via a tester task that runs after every developer task. Includes sequential task chains (dev → tester → retry loop).
 **Exit criteria:**
-- [ ] Post-task governance validation (automated)
-- [ ] Contract compliance checking
-- [ ] Rejection workflow for non-compliant results
-- [ ] Governance audit trail in Events
+- [ ] Sequential task chains: dev task → tester task → accept/reject/retry
+- [ ] Governance worker container image (stack-extensible, .NET first)
+- [ ] All 8 GOV docs encoded as automated deterministic rules
+- [ ] GovernanceReport entity with per-rule pass/fail results
+- [ ] Rejection workflow: governance failure → re-run worker with violation feedback
+- [ ] Governance audit trail in Events (GovernanceStarted, Passed, Failed)
+- [ ] Dashboard displays task chain + governance report per job
+- [ ] Configurable max retry attempts (default: 2)
 
 ---
 
 ### Phase 4: Multi-Task Jobs
-**Goal:** A single Run can spawn and coordinate multiple parallel Tasks.
+**Goal:** A single Job can spawn and coordinate multiple parallel Tasks with dependency graphs.
 **Exit criteria:**
 - [ ] Job with N tasks executing in parallel containers
-- [ ] Task dependency graph (sequential and parallel)
+- [ ] Task dependency DAG (sequential and parallel)
 - [ ] Aggregated Job status from constituent Tasks
 - [ ] Dashboard shows multi-task Job progress
+- [ ] Governance failure analytics (trending violations, GOV update suggestions)
 
 ---
 
