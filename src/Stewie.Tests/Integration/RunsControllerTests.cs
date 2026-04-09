@@ -37,11 +37,18 @@ public class RunsControllerTests : IClassFixture<StewieWebApplicationFactory>, I
         Assert.NotNull(runs);
     }
 
-    /// <summary>POST /api/runs creates a run and returns 201 with tasks array.</summary>
+    /// <summary>POST /api/runs with valid body creates a run and returns 201.</summary>
     [Fact]
     public async Task Create_ValidRun_Returns201()
     {
-        var payload = new { projectId = (Guid?)null };
+        // First create a project
+        var projectPayload = new { name = "Test Project", repoUrl = "https://github.com/test/repo.git" };
+        var projResponse = await _client.PostAsJsonAsync("/api/projects", projectPayload);
+        var projBody = await projResponse.Content.ReadAsStringAsync();
+        var projDoc = JsonSerializer.Deserialize<JsonElement>(projBody);
+        var projectId = projDoc.GetProperty("id").GetString();
+
+        var payload = new { projectId, objective = "Test objective", scope = "test scope" };
         var response = await _client.PostAsJsonAsync("/api/runs", payload);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -59,8 +66,13 @@ public class RunsControllerTests : IClassFixture<StewieWebApplicationFactory>, I
     [Fact]
     public async Task GetById_ExistingRun_Returns200WithTasks()
     {
-        // Arrange: create a run
-        var payload = new { projectId = (Guid?)null };
+        // Arrange: create a project and run
+        var projectPayload = new { name = "Get By Id Project", repoUrl = "https://github.com/test/repo2.git" };
+        var projResponse = await _client.PostAsJsonAsync("/api/projects", projectPayload);
+        var projDoc = JsonSerializer.Deserialize<JsonElement>(await projResponse.Content.ReadAsStringAsync());
+        var projectId = projDoc.GetProperty("id").GetString();
+
+        var payload = new { projectId, objective = "Test for getById" };
         var createResponse = await _client.PostAsJsonAsync("/api/runs", payload);
         var createBody = await createResponse.Content.ReadAsStringAsync();
         var created = JsonSerializer.Deserialize<JsonElement>(createBody);

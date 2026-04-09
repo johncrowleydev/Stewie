@@ -22,6 +22,7 @@ public class RunOrchestrationServiceTests
     private readonly IArtifactRepository _artifactRepository;
     private readonly IEventRepository _eventRepository;
     private readonly IWorkspaceRepository _workspaceRepository;
+    private readonly IProjectRepository _projectRepository;
     private readonly IWorkspaceService _workspaceService;
     private readonly IContainerService _containerService;
     private readonly IUnitOfWork _unitOfWork;
@@ -34,6 +35,7 @@ public class RunOrchestrationServiceTests
         _artifactRepository = Substitute.For<IArtifactRepository>();
         _eventRepository = Substitute.For<IEventRepository>();
         _workspaceRepository = Substitute.For<IWorkspaceRepository>();
+        _projectRepository = Substitute.For<IProjectRepository>();
         _workspaceService = Substitute.For<IWorkspaceService>();
         _containerService = Substitute.For<IContainerService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
@@ -44,10 +46,12 @@ public class RunOrchestrationServiceTests
             _artifactRepository,
             _eventRepository,
             _workspaceRepository,
+            _projectRepository,
             _workspaceService,
             _containerService,
             _unitOfWork,
-            NullLogger<RunOrchestrationService>.Instance);
+            NullLogger<RunOrchestrationService>.Instance,
+            "stewie-script-worker");
     }
 
     [Fact]
