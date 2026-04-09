@@ -9,7 +9,7 @@ tags: [project-management, backlog, agentic-development]
 related: [PRJ-001, BCK-002, GOV-007]
 created: 2026-04-09
 updated: 2026-04-09
-version: 1.0.0
+version: 1.1.0
 ---
 
 > **BLUF:** Prioritized development backlog for Stewie. Items are pulled from here into sprint documents. Two developer agents will execute against this backlog. Items are ordered by dependency and priority.
@@ -92,17 +92,31 @@ version: 1.0.0
 
 ---
 
-## Phase 3: GitHub Integration + User System (Future — SPR-004)
+## Phase 2.5: GitHub Integration + User System (SPR-004) ✅ COMPLETE
 
-| ID | Task | Description | Priority |
-|:---|:-----|:------------|:---------|
-| B-200 | **GitHub repo creation** | Create repos via GitHub API | P1 (HIGH PRIORITY) |
-| B-201 | GitHub PR automation | Auto-create PR after successful run + commit | P1 |
-| B-202 | User entity + authentication | User model, login, sessions, API key auth | P1 |
-| B-203 | Encrypted credential storage | Per-user GitHub PAT, encrypted in DB | P1 |
-| B-204 | Push branch to remote | Push local commits to GitHub via API | P1 |
-| B-205 | GitHub settings UI | User settings page for PAT configuration | P2 |
-| B-206 | Auth UI | Login/registration pages | P2 |
+| ID | Task | Description | Priority | Status |
+|:---|:-----|:------------|:---------|:-------|
+| B-200 | ~~GitHub repo creation~~ | ✅ Done (SPR-004 T-040) | P1 | Done |
+| B-201 | ~~GitHub PR automation~~ | ✅ Done (SPR-004 T-041) | P1 | Done |
+| B-202 | ~~User entity + authentication~~ | ✅ Done (SPR-004 T-037/T-038) | P1 | Done |
+| B-203 | ~~Encrypted credential storage~~ | ✅ Done (SPR-004 T-039) | P1 | Done |
+| B-204 | ~~Push branch to remote~~ | ✅ Done (SPR-004 T-041) | P1 | Done |
+| B-205 | ~~GitHub settings UI~~ | ✅ Done (SPR-004 T-045) | P2 | Done |
+| B-206 | ~~Auth UI~~ | ✅ Done (SPR-004 T-043/T-044) | P2 | Done |
+
+---
+
+## Phase 3: Repository Automation + Platform Abstraction (SPR-005)
+
+| ID | Task | Description | Priority | Status |
+|:---|:-----|:------------|:---------|:-------|
+| B-210 | **Platform abstraction** | Rename IGitHubService → IGitPlatformService for multi-provider support | P0 | → SPR-005 T-048 |
+| B-211 | **Project repo link-or-create** | POST /api/projects supports both linking existing and creating new repos | P1 | → SPR-005 T-049/T-050 |
+| B-212 | **Container timeout enforcement** | Enforce 300s hard limit per CON-001 §7 | P1 | → SPR-005 T-051 |
+| B-213 | **Retry logic + error taxonomy** | Retry transient container failures, categorize error types | P1 | → SPR-005 T-052 |
+| B-214 | **Project creation form (frontend)** | Link/create toggle with conditional fields | P2 | → SPR-005 T-053 |
+| B-215 | **Integration tests (projects)** | Test link and create flows, PAT validation | P2 | → SPR-005 T-054 |
+| B-216 | **Unit tests (timeout + retry)** | Test timeout behavior, retry logic | P2 | → SPR-005 T-055 |
 
 ---
 
@@ -115,6 +129,8 @@ version: 1.0.0
 | B-302 | AI agent worker | Container with LLM API for code generation | P2 |
 | B-303 | WebSocket/SSE live updates | Replace polling with real-time push | P3 |
 | B-304 | Task dependency graph | Sequential and parallel task ordering | P3 |
+| B-305 | GitLab provider | IGitPlatformService implementation for GitLab | P3 |
+| B-306 | Bitbucket provider | IGitPlatformService implementation for Bitbucket | P3 |
 
 ---
 
@@ -124,4 +140,5 @@ version: 1.0.0
 |:-----|:-------|
 | 2026-04-09 | Initial backlog created from PRJ-001 Phase 1 |
 | 2026-04-09 | SPR-001 items marked complete. B-020, B-043 → SPR-002. Phase 2 items unchanged. |
-| 2026-04-09 | Phase 2 items assigned to SPR-003. Added Phase 3 (GitHub/Users) and future backlog. |
+| 2026-04-09 | Phase 2 items assigned to SPR-003. Added Phase 2.5 (GitHub/Users) and future backlog. |
+| 2026-04-09 | Phase 2.5 marked complete (SPR-004). Added Phase 3 (Repo Automation) for SPR-005. Relabeled from "Phase 3" → "Phase 2.5". |

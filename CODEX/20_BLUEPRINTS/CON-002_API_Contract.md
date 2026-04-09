@@ -9,7 +9,7 @@ tags: [standards, specification, project-management, governance]
 related: [BLU-001, CON-001, GOV-004]
 created: 2026-04-09
 updated: 2026-04-09
-version: 1.2.0
+version: 1.4.0
 ---
 
 > **BLUF:** This contract defines the HTTP API surface of Stewie.Api. All frontend and external consumers MUST conform to these routes, request/response shapes, and error formats. No deviation without Human approval.
@@ -46,7 +46,7 @@ version: 1.2.0
 
 | Field | Value |
 |:------|:------|
-| Contract version | `1.3.0` |
+| Contract version | `1.4.0` |
 | Stability | `EXPERIMENTAL` |
 | Base URL | `http://localhost:5275` |
 | Content-Type | `application/json` |
@@ -164,8 +164,32 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
 | Method | Path | Description |
 |:-------|:-----|:------------|
 | `GET` | `/api/projects` | List all projects |
-| `POST` | `/api/projects` | Create a new project |
+| `POST` | `/api/projects` | Create a new project (link existing or create GitHub repo) |
 | `GET` | `/api/projects/{id}` | Get project by ID |
+
+**POST /api/projects** request body:
+
+```json
+{
+  "name": "string (required)",
+  "repoUrl": "string | null",
+  "createRepo": "boolean (default: false)",
+  "repoName": "string | null",
+  "isPrivate": "boolean (default: true)",
+  "description": "string | null"
+}
+```
+
+| Field | Type | Required | Description |
+|:------|:-----|:--------:|:------------|
+| `name` | `string` | ✅ | Human-readable project name |
+| `repoUrl` | `string` | Conditional | Required when `createRepo` is `false`. URL of existing repo to link. |
+| `createRepo` | `boolean` | ❌ | If `true`, create a new repo on the user's git platform. Default: `false`. |
+| `repoName` | `string` | Conditional | Required when `createRepo` is `true`. Name for the new repo. |
+| `isPrivate` | `boolean` | ❌ | Repo visibility. Default: `true` (private). Only used when `createRepo` is `true`. |
+| `description` | `string` | ❌ | Repo description. Only used when `createRepo` is `true`. |
+
+> **Validation:** If `createRepo` is `true`, the user must have a configured platform PAT (currently GitHub). Returns 400 if no PAT is configured.
 
 ### 4.2 Runs
 
@@ -235,9 +259,14 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
   "id": "uuid",
   "name": "string",
   "repoUrl": "string",
+  "repoProvider": "string | null",
   "createdAt": "ISO 8601 datetime"
 }
 ```
+
+| Field | Type | Description |
+|:------|:-----|:------------|
+| `repoProvider` | `string \| null` | Platform hosting the repo (e.g., `"github"`, `"gitlab"`). `null` for manually linked repos with unrecognized URLs. |
 
 ### 5.2 Run
 

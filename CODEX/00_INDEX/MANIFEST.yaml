@@ -140,13 +140,59 @@ documents:
     path: 05_PROJECT/SPR-001_Phase1_MVP.md
     title: "Sprint 001 — Phase 1 MVP"
     type: how-to
-    status: PLANNING
+    status: CLOSED
     tags: [project-management, sprint, workflow]
     agents: [coder]
     summary: >
       First development sprint: 16 tasks split across 2 parallel developer agents.
       Agent A builds backend entities + API endpoints. Agent B builds React
       dashboard + xUnit test infrastructure. Non-overlapping file territories.
+
+  - id: SPR-002
+    path: 05_PROJECT/SPR-002_Phase1_Closure.md
+    title: "Sprint 002 — Phase 1 Closure + Phase 2 Plumbing"
+    type: how-to
+    status: CLOSED
+    tags: [project-management, sprint, workflow]
+    agents: [coder]
+    summary: >
+      Phase 1 closure sprint: event emission, integration tests, and Phase 2
+      plumbing (git clone, branch creation, workspace service extensions).
+
+  - id: SPR-003
+    path: 05_PROJECT/SPR-003_Real_Repo_Interaction.md
+    title: "Sprint 003 — Real Repo Interaction"
+    type: how-to
+    status: CLOSED
+    tags: [project-management, sprint, workflow]
+    agents: [coder]
+    summary: >
+      Phase 2 sprint: real repo clone/branch, script worker container, diff
+      ingestion, auto-commit, frontend run creation form, dashboard auto-refresh.
+
+  - id: SPR-004
+    path: 05_PROJECT/SPR-004_GitHub_Integration.md
+    title: "Sprint 004 — GitHub Integration + User System"
+    type: how-to
+    status: CLOSED
+    tags: [project-management, sprint, workflow]
+    agents: [coder]
+    summary: >
+      Phase 2.5 sprint: JWT authentication, invite-only registration, encrypted
+      GitHub PAT storage, Octokit.net integration (push/PR/repo creation), auth
+      UI, and protected endpoints.
+
+  - id: SPR-005
+    path: 05_PROJECT/SPR-005_Repository_Automation.md
+    title: "Sprint 005 — Repository Automation + Platform Abstraction"
+    type: how-to
+    status: PLANNING
+    tags: [project-management, sprint, workflow]
+    agents: [coder]
+    summary: >
+      Phase 3 sprint: rename IGitHubService to IGitPlatformService for multi-provider
+      support, extend project creation with link-or-create repo flow, enforce 300s
+      container timeout, add retry logic with error taxonomy.
 
   # ── 10_GOVERNANCE ───────────────────────────────────────────────────────────
   - id: GOV-001

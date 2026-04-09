@@ -9,7 +9,7 @@ tags: [project-management, roadmap, governance, agentic-development]
 related: [BCK-001, GOV-008, BLU-001]
 created: 2026-04-09
 updated: 2026-04-09
-version: 1.0.0
+version: 1.1.0
 ---
 
 > **BLUF:** Stewie is a GitHub-native orchestration system that coordinates multiple AI agents to develop software in parallel under strict governance. It creates and manages Runs/Tasks, prepares isolated workspaces, launches worker containers, ingests structured results, and enforces CODEX governance. Stewie does not write code — it orchestrates agents that do.
@@ -104,17 +104,34 @@ Phases are **scope-bounded**, not time-bounded.
 
 ---
 
-### Phase 2: Real Repo Interaction
+### Phase 2: Real Repo Interaction ✅ COMPLETE
 **Goal:** Workers can clone, modify, and commit to real Git repositories.
 **Exit criteria:**
-- [ ] Workspace prepares a real Git clone from a target repo
-- [ ] Workers can read and mutate files in the cloned workspace
-- [ ] Result ingestion includes file diff summary
-- [ ] Git integration for branch creation and commit
+- [x] Workspace prepares a real Git clone from a target repo
+- [x] Workers can read and mutate files in the cloned workspace
+- [x] Result ingestion includes file diff summary
+- [x] Git integration for branch creation and commit
 
 **Key deliverables:**
-- `CON-003` — Git Integration Contract
-- `BLU-002` — Workspace & Git Blueprint
+- `CON-001` — Runtime Contract v1.2.0 (script field, repoUrl, branch)
+- `CON-002` — API Contract v1.2.0 (Run creation body, diff/branch fields)
+- `SPR-003` — Real Repo Interaction sprint (CLOSED)
+
+---
+
+### Phase 2.5: GitHub Integration + User System ✅ COMPLETE
+**Goal:** Secure the platform with authentication, add encrypted credential storage, and integrate with GitHub for automated push/PR workflows.
+**Exit criteria:**
+- [x] JWT-based authentication (BCrypt hashing, 24-hr sessions)
+- [x] Invite-only user registration
+- [x] AES-256-CBC encrypted credential storage for GitHub PATs
+- [x] GitHub API integration (push branch, create PR, create repo)
+- [x] Auth UI (login, registration, settings pages)
+- [x] All API endpoints secured with `[Authorize]`
+
+**Key deliverables:**
+- `CON-002` — API Contract v1.3.0 (auth endpoints, user endpoints, GitHub token)
+- `SPR-004` — GitHub Integration + User System sprint (CLOSED)
 
 ---
 
