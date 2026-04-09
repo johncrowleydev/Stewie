@@ -39,7 +39,7 @@ public class RunCreationTests : IClassFixture<StewieWebApplicationFactory>, IDis
         var projectId = project.GetProperty("id").GetString();
 
         // Create a run linked to the project
-        var runPayload = new { projectId };
+        var runPayload = new { projectId, objective = "Integration test run" };
         var response = await _client.PostAsJsonAsync("/api/runs", runPayload);
 
         Assert.True(
@@ -78,7 +78,7 @@ public class RunCreationTests : IClassFixture<StewieWebApplicationFactory>, IDis
         var project = JsonSerializer.Deserialize<JsonElement>(projectBody);
         var projectId = project.GetProperty("id").GetString();
 
-        var runPayload = new { projectId };
+        var runPayload = new { projectId, objective = "Schema field check" };
         var response = await _client.PostAsJsonAsync("/api/runs", runPayload);
         var body = await response.Content.ReadAsStringAsync();
         var doc = JsonSerializer.Deserialize<JsonElement>(body);
@@ -100,7 +100,7 @@ public class RunCreationTests : IClassFixture<StewieWebApplicationFactory>, IDis
         var project = JsonSerializer.Deserialize<JsonElement>(projectBody);
         var projectId = project.GetProperty("id").GetString();
 
-        var runPayload = new { projectId };
+        var runPayload = new { projectId, objective = "GetById test" };
         var createResponse = await _client.PostAsJsonAsync("/api/runs", runPayload);
         var createBody = await createResponse.Content.ReadAsStringAsync();
         var created = JsonSerializer.Deserialize<JsonElement>(createBody);
