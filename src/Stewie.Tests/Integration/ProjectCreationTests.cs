@@ -19,7 +19,7 @@ namespace Stewie.Tests.Integration;
 
 /// <summary>
 /// Verifies project creation in both link and create modes per CON-002 §4.1 v1.4.0.
-/// Uses a custom factory that registers a mock IGitHubService for create-mode tests.
+/// Uses a custom factory that registers a mock IGitPlatformService for create-mode tests.
 /// </summary>
 public class ProjectCreationTests : IClassFixture<ProjectCreationTestFactory>, IDisposable
 {
@@ -96,7 +96,7 @@ public class ProjectCreationTests : IClassFixture<ProjectCreationTestFactory>, I
     /// POST /api/projects with createRepo=true but no PAT configured returns 400
     /// with a message telling user to configure their PAT.
     /// NOTE: This test relies on the user not having a stored credential.
-    /// The mock IGitHubService won't be reached — the controller should fail
+    /// The mock IGitPlatformService won't be reached — the controller should fail
     /// at the credential lookup stage.
     /// </summary>
     [Fact(Skip = "Requires Agent A T-050: createRepo flow not yet implemented in ProjectsController")]
@@ -196,27 +196,27 @@ public class ProjectCreationTests : IClassFixture<ProjectCreationTestFactory>, I
 
 /// <summary>
 /// Custom WebApplicationFactory for project creation tests that
-/// registers a mock IGitHubService (to be renamed IGitPlatformService by Agent A).
+/// registers a mock IGitPlatformService (to be renamed IGitPlatformService by Agent A).
 /// This allows testing the create-repo flow without actual GitHub API calls.
 /// </summary>
 public class ProjectCreationTestFactory : StewieWebApplicationFactory
 {
-    /// <summary>The mock IGitHubService used by tests. Can be configured per-test via Record calls.</summary>
-    public IGitHubService MockGitHubService { get; } = Substitute.For<IGitHubService>();
+    /// <summary>The mock IGitPlatformService used by tests. Can be configured per-test via Record calls.</summary>
+    public IGitPlatformService MockGitPlatformService { get; } = Substitute.For<IGitPlatformService>();
 
-    /// <summary>Configures services to replace the real IGitHubService with a mock.</summary>
+    /// <summary>Configures services to replace the real IGitPlatformService with a mock.</summary>
     protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
     {
         base.ConfigureWebHost(builder);
 
         builder.ConfigureServices(services =>
         {
-            // Replace IGitHubService with mock
+            // Replace IGitPlatformService with mock
             var gitHubDescriptor = services.FirstOrDefault(
-                d => d.ServiceType == typeof(IGitHubService));
+                d => d.ServiceType == typeof(IGitPlatformService));
             if (gitHubDescriptor is not null) services.Remove(gitHubDescriptor);
 
-            services.AddScoped<IGitHubService>(_ => MockGitHubService);
+            services.AddScoped<IGitPlatformService>(_ => MockGitPlatformService);
         });
     }
 }

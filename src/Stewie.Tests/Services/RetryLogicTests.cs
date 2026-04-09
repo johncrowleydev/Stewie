@@ -41,7 +41,7 @@ public class RetryLogicTests
     private readonly IUserCredentialRepository _credentialRepository;
     private readonly IWorkspaceService _workspaceService;
     private readonly IContainerService _containerService;
-    private readonly IGitHubService _gitHubService;
+    private readonly IGitPlatformService _gitHubService;
     private readonly IEncryptionService _encryptionService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly RunOrchestrationService _sut;
@@ -57,7 +57,7 @@ public class RetryLogicTests
         _credentialRepository = Substitute.For<IUserCredentialRepository>();
         _workspaceService = Substitute.For<IWorkspaceService>();
         _containerService = Substitute.For<IContainerService>();
-        _gitHubService = Substitute.For<IGitHubService>();
+        _gitHubService = Substitute.For<IGitPlatformService>();
         _encryptionService = Substitute.For<IEncryptionService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
 
