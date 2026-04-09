@@ -1,6 +1,6 @@
 /// <summary>
 /// Interface for workspace filesystem operations.
-/// REF: BLU-001 §3.2, CON-001 §4.1
+/// REF: BLU-001 §3.2, CON-001 §4.1, CON-002 §5.6
 /// </summary>
 using Stewie.Domain.Contracts;
 using Stewie.Domain.Entities;
@@ -8,7 +8,8 @@ using Stewie.Domain.Entities;
 namespace Stewie.Application.Interfaces;
 
 /// <summary>
-/// Defines workspace operations: preparation, result reading, and git repository management.
+/// Defines workspace operations: preparation, result reading, git repository management,
+/// diff capture, and auto-commit.
 /// </summary>
 public interface IWorkspaceService
 {
@@ -18,28 +19,51 @@ public interface IWorkspaceService
     /// <returns>The absolute path to the workspace directory.</returns>
     string PrepareWorkspace(WorkTask task, Run run);
 
+    /// <summary>
+    /// Prepares a workspace and writes task.json with full fields for real runs.
+    /// </summary>
+    /// <param name="task">The task entity with Objective, Scope, etc.</param>
+    /// <param name="run">The parent run entity.</param>
+    /// <param name="repoUrl">Optional repo URL for cloning.</param>
+    /// <param name="branch">Optional branch name.</param>
+    /// <param name="script">Optional script commands.</param>
+    /// <param name="acceptanceCriteria">Optional acceptance criteria.</param>
+    /// <returns>The absolute path to the workspace directory.</returns>
+    string PrepareWorkspaceForRun(WorkTask task, Run run, string? repoUrl,
+        string? branch, List<string>? script, List<string>? acceptanceCriteria);
+
     /// <summary>Reads and deserializes result.json from the task's workspace output directory.</summary>
-    /// <param name="task">The task entity with a valid WorkspacePath.</param>
-    /// <returns>The deserialized result packet.</returns>
     ResultPacket ReadResult(WorkTask task);
 
-    /// <summary>
-    /// Clones a git repository into the workspace's repo/ directory.
-    /// Phase 2 plumbing — not yet wired into ExecuteTestRunAsync.
-    /// </summary>
-    /// <param name="repoUrl">The HTTPS or SSH URL of the repository to clone.</param>
-    /// <param name="workspacePath">The workspace root directory (repo/ subdirectory will be used).</param>
-    /// <returns>A task that completes when the clone finishes.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if git clone fails.</exception>
+    /// <summary>Clones a git repository into the workspace's repo/ directory.</summary>
     Task CloneRepositoryAsync(string repoUrl, string workspacePath);
 
-    /// <summary>
-    /// Creates a new git branch in the workspace's repo/ directory.
-    /// Phase 2 plumbing — not yet wired into ExecuteTestRunAsync.
-    /// </summary>
-    /// <param name="workspacePath">The workspace root directory (repo/ subdirectory will be used).</param>
-    /// <param name="branchName">The name of the branch to create.</param>
-    /// <returns>A task that completes when the branch is created.</returns>
-    /// <exception cref="InvalidOperationException">Thrown if git checkout fails.</exception>
+    /// <summary>Creates a new git branch in the workspace's repo/ directory.</summary>
     Task CreateBranchAsync(string workspacePath, string branchName);
+
+    /// <summary>
+    /// Captures git diff output from the workspace's repo/ directory.
+    /// </summary>
+    /// <param name="workspacePath">The workspace root directory.</param>
+    /// <returns>A <see cref="DiffResult"/> with stat and patch output, or null values if no changes.</returns>
+    Task<DiffResult> CaptureDiffAsync(string workspacePath);
+
+    /// <summary>
+    /// Stages and commits all changes in the workspace's repo/ directory.
+    /// LOCAL commit only — no push to remote.
+    /// </summary>
+    /// <param name="workspacePath">The workspace root directory.</param>
+    /// <param name="message">The commit message.</param>
+    /// <returns>The commit SHA string, or null if nothing to commit.</returns>
+    Task<string?> CommitChangesAsync(string workspacePath, string message);
+}
+
+/// <summary>Result of a git diff capture operation.</summary>
+public class DiffResult
+{
+    /// <summary>Output of git diff --stat (file summary).</summary>
+    public string DiffStat { get; set; } = string.Empty;
+
+    /// <summary>Full output of git diff (patch).</summary>
+    public string DiffPatch { get; set; } = string.Empty;
 }

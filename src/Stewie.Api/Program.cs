@@ -13,6 +13,7 @@ var connectionString = builder.Configuration.GetConnectionString("Stewie")
     ?? throw new InvalidOperationException("Connection string 'Stewie' is required.");
 var workspaceRoot = builder.Configuration.GetValue<string>("Stewie:WorkspaceRoot") ?? "./workspaces";
 var dockerImageName = builder.Configuration.GetValue<string>("Stewie:DockerImageName") ?? "stewie-dummy-worker";
+var scriptWorkerImage = builder.Configuration.GetValue<string>("Stewie:ScriptWorkerImage") ?? "stewie-script-worker";
 
 // Controllers & OpenAPI 
 builder.Services.AddControllers();
@@ -54,7 +55,19 @@ builder.Services.AddSingleton<IWorkspaceService>(sp =>
     new WorkspaceService(workspaceRoot, sp.GetRequiredService<ILogger<WorkspaceService>>()));
 builder.Services.AddSingleton<IContainerService>(sp =>
     new DockerContainerService(dockerImageName, sp.GetRequiredService<ILogger<DockerContainerService>>()));
-builder.Services.AddScoped<RunOrchestrationService>();
+builder.Services.AddScoped<RunOrchestrationService>(sp =>
+    new RunOrchestrationService(
+        sp.GetRequiredService<IRunRepository>(),
+        sp.GetRequiredService<IWorkTaskRepository>(),
+        sp.GetRequiredService<IArtifactRepository>(),
+        sp.GetRequiredService<IEventRepository>(),
+        sp.GetRequiredService<IWorkspaceRepository>(),
+        sp.GetRequiredService<IProjectRepository>(),
+        sp.GetRequiredService<IWorkspaceService>(),
+        sp.GetRequiredService<IContainerService>(),
+        sp.GetRequiredService<IUnitOfWork>(),
+        sp.GetRequiredService<ILogger<RunOrchestrationService>>(),
+        scriptWorkerImage));
 
 var app = builder.Build();
 

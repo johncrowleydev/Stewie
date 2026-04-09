@@ -1,7 +1,7 @@
 /// <summary>
 /// NHibernate mapping for the Run entity.
 /// Maps to the "Runs" table in SQL Server.
-/// REF: BLU-001 §6
+/// REF: BLU-001 §6, CON-002 §5.2
 /// </summary>
 using FluentNHibernate.Mapping;
 using Stewie.Domain.Entities;
@@ -17,6 +17,7 @@ public class RunMap : ClassMap<Run>
     /// <summary>
     /// Initializes the Run-to-Runs table mapping.
     /// ProjectId is nullable to support standalone runs (backward compatible).
+    /// Branch, DiffSummary, CommitSha are Phase 2 fields — all nullable.
     /// </summary>
     public RunMap()
     {
@@ -25,6 +26,9 @@ public class RunMap : ClassMap<Run>
         Map(x => x.ProjectId);
         References(x => x.Project).Column("ProjectId").ReadOnly();
         Map(x => x.Status).CustomType<RunStatus>();
+        Map(x => x.Branch);
+        Map(x => x.DiffSummary).Length(4000);
+        Map(x => x.CommitSha);
         Map(x => x.CreatedAt);
         Map(x => x.CompletedAt);
     }

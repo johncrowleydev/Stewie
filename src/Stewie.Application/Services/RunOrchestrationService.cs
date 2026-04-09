@@ -2,14 +2,10 @@
 /// Core orchestration service — executes runs by creating tasks, launching containers,
 /// and ingesting results. Emits audit trail events and tracks workspace lifecycle.
 ///
-/// READING GUIDE FOR INCIDENT RESPONDERS:
-/// 1. If events not emitted       → check EmitEventAsync calls and IEventRepository
-/// 2. If workspace not tracked    → check Workspace entity creation in step 3
-/// 3. If run stuck in Running     → check MarkFailedAsync and container exit code handling
-///
-/// REF: BLU-001 §4, CON-001, CON-002 §3.1
+/// REF: BLU-001 §4, CON-001, CON-002 §3.1, §4.2
 /// </summary>
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Stewie.Application.Interfaces;
 using Stewie.Domain.Entities;
@@ -18,51 +14,277 @@ using Stewie.Domain.Enums;
 namespace Stewie.Application.Services;
 
 /// <summary>
-/// Orchestrates the execution of runs: creates entities, launches containers,
-/// ingests results, emits audit events, and tracks workspace lifecycle.
+/// Orchestrates the execution of runs: creates entities, clones repos, launches containers,
+/// ingests results, captures diffs, auto-commits, emits audit events, and tracks workspace lifecycle.
 /// </summary>
-public class RunOrchestrationService
+public partial class RunOrchestrationService
 {
     private readonly IRunRepository _runRepository;
     private readonly IWorkTaskRepository _workTaskRepository;
     private readonly IArtifactRepository _artifactRepository;
     private readonly IEventRepository _eventRepository;
     private readonly IWorkspaceRepository _workspaceRepository;
+    private readonly IProjectRepository _projectRepository;
     private readonly IWorkspaceService _workspaceService;
     private readonly IContainerService _containerService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<RunOrchestrationService> _logger;
+    private readonly string _scriptWorkerImage;
 
-    /// <summary>
-    /// Initializes the orchestration service with all required dependencies.
-    /// </summary>
+    /// <summary>Initializes the orchestration service with all required dependencies.</summary>
     public RunOrchestrationService(
         IRunRepository runRepository,
         IWorkTaskRepository workTaskRepository,
         IArtifactRepository artifactRepository,
         IEventRepository eventRepository,
         IWorkspaceRepository workspaceRepository,
+        IProjectRepository projectRepository,
         IWorkspaceService workspaceService,
         IContainerService containerService,
         IUnitOfWork unitOfWork,
-        ILogger<RunOrchestrationService> logger)
+        ILogger<RunOrchestrationService> logger,
+        string scriptWorkerImage = "stewie-script-worker")
     {
         _runRepository = runRepository;
         _workTaskRepository = workTaskRepository;
         _artifactRepository = artifactRepository;
         _eventRepository = eventRepository;
         _workspaceRepository = workspaceRepository;
+        _projectRepository = projectRepository;
         _workspaceService = workspaceService;
         _containerService = containerService;
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _scriptWorkerImage = scriptWorkerImage;
     }
 
     /// <summary>
-    /// Executes a test run: creates Run + Task, prepares workspace, launches container,
-    /// ingests result, emits events for all state transitions, and tracks workspace lifecycle.
+    /// Executes a real run: clones repo, creates branch, launches script worker,
+    /// captures diff, auto-commits results.
     /// </summary>
+    /// <param name="runId">The ID of a pre-created Run (from POST /api/runs).</param>
     /// <returns>A <see cref="TestRunResult"/> describing the outcome.</returns>
+    public async Task<TestRunResult> ExecuteRunAsync(Guid runId)
+    {
+        var run = await _runRepository.GetByIdAsync(runId)
+            ?? throw new KeyNotFoundException($"Run '{runId}' not found.");
+
+        var tasks = await _workTaskRepository.GetByRunIdAsync(runId);
+        if (tasks.Count == 0)
+        {
+            throw new InvalidOperationException($"Run '{runId}' has no tasks.");
+        }
+
+        var task = tasks[0]; // 1 Run = 1 Task for now
+
+        // Load project for repoUrl
+        Project? project = null;
+        if (run.ProjectId.HasValue)
+        {
+            project = await _projectRepository.GetByIdAsync(run.ProjectId.Value);
+        }
+
+        // Deserialize JSON fields from task
+        List<string>? script = null;
+        if (!string.IsNullOrWhiteSpace(task.ScriptJson))
+        {
+            script = JsonSerializer.Deserialize<List<string>>(task.ScriptJson);
+        }
+
+        List<string>? criteria = null;
+        if (!string.IsNullOrWhiteSpace(task.AcceptanceCriteriaJson))
+        {
+            criteria = JsonSerializer.Deserialize<List<string>>(task.AcceptanceCriteriaJson);
+        }
+
+        // Generate branch name
+        string? branchName = null;
+        if (project?.RepoUrl is not null)
+        {
+            var shortId = run.Id.ToString()[..8];
+            var sanitized = SanitizeBranchName(task.Objective ?? "task");
+            branchName = $"stewie/{shortId}/{sanitized}";
+        }
+
+        _unitOfWork.BeginTransaction();
+        await EmitEventAsync("Run", run.Id, EventType.RunCreated, new { runId = run.Id });
+
+        // Prepare workspace with full fields
+        var workspacePath = _workspaceService.PrepareWorkspaceForRun(
+            task, run, project?.RepoUrl, branchName, script, criteria);
+        task.WorkspacePath = workspacePath;
+        await _workTaskRepository.SaveAsync(task);
+
+        // Track workspace entity
+        var workspace = new Workspace
+        {
+            Id = Guid.NewGuid(),
+            TaskId = task.Id,
+            Path = workspacePath,
+            Status = WorkspaceStatus.Created,
+            CreatedAt = DateTime.UtcNow
+        };
+        await _workspaceRepository.SaveAsync(workspace);
+
+        await EmitEventAsync("Task", task.Id, EventType.TaskCreated,
+            new { taskId = task.Id, runId = run.Id, role = task.Role });
+
+        // Clone repo and create branch if project has repoUrl
+        if (!string.IsNullOrWhiteSpace(project?.RepoUrl))
+        {
+            _logger.LogInformation("Cloning repo {RepoUrl} for run {RunId}", project.RepoUrl, run.Id);
+            await _workspaceService.CloneRepositoryAsync(project.RepoUrl, workspacePath);
+
+            if (branchName is not null)
+            {
+                await _workspaceService.CreateBranchAsync(workspacePath, branchName);
+                run.Branch = branchName;
+                await _runRepository.SaveAsync(run);
+            }
+        }
+
+        // Transition to Running
+        run.Status = RunStatus.Running;
+        task.Status = WorkTaskStatus.Running;
+        task.StartedAt = DateTime.UtcNow;
+        await _runRepository.SaveAsync(run);
+        await _workTaskRepository.SaveAsync(task);
+
+        await EmitEventAsync("Run", run.Id, EventType.RunStarted,
+            new { runId = run.Id, taskCount = 1 });
+        await EmitEventAsync("Task", task.Id, EventType.TaskStarted,
+            new { taskId = task.Id, role = task.Role, workspacePath });
+
+        workspace.Status = WorkspaceStatus.Mounted;
+        workspace.MountedAt = DateTime.UtcNow;
+        await _workspaceRepository.SaveAsync(workspace);
+
+        await _unitOfWork.CommitAsync();
+        _logger.LogInformation("Run {RunId} set to Running", run.Id);
+
+        try
+        {
+            // Launch script worker container (writable repo mount)
+            _logger.LogInformation("Launching script worker for task {TaskId}", task.Id);
+            var exitCode = await _containerService.LaunchWorkerAsync(task, _scriptWorkerImage);
+
+            if (exitCode != 0)
+            {
+                _logger.LogError("Script worker exited with code {ExitCode}", exitCode);
+                await MarkFailedAsync(run, task, $"Script worker exited with code {exitCode}");
+                return new TestRunResult
+                {
+                    RunId = run.Id, TaskId = task.Id,
+                    Status = "Failed",
+                    Summary = $"Script worker exited with code {exitCode}"
+                };
+            }
+
+            // Read result
+            var result = _workspaceService.ReadResult(task);
+            _logger.LogInformation("Result: status={Status}, summary={Summary}",
+                result.Status, result.Summary);
+
+            _unitOfWork.BeginTransaction();
+
+            // Store result artifact
+            var resultArtifact = new Artifact
+            {
+                Id = Guid.NewGuid(),
+                TaskId = task.Id,
+                WorkTask = task,
+                Type = "result",
+                ContentJson = JsonSerializer.Serialize(result),
+                CreatedAt = DateTime.UtcNow
+            };
+            await _artifactRepository.SaveAsync(resultArtifact);
+
+            // Capture diff (T-030)
+            var diff = await _workspaceService.CaptureDiffAsync(workspacePath);
+            if (!string.IsNullOrWhiteSpace(diff.DiffStat))
+            {
+                run.DiffSummary = diff.DiffStat;
+                var diffArtifact = new Artifact
+                {
+                    Id = Guid.NewGuid(),
+                    TaskId = task.Id,
+                    WorkTask = task,
+                    Type = "diff",
+                    ContentJson = JsonSerializer.Serialize(new
+                    {
+                        diffStat = diff.DiffStat,
+                        diffPatch = diff.DiffPatch
+                    }),
+                    CreatedAt = DateTime.UtcNow
+                };
+                await _artifactRepository.SaveAsync(diffArtifact);
+                _logger.LogInformation("Stored diff artifact for task {TaskId}", task.Id);
+            }
+
+            // Auto-commit (T-031)
+            var objective = task.Objective ?? "stewie task";
+            var shortRunId = run.Id.ToString()[..8];
+            var commitMessage = $"feat(stewie): {objective} [Run {shortRunId}]";
+            var commitSha = await _workspaceService.CommitChangesAsync(workspacePath, commitMessage);
+            if (commitSha is not null)
+            {
+                run.CommitSha = commitSha;
+                _logger.LogInformation("Auto-committed changes: {CommitSha}", commitSha);
+            }
+
+            // Update final statuses
+            var isSuccess = string.Equals(result.Status, "success", StringComparison.OrdinalIgnoreCase);
+            task.Status = isSuccess ? WorkTaskStatus.Completed : WorkTaskStatus.Failed;
+            task.CompletedAt = DateTime.UtcNow;
+            run.Status = isSuccess ? RunStatus.Completed : RunStatus.Failed;
+            run.CompletedAt = DateTime.UtcNow;
+
+            await _workTaskRepository.SaveAsync(task);
+            await _runRepository.SaveAsync(run);
+
+            if (isSuccess)
+            {
+                await EmitEventAsync("Task", task.Id, EventType.TaskCompleted,
+                    new { taskId = task.Id, summary = result.Summary });
+                await EmitEventAsync("Run", run.Id, EventType.RunCompleted,
+                    new { runId = run.Id, summary = result.Summary, commitSha });
+            }
+            else
+            {
+                await EmitEventAsync("Task", task.Id, EventType.TaskFailed,
+                    new { taskId = task.Id, reason = result.Summary });
+                await EmitEventAsync("Run", run.Id, EventType.RunFailed,
+                    new { runId = run.Id, reason = result.Summary });
+            }
+
+            await _unitOfWork.CommitAsync();
+
+            return new TestRunResult
+            {
+                RunId = run.Id,
+                TaskId = task.Id,
+                ArtifactId = resultArtifact.Id,
+                Status = run.Status.ToString(),
+                Summary = result.Summary,
+                ResultPayload = result
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during run execution for Run {RunId}", run.Id);
+            await MarkFailedAsync(run, task, ex.Message);
+            return new TestRunResult
+            {
+                RunId = run.Id, TaskId = task.Id,
+                Status = "Failed",
+                Summary = $"Error: {ex.Message}"
+            };
+        }
+    }
+
+    /// <summary>
+    /// Executes a test run using the dummy worker. Backward-compatible Milestone 0 flow.
+    /// </summary>
     public async Task<TestRunResult> ExecuteTestRunAsync()
     {
         // 1. Create Run
@@ -75,8 +297,7 @@ public class RunOrchestrationService
 
         _unitOfWork.BeginTransaction();
         await _runRepository.SaveAsync(run);
-        await EmitEventAsync("Run", run.Id, EventType.RunCreated,
-            new { runId = run.Id });
+        await EmitEventAsync("Run", run.Id, EventType.RunCreated, new { runId = run.Id });
         _logger.LogInformation("Created Run {RunId} with status {Status}", run.Id, run.Status);
 
         // 2. Create Task
@@ -96,7 +317,7 @@ public class RunOrchestrationService
             new { taskId = task.Id, runId = run.Id, role = task.Role });
         _logger.LogInformation("Created Task {TaskId} for Run {RunId}", task.Id, run.Id);
 
-        // 3. Prepare workspace & write task.json, then track workspace entity
+        // 3. Prepare workspace
         var workspacePath = _workspaceService.PrepareWorkspace(task, run);
         task.WorkspacePath = workspacePath;
         await _workTaskRepository.SaveAsync(task);
@@ -110,10 +331,8 @@ public class RunOrchestrationService
             CreatedAt = DateTime.UtcNow
         };
         await _workspaceRepository.SaveAsync(workspace);
-        _logger.LogInformation("Prepared workspace at {WorkspacePath}, tracked as {WorkspaceId}",
-            workspacePath, workspace.Id);
 
-        // 4. Update statuses to Running — emit events for both Run and Task
+        // 4. Running
         run.Status = RunStatus.Running;
         task.Status = WorkTaskStatus.Running;
         task.StartedAt = DateTime.UtcNow;
@@ -125,28 +344,23 @@ public class RunOrchestrationService
         await EmitEventAsync("Task", task.Id, EventType.TaskStarted,
             new { taskId = task.Id, role = task.Role, workspacePath });
 
-        // Update workspace to Mounted status
         workspace.Status = WorkspaceStatus.Mounted;
         workspace.MountedAt = DateTime.UtcNow;
         await _workspaceRepository.SaveAsync(workspace);
 
         await _unitOfWork.CommitAsync();
-        _logger.LogInformation("Run and Task set to Running");
 
         try
         {
-            // 5. Launch container
-            _logger.LogInformation("Launching worker container for Task {TaskId}", task.Id);
+            // 5. Launch dummy worker
             var exitCode = await _containerService.LaunchWorkerAsync(task);
 
             if (exitCode != 0)
             {
-                _logger.LogError("Container exited with non-zero code {ExitCode}", exitCode);
                 await MarkFailedAsync(run, task, $"Container exited with code {exitCode}");
                 return new TestRunResult
                 {
-                    RunId = run.Id,
-                    TaskId = task.Id,
+                    RunId = run.Id, TaskId = task.Id,
                     Status = "Failed",
                     Summary = $"Container exited with code {exitCode}"
                 };
@@ -154,10 +368,8 @@ public class RunOrchestrationService
 
             // 6. Read result
             var result = _workspaceService.ReadResult(task);
-            _logger.LogInformation("Ingested result: status={Status}, summary={Summary}",
-                result.Status, result.Summary);
 
-            // 7. Create artifact
+            // 7. Store artifact
             _unitOfWork.BeginTransaction();
 
             var artifact = new Artifact
@@ -171,9 +383,8 @@ public class RunOrchestrationService
             };
 
             await _artifactRepository.SaveAsync(artifact);
-            _logger.LogInformation("Stored Artifact {ArtifactId} for Task {TaskId}", artifact.Id, task.Id);
 
-            // 8. Update final statuses and emit completion/failure events
+            // 8. Final statuses
             var isSuccess = string.Equals(result.Status, "success", StringComparison.OrdinalIgnoreCase);
             task.Status = isSuccess ? WorkTaskStatus.Completed : WorkTaskStatus.Failed;
             task.CompletedAt = DateTime.UtcNow;
@@ -200,13 +411,9 @@ public class RunOrchestrationService
 
             await _unitOfWork.CommitAsync();
 
-            _logger.LogInformation("Run {RunId} completed with status {Status}", run.Id, run.Status);
-
             return new TestRunResult
             {
-                RunId = run.Id,
-                TaskId = task.Id,
-                ArtifactId = artifact.Id,
+                RunId = run.Id, TaskId = task.Id, ArtifactId = artifact.Id,
                 Status = run.Status.ToString(),
                 Summary = result.Summary,
                 ResultPayload = result
@@ -214,23 +421,18 @@ public class RunOrchestrationService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during task execution for Run {RunId}", run.Id);
+            _logger.LogError(ex, "Error during test run for Run {RunId}", run.Id);
             await MarkFailedAsync(run, task, ex.Message);
             return new TestRunResult
             {
-                RunId = run.Id,
-                TaskId = task.Id,
+                RunId = run.Id, TaskId = task.Id,
                 Status = "Failed",
                 Summary = $"Error: {ex.Message}"
             };
         }
     }
 
-    /// <summary>
-    /// Marks a run and task as failed, emitting failure events for both.
-    /// FAILURE MODE: If this method itself fails, the error is logged but not propagated
-    /// to avoid masking the original failure.
-    /// </summary>
+    /// <summary>Marks a run and task as failed, emitting failure events.</summary>
     private async Task MarkFailedAsync(Run run, WorkTask task, string reason)
     {
         try
@@ -256,14 +458,7 @@ public class RunOrchestrationService
         }
     }
 
-    /// <summary>
-    /// Emits an audit trail event. Serializes the payload to JSON.
-    /// This is an internal helper — events are always emitted within an existing transaction.
-    /// </summary>
-    /// <param name="entityType">The type of entity (e.g. "Run", "Task").</param>
-    /// <param name="entityId">The unique identifier of the entity.</param>
-    /// <param name="eventType">The classification of the event.</param>
-    /// <param name="payload">An object to serialize as the event payload.</param>
+    /// <summary>Emits an audit trail event within the current transaction.</summary>
     private async Task EmitEventAsync(string entityType, Guid entityId, EventType eventType, object payload)
     {
         var eventRecord = new Event
@@ -280,9 +475,22 @@ public class RunOrchestrationService
         _logger.LogDebug("Emitted {EventType} for {EntityType} {EntityId}",
             eventType, entityType, entityId);
     }
+
+    /// <summary>
+    /// Sanitizes a string for use as a git branch name segment.
+    /// Replaces spaces/special chars with hyphens, lowercases, truncates to 50 chars.
+    /// </summary>
+    private static string SanitizeBranchName(string input)
+    {
+        var sanitized = BranchNameRegex().Replace(input.ToLowerInvariant(), "-").Trim('-');
+        return sanitized.Length > 50 ? sanitized[..50].TrimEnd('-') : sanitized;
+    }
+
+    [GeneratedRegex(@"[^a-z0-9]+")]
+    private static partial Regex BranchNameRegex();
 }
 
-/// <summary>Result DTO returned by ExecuteTestRunAsync.</summary>
+/// <summary>Result DTO returned by ExecuteTestRunAsync and ExecuteRunAsync.</summary>
 public class TestRunResult
 {
     /// <summary>The run's unique identifier.</summary>
