@@ -35,44 +35,44 @@ version: 1.0.0
 
 | ID | Task | Description | Contracts | Est. Complexity |
 |:---|:-----|:------------|:----------|:----------------|
-| B-001 | **Project entity** | Add `Project` entity with `Id`, `Name`, `RepoUrl`, `CreatedAt`. Migration, mapping, repository, DI registration. | CON-002 §5.1 | Small |
-| B-002 | **Event entity** | Add `Event` entity for audit trail: `Id`, `EntityType`, `EntityId`, `EventType`, `Payload`, `Timestamp`. Migration, mapping, repository. | BLU-001 §3.2 | Small |
-| B-003 | **Workspace entity** | Add `Workspace` entity: `Id`, `TaskId`, `Path`, `Status` (Created/Mounted/Cleaned), timestamps. Migration, mapping, repository. | BLU-001 §3.2 | Small |
-| B-004 | **Link Run to Project** | Add nullable `ProjectId` FK to `Run`. Update Run creation to optionally associate with a Project. Migration. | CON-002 §5.2 | Small |
+| B-001 | ~~**Project entity**~~ | ✅ Done (SPR-001 T-001) | CON-002 §5.1 | Small |
+| B-002 | ~~**Event entity**~~ | ✅ Done (SPR-001 T-002) | BLU-001 §3.2 | Small |
+| B-003 | ~~**Workspace entity**~~ | ✅ Done (SPR-001 T-003) | BLU-001 §3.2 | Small |
+| B-004 | ~~**Link Run to Project**~~ | ✅ Done (SPR-001 T-004) | CON-002 §5.2 | Small |
 
 ### P1 — API Endpoints
 
 | ID | Task | Description | Contracts | Est. Complexity |
 |:---|:-----|:------------|:----------|:----------------|
-| B-010 | **Health endpoint** | `GET /health` returning `{ status, version, timestamp }`. No auth. | CON-002 §4.4 | Trivial |
-| B-011 | **Project CRUD** | `GET /api/projects`, `POST /api/projects`, `GET /api/projects/{id}` | CON-002 §4.1 | Small |
-| B-012 | **Run endpoints** | `GET /api/runs`, `POST /api/runs`, `GET /api/runs/{id}` with nested tasks | CON-002 §4.2 | Medium |
-| B-013 | **Task endpoints** | `GET /api/tasks/{id}`, `GET /api/runs/{runId}/tasks` | CON-002 §4.3 | Small |
-| B-014 | **Standardized error responses** | Implement error middleware returning `{ error: { code, message, details } }` per GOV-004 | CON-002 §6 | Medium |
+| B-010 | ~~**Health endpoint**~~ | ✅ Done (SPR-001 T-006) | CON-002 §4.4 | Trivial |
+| B-011 | ~~**Project CRUD**~~ | ✅ Done (SPR-001 T-007) | CON-002 §4.1 | Small |
+| B-012 | ~~**Run endpoints**~~ | ✅ Done (SPR-001 T-008) | CON-002 §4.2 | Medium |
+| B-013 | ~~**Task endpoints**~~ | ✅ Done (SPR-001 T-009) | CON-002 §4.3 | Small |
+| B-014 | ~~**Standardized error responses**~~ | ✅ Done (SPR-001 T-005) | CON-002 §6 | Medium |
 
 ### P1 — Event Emission
 
 | ID | Task | Description | Contracts | Est. Complexity |
 |:---|:-----|:------------|:----------|:----------------|
-| B-020 | **Emit events on state changes** | `RunOrchestrationService` emits Events on Run/Task status transitions | BLU-001 §4 | Medium |
+| B-020 | **Emit events on state changes** | `RunOrchestrationService` emits Events on Run/Task status transitions | BLU-001 §4 | Medium | → SPR-002 T-017/T-018 |
 
 ### P2 — React Dashboard
 
 | ID | Task | Description | Contracts | Est. Complexity |
 |:---|:-----|:------------|:----------|:----------------|
-| B-030 | **Dashboard layout** | Navigation, header with Stewie branding, sidebar | — | Medium |
-| B-031 | **Runs list page** | Fetch and display all Runs with status badges | CON-002 §4.2 | Medium |
-| B-032 | **Run detail page** | Show Run with its Tasks and Artifacts | CON-002 §4.2, §4.3 | Medium |
-| B-033 | **Projects page** | List projects, create new project form | CON-002 §4.1 | Medium |
+| B-030 | ~~**Dashboard layout**~~ | ✅ Done (SPR-001 T-013) | — | Medium |
+| B-031 | ~~**Runs list page**~~ | ✅ Done (SPR-001 T-014) | CON-002 §4.2 | Medium |
+| B-032 | ~~**Run detail page**~~ | ✅ Done (SPR-001 T-015) | CON-002 §4.2, §4.3 | Medium |
+| B-033 | ~~**Projects page**~~ | ✅ Done (SPR-001 T-016) | CON-002 §4.1 | Medium |
 
 ### P2 — Test Infrastructure
 
 | ID | Task | Description | Contracts | Est. Complexity |
 |:---|:-----|:------------|:----------|:----------------|
-| B-040 | **Test project setup** | Create `Stewie.Tests` project with xUnit. Add to solution. | GOV-002 | Small |
-| B-041 | **Unit tests for RunOrchestrationService** | Test the execution loop with mocked dependencies | GOV-002 | Medium |
-| B-042 | **Unit tests for WorkspaceService** | Test workspace creation and result reading | GOV-002 | Small |
-| B-043 | **Integration tests for API endpoints** | Test controllers with WebApplicationFactory | GOV-002 | Medium |
+| B-040 | ~~**Test project setup**~~ | ✅ Done (SPR-001 T-010) | GOV-002 | Small |
+| B-041 | ~~**Unit tests for RunOrchestrationService**~~ | ✅ Done (SPR-001 T-011) | GOV-002 | Medium |
+| B-042 | ~~**Unit tests for WorkspaceService**~~ | ✅ Done (SPR-001 T-012) | GOV-002 | Small |
+| B-043 | **Integration tests for API endpoints** | Test controllers with WebApplicationFactory | GOV-002 | Medium | → SPR-002 T-023/T-024 |
 
 ---
 
@@ -92,3 +92,4 @@ version: 1.0.0
 | Date | Change |
 |:-----|:-------|
 | 2026-04-09 | Initial backlog created from PRJ-001 Phase 1 |
+| 2026-04-09 | SPR-001 items marked complete. B-020, B-043 → SPR-002. Phase 2 items unchanged. |

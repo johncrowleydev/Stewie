@@ -9,7 +9,7 @@ tags: [standards, specification, project-management, governance]
 related: [BLU-001, CON-001, GOV-004]
 created: 2026-04-09
 updated: 2026-04-09
-version: 1.0.0
+version: 1.1.0
 ---
 
 > **BLUF:** This contract defines the HTTP API surface of Stewie.Api. All frontend and external consumers MUST conform to these routes, request/response shapes, and error formats. No deviation without Human approval.
@@ -46,7 +46,7 @@ version: 1.0.0
 
 | Field | Value |
 |:------|:------|
-| Contract version | `1.0.0` |
+| Contract version | `1.1.0` |
 | Stability | `EXPERIMENTAL` |
 | Base URL | `http://localhost:5275` |
 | Content-Type | `application/json` |
@@ -127,6 +127,21 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
 |:-------|:-----|:------------|
 | `GET` | `/health` | Health check (no auth required) |
 
+### 4.5 Events
+
+| Method | Path | Description |
+|:-------|:-----|:------------|
+| `GET` | `/api/events` | List recent events (default limit 100, most recent first) |
+| `GET` | `/api/events?entityType={type}&entityId={id}` | Filter events by entity |
+
+**Query parameters:**
+
+| Param | Type | Required | Description |
+|:------|:-----|:--------:|:------------|
+| `entityType` | `string` | No | Filter by entity type (e.g. "Run", "Task") |
+| `entityId` | `uuid` | No | Filter by entity ID (requires `entityType`) |
+| `limit` | `int` | No | Max results (default 100, max 500) |
+
 ---
 
 ## 5. Request/Response Schemas — Phase 1
@@ -176,6 +191,19 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
 {
   "status": "healthy",
   "version": "string",
+  "timestamp": "ISO 8601 datetime"
+}
+```
+
+### 5.5 Event
+
+```json
+{
+  "id": "uuid",
+  "entityType": "string (Run | Task)",
+  "entityId": "uuid",
+  "eventType": "string (RunCreated | RunStarted | RunCompleted | RunFailed | TaskCreated | TaskStarted | TaskCompleted | TaskFailed)",
+  "payload": "string (JSON)",
   "timestamp": "ISO 8601 datetime"
 }
 ```
