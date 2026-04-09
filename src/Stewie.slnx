@@ -4,4 +4,5 @@
   <Project Path="Stewie.Infrastructure/Stewie.Infrastructure.csproj" />
   <Project Path="Stewie.Api/Stewie.Api.csproj" />
   <Project Path="Stewie.Web/Stewie.Web.csproj" />
+  <Project Path="Stewie.Tests/Stewie.Tests.csproj" />
 </Solution>
