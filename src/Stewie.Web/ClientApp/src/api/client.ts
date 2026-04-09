@@ -8,7 +8,8 @@
  */
 import type {
   Job, Project, CreateProjectRequest, CreateJobRequest,
-  ApiError, Event, LoginRequest, RegisterRequest, AuthResponse, GitHubStatus
+  ApiError, Event, LoginRequest, RegisterRequest, AuthResponse, GitHubStatus,
+  GovernanceReport
 } from "../types";
 
 /** Base URL is proxied via Vite config — no absolute URL needed. */
@@ -172,4 +173,16 @@ export async function removeGitHubToken(): Promise<void> {
 /** Get GitHub connection status — GET /api/users/me/github-status */
 export async function getGitHubStatus(): Promise<GitHubStatus> {
   return request<GitHubStatus>("/api/users/me/github-status");
+}
+
+// --- Governance endpoints ---
+
+/** Fetch latest governance report for a job — GET /api/jobs/{jobId}/governance */
+export async function fetchJobGovernance(jobId: string): Promise<GovernanceReport> {
+  return request<GovernanceReport>(`/api/jobs/${encodeURIComponent(jobId)}/governance`);
+}
+
+/** Fetch governance report for a specific task — GET /api/tasks/{taskId}/governance */
+export async function fetchTaskGovernance(taskId: string): Promise<GovernanceReport> {
+  return request<GovernanceReport>(`/api/tasks/${encodeURIComponent(taskId)}/governance`);
 }

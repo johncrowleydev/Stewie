@@ -230,10 +230,12 @@ public class JobsController : ControllerBase
             pullRequestUrl = job.PullRequestUrl,
             createdAt = job.CreatedAt.ToString("o"),
             completedAt = job.CompletedAt?.ToString("o"),
-            tasks = tasks.Select(t => new
+            tasks = tasks.OrderBy(t => t.CreatedAt).Select(t => new
             {
                 id = t.Id,
                 jobId = t.JobId,
+                parentTaskId = t.ParentTaskId,
+                attemptNumber = t.AttemptNumber,
                 role = t.Role,
                 status = t.Status.ToString(),
                 objective = t.Objective,

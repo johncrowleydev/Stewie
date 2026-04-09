@@ -24,6 +24,10 @@ const EVENT_COLORS: Record<EventType, string> = {
   TaskStarted: "var(--color-warning)",
   TaskCompleted: "var(--color-completed)",
   TaskFailed: "var(--color-failed)",
+  GovernanceStarted: "var(--color-warning)",
+  GovernancePassed: "var(--color-completed)",
+  GovernanceFailed: "var(--color-failed)",
+  GovernanceRetry: "var(--color-warning)",
 };
 
 /** Short labels for mini-timeline */
@@ -36,6 +40,10 @@ const EVENT_SHORT_LABELS: Record<EventType, string> = {
   TaskStarted: "Task Started",
   TaskCompleted: "Task Done",
   TaskFailed: "Task Failed",
+  GovernanceStarted: "Gov Started",
+  GovernancePassed: "Gov Passed",
+  GovernanceFailed: "Gov Failed",
+  GovernanceRetry: "Gov Retry",
 };
 
 /**
@@ -296,6 +304,7 @@ export function JobDetailPage() {
                 <th>Status</th>
                 <th>Task ID</th>
                 <th>Role</th>
+                <th>Attempt</th>
                 <th>Objective</th>
                 <th>Started</th>
                 <th>Completed</th>
@@ -307,6 +316,7 @@ export function JobDetailPage() {
                   <td><StatusBadge status={task.status} /></td>
                   <td className="mono">{task.id.slice(0, 8)}…</td>
                   <td>{task.role}</td>
+                  <td>{task.attemptNumber ?? 1}</td>
                   <td>{task.objective || "—"}</td>
                   <td>{formatDate(task.startedAt)}</td>
                   <td>{formatDate(task.completedAt)}</td>

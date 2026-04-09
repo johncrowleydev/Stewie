@@ -30,10 +30,13 @@ export interface Job {
 export interface WorkTask {
   id: string;
   jobId: string;
+  parentTaskId: string | null;
+  attemptNumber: number;
   role: "developer" | "tester" | "researcher";
   status: TaskStatus;
   objective: string;
   scope: string | null;
+  governanceViolationsJson: string | null;
   workspacePath: string;
   createdAt: string;
   startedAt: string | null;
@@ -115,7 +118,11 @@ export type EventType =
   | "TaskCreated"
   | "TaskStarted"
   | "TaskCompleted"
-  | "TaskFailed";
+  | "TaskFailed"
+  | "GovernanceStarted"
+  | "GovernancePassed"
+  | "GovernanceFailed"
+  | "GovernanceRetry";
 
 /** Authenticated user from JWT token — CON-002 §4.0 */
 export interface AuthUser {
@@ -148,4 +155,26 @@ export interface AuthResponse {
 export interface GitHubStatus {
   connected: boolean;
   username: string | null;
+}
+
+/** Governance report — CON-002 §4.6 (v1.6.0) */
+export interface GovernanceReport {
+  id: string;
+  taskId: string;
+  passed: boolean;
+  totalChecks: number;
+  passedChecks: number;
+  failedChecks: number;
+  checks: GovernanceCheckResult[];
+  createdAt: string;
+}
+
+/** Individual governance check result — CON-002 §4.6 */
+export interface GovernanceCheckResult {
+  ruleId: string;
+  ruleName: string;
+  category: string;
+  passed: boolean;
+  details: string | null;
+  severity: "error" | "warning" | "info";
 }

@@ -20,6 +20,10 @@ const EVENT_COLORS: Record<EventType, string> = {
   TaskStarted: "var(--color-warning)",
   TaskCompleted: "var(--color-completed)",
   TaskFailed: "var(--color-failed)",
+  GovernanceStarted: "var(--color-warning)",
+  GovernancePassed: "var(--color-completed)",
+  GovernanceFailed: "var(--color-failed)",
+  GovernanceRetry: "var(--color-warning)",
 };
 
 /** Human-readable labels for event types */
@@ -32,6 +36,10 @@ const EVENT_LABELS: Record<EventType, string> = {
   TaskStarted: "Task Started",
   TaskCompleted: "Task Completed",
   TaskFailed: "Task Failed",
+  GovernanceStarted: "Governance Started",
+  GovernancePassed: "Governance Passed",
+  GovernanceFailed: "Governance Failed",
+  GovernanceRetry: "Governance Retry",
 };
 
 /** Entity type filter options */
