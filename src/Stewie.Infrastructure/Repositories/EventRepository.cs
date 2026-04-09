@@ -1,6 +1,6 @@
 /// <summary>
 /// NHibernate-backed repository for Event entities.
-/// REF: BLU-001 §7.2
+/// REF: BLU-001 §7.2, CON-002 §4.5
 /// </summary>
 using NHibernate.Linq;
 using Stewie.Application.Interfaces;
@@ -36,6 +36,18 @@ public class EventRepository : IEventRepository
         return await _unitOfWork.Session.Query<Event>()
             .Where(e => e.EntityType == entityType && e.EntityId == entityId)
             .OrderBy(e => e.Timestamp)
+            .ToListAsync();
+    }
+
+    /// <inheritdoc/>
+    public async Task<IList<Event>> GetRecentAsync(int limit = 100)
+    {
+        // Clamp limit to valid range per CON-002 §4.5
+        var clampedLimit = Math.Clamp(limit, 1, 500);
+
+        return await _unitOfWork.Session.Query<Event>()
+            .OrderByDescending(e => e.Timestamp)
+            .Take(clampedLimit)
             .ToListAsync();
     }
 }

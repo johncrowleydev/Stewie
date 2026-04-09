@@ -1,30 +1,54 @@
+/// <summary>
+/// TaskPacket — the JSON schema for task.json input to worker containers.
+/// REF: CON-001 §4.1, §4.3
+/// </summary>
 using System.Text.Json.Serialization;
 
 namespace Stewie.Domain.Contracts;
 
+/// <summary>
+/// Represents the task.json input file written by the orchestrator
+/// and read by worker containers. Conforms to CON-001 §4.
+/// </summary>
 public class TaskPacket
 {
+    /// <summary>Unique identifier for this task.</summary>
     [JsonPropertyName("taskId")]
     public Guid TaskId { get; set; }
 
+    /// <summary>Parent Run identifier.</summary>
     [JsonPropertyName("runId")]
     public Guid RunId { get; set; }
 
+    /// <summary>Agent role executing this task.</summary>
     [JsonPropertyName("role")]
     public string Role { get; set; } = string.Empty;
 
+    /// <summary>What the worker should accomplish.</summary>
     [JsonPropertyName("objective")]
     public string Objective { get; set; } = string.Empty;
 
+    /// <summary>Boundaries of the work.</summary>
     [JsonPropertyName("scope")]
     public string Scope { get; set; } = string.Empty;
 
+    /// <summary>File paths the worker may read/modify.</summary>
     [JsonPropertyName("allowedPaths")]
     public List<string> AllowedPaths { get; set; } = [];
 
+    /// <summary>File paths the worker must NOT touch.</summary>
     [JsonPropertyName("forbiddenPaths")]
     public List<string> ForbiddenPaths { get; set; } = [];
 
+    /// <summary>Conditions that must be met for success.</summary>
     [JsonPropertyName("acceptanceCriteria")]
     public List<string> AcceptanceCriteria { get; set; } = [];
+
+    /// <summary>Git repository URL to clone into workspace. Optional — Phase 2 field.</summary>
+    [JsonPropertyName("repoUrl")]
+    public string? RepoUrl { get; set; }
+
+    /// <summary>Branch name to create after clone. Optional — Phase 2 field.</summary>
+    [JsonPropertyName("branch")]
+    public string? Branch { get; set; }
 }
