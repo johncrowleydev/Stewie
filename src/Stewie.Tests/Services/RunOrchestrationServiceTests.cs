@@ -20,6 +20,8 @@ public class RunOrchestrationServiceTests
     private readonly IRunRepository _runRepository;
     private readonly IWorkTaskRepository _workTaskRepository;
     private readonly IArtifactRepository _artifactRepository;
+    private readonly IEventRepository _eventRepository;
+    private readonly IWorkspaceRepository _workspaceRepository;
     private readonly IWorkspaceService _workspaceService;
     private readonly IContainerService _containerService;
     private readonly IUnitOfWork _unitOfWork;
@@ -30,6 +32,8 @@ public class RunOrchestrationServiceTests
         _runRepository = Substitute.For<IRunRepository>();
         _workTaskRepository = Substitute.For<IWorkTaskRepository>();
         _artifactRepository = Substitute.For<IArtifactRepository>();
+        _eventRepository = Substitute.For<IEventRepository>();
+        _workspaceRepository = Substitute.For<IWorkspaceRepository>();
         _workspaceService = Substitute.For<IWorkspaceService>();
         _containerService = Substitute.For<IContainerService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
@@ -38,6 +42,8 @@ public class RunOrchestrationServiceTests
             _runRepository,
             _workTaskRepository,
             _artifactRepository,
+            _eventRepository,
+            _workspaceRepository,
             _workspaceService,
             _containerService,
             _unitOfWork,
