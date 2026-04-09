@@ -2,7 +2,7 @@
 id: JOB-008
 title: "Governance Rule Engine + Frontend"
 type: how-to
-status: ACTIVE
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, job, workflow, governance]
