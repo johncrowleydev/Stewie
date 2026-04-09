@@ -1,3 +1,8 @@
+/// <summary>
+/// Represents a top-level execution unit that orchestrates one or more WorkTasks.
+/// Optionally associated with a Project for grouping.
+/// REF: CON-002 §5.2, BLU-001 §3.1
+/// </summary>
 using Stewie.Domain.Enums;
 
 namespace Stewie.Domain.Entities;
@@ -5,7 +10,6 @@ namespace Stewie.Domain.Entities;
 /// <summary>
 /// Represents a top-level execution unit that orchestrates one or more WorkTasks.
 /// Optionally associated with a Project for grouping.
-/// REF: CON-002 §5.2, BLU-001 §3.1
 /// </summary>
 public class Run
 {
@@ -21,10 +25,18 @@ public class Run
     /// <summary>Current execution status.</summary>
     public virtual RunStatus Status { get; set; }
 
+    /// <summary>Git branch name created for this run. Null for test runs.</summary>
+    public virtual string? Branch { get; set; }
+
+    /// <summary>Summary of file changes (git diff --stat output). Null if no changes.</summary>
+    public virtual string? DiffSummary { get; set; }
+
+    /// <summary>Git commit SHA of the auto-committed worker changes. Null if no commit.</summary>
+    public virtual string? CommitSha { get; set; }
+
     /// <summary>Timestamp when the run was created.</summary>
     public virtual DateTime CreatedAt { get; set; }
 
     /// <summary>Timestamp when the run completed. Null if still in progress.</summary>
     public virtual DateTime? CompletedAt { get; set; }
 }
-

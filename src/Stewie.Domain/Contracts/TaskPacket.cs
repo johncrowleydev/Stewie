@@ -8,7 +8,7 @@ namespace Stewie.Domain.Contracts;
 
 /// <summary>
 /// Represents the task.json input file written by the orchestrator
-/// and read by worker containers. Conforms to CON-001 §4.
+/// and read by worker containers. Conforms to CON-001 v1.2.0 §4.
 /// </summary>
 public class TaskPacket
 {
@@ -44,11 +44,15 @@ public class TaskPacket
     [JsonPropertyName("acceptanceCriteria")]
     public List<string> AcceptanceCriteria { get; set; } = [];
 
-    /// <summary>Git repository URL to clone into workspace. Optional — Phase 2 field.</summary>
+    /// <summary>Git repository URL to clone into workspace. Optional.</summary>
     [JsonPropertyName("repoUrl")]
     public string? RepoUrl { get; set; }
 
-    /// <summary>Branch name to create after clone. Optional — Phase 2 field.</summary>
+    /// <summary>Branch name to create after clone. Optional.</summary>
     [JsonPropertyName("branch")]
     public string? Branch { get; set; }
+
+    /// <summary>Bash commands to execute sequentially in /workspace/repo/. Optional.</summary>
+    [JsonPropertyName("script")]
+    public List<string>? Script { get; set; }
 }
