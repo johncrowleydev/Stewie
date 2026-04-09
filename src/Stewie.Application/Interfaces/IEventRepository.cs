@@ -1,6 +1,6 @@
 /// <summary>
 /// Repository interface for Event entity persistence.
-/// REF: BLU-001 §7.2
+/// REF: BLU-001 §7.2, CON-002 §4.5
 /// </summary>
 using Stewie.Domain.Entities;
 
@@ -20,4 +20,9 @@ public interface IEventRepository
     /// <param name="entityId">The unique identifier of the entity.</param>
     /// <returns>Events ordered by timestamp ascending.</returns>
     Task<IList<Event>> GetByEntityAsync(string entityType, Guid entityId);
+
+    /// <summary>Retrieves the most recent events, ordered by timestamp descending.</summary>
+    /// <param name="limit">Maximum number of events to return (default 100, max 500).</param>
+    /// <returns>Events ordered by timestamp descending.</returns>
+    Task<IList<Event>> GetRecentAsync(int limit = 100);
 }
