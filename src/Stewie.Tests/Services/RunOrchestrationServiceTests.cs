@@ -23,8 +23,11 @@ public class RunOrchestrationServiceTests
     private readonly IEventRepository _eventRepository;
     private readonly IWorkspaceRepository _workspaceRepository;
     private readonly IProjectRepository _projectRepository;
+    private readonly IUserCredentialRepository _credentialRepository;
     private readonly IWorkspaceService _workspaceService;
     private readonly IContainerService _containerService;
+    private readonly IGitHubService _gitHubService;
+    private readonly IEncryptionService _encryptionService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly RunOrchestrationService _sut;
 
@@ -36,8 +39,11 @@ public class RunOrchestrationServiceTests
         _eventRepository = Substitute.For<IEventRepository>();
         _workspaceRepository = Substitute.For<IWorkspaceRepository>();
         _projectRepository = Substitute.For<IProjectRepository>();
+        _credentialRepository = Substitute.For<IUserCredentialRepository>();
         _workspaceService = Substitute.For<IWorkspaceService>();
         _containerService = Substitute.For<IContainerService>();
+        _gitHubService = Substitute.For<IGitHubService>();
+        _encryptionService = Substitute.For<IEncryptionService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
 
         _sut = new RunOrchestrationService(
@@ -47,8 +53,11 @@ public class RunOrchestrationServiceTests
             _eventRepository,
             _workspaceRepository,
             _projectRepository,
+            _credentialRepository,
             _workspaceService,
             _containerService,
+            _gitHubService,
+            _encryptionService,
             _unitOfWork,
             NullLogger<RunOrchestrationService>.Instance,
             "stewie-script-worker");
