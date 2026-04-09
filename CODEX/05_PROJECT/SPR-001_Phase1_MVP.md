@@ -2,7 +2,7 @@
 id: SPR-001
 title: "Phase 1 MVP — Core Entities, API Endpoints, Dashboard & Tests"
 type: how-to
-status: PLANNING
+status: ACTIVE
 owner: architect
 agents: [coder]
 tags: [project-management, sprint, workflow]
@@ -89,7 +89,7 @@ T-009: Task endpoints
 - **Acceptance criteria:**
   - Project entity persists to SQL Server
   - Build succeeds: `dotnet build src/Stewie.Api/Stewie.Api.csproj`
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-002: Event Entity
 - **Dependencies:** None
@@ -105,7 +105,7 @@ T-009: Task endpoints
 - **Acceptance criteria:**
   - Event entity persists to SQL Server
   - Build succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-003: Workspace Entity
 - **Dependencies:** None
@@ -121,7 +121,7 @@ T-009: Task endpoints
 - **Acceptance criteria:**
   - Workspace entity persists to SQL Server
   - Build succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-004: Link Run to Project
 - **Dependencies:** T-001
@@ -134,7 +134,7 @@ T-009: Task endpoints
   - Run can optionally be associated with a Project
   - Existing runs (null ProjectId) still work
   - Build succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-005: Standardized Error Middleware
 - **Dependencies:** None
@@ -147,7 +147,7 @@ T-009: Task endpoints
   - 404s return `NOT_FOUND` error format
   - Validation errors return `VALIDATION_ERROR` format
   - Build succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-006: Health Endpoint
 - **Dependencies:** None
@@ -160,7 +160,7 @@ T-009: Task endpoints
   - `GET /health` returns 200 with correct JSON shape
   - No authentication required
   - Build succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-007: Project CRUD Endpoints
 - **Dependencies:** T-001
@@ -176,7 +176,7 @@ T-009: Task endpoints
   - POST validates required fields
   - GET /{id} returns 404 for missing projects (using error format from T-005)
   - Build succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-008: Run Endpoints (Enhanced)
 - **Dependencies:** T-004
@@ -191,7 +191,7 @@ T-009: Task endpoints
   - All endpoints return correct JSON per CON-002 §5.2
   - GET /{id} includes tasks array
   - Build succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ### T-009: Task Endpoints
 - **Dependencies:** None (uses existing WorkTask entity)
@@ -203,7 +203,7 @@ T-009: Task endpoints
 - **Acceptance criteria:**
   - All endpoints return correct JSON per CON-002 §5.3
   - Build succeeds
-- **Status:** [ ] Not Started
+- **Status:** [x] Complete — merged to main
 
 ---
 
@@ -323,15 +323,15 @@ T-009: Task endpoints
 
 | Task | Agent | Status | Description |
 |:-----|:------|:-------|:------------|
-| T-001 | A | [ ] | Project entity |
-| T-002 | A | [ ] | Event entity |
-| T-003 | A | [ ] | Workspace entity |
-| T-004 | A | [ ] | Link Run→Project |
-| T-005 | A | [ ] | Error middleware |
-| T-006 | A | [ ] | Health endpoint |
-| T-007 | A | [ ] | Project CRUD |
-| T-008 | A | [ ] | Run endpoints |
-| T-009 | A | [ ] | Task endpoints |
+| T-001 | A | [x] | Project entity |
+| T-002 | A | [x] | Event entity |
+| T-003 | A | [x] | Workspace entity |
+| T-004 | A | [x] | Link Run→Project |
+| T-005 | A | [x] | Error middleware |
+| T-006 | A | [x] | Health endpoint |
+| T-007 | A | [x] | Project CRUD |
+| T-008 | A | [x] | Run endpoints |
+| T-009 | A | [x] | Task endpoints |
 | T-010 | B | [ ] | Test project setup |
 | T-011 | B | [ ] | Tests: RunOrchestrationService |
 | T-012 | B | [ ] | Tests: WorkspaceService |
@@ -374,7 +374,15 @@ T-009: Task endpoints
 
 ## Audit Notes (Architect)
 
-[Architect fills this in during audit.]
+### Agent A Audit (2026-04-09)
+- **Audit report:** `40_VERIFICATION/VER-001_SPR-001_Agent_A_Audit.md`
+- Build: ✅ 0 errors
+- Governance: ✅ All 8 GOV docs compliant
+- Contract: ✅ All 10 CON-002 endpoints verified
+- Code quality: High — consistent patterns, full XML doc coverage, structured logging
+- **Verdict:** PASS
+- **Merged to main:** commit `979425c`
 
+### Agent B Audit
 **Verdict:** PENDING
-**Deploy approved:** NO
+**Deploy approved:** NO (waiting for Agent B)
