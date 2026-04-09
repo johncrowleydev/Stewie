@@ -8,6 +8,7 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { RunsPage } from "./pages/RunsPage";
 import { RunDetailPage } from "./pages/RunDetailPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
+import { EventsPage } from "./pages/EventsPage";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/runs" element={<RunsPage />} />
         <Route path="/runs/:id" element={<RunDetailPage />} />
         <Route path="/projects" element={<ProjectsPage />} />
+        <Route path="/events" element={<EventsPage />} />
       </Route>
     </Routes>
   );

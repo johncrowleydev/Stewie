@@ -60,3 +60,24 @@ export type RunStatus = "Pending" | "Running" | "Completed" | "Failed";
 
 /** Status enum values for Tasks */
 export type TaskStatus = "Pending" | "Running" | "Completed" | "Failed";
+
+/** Event entity — CON-002 §5.5 */
+export interface Event {
+  id: string;
+  entityType: "Run" | "Task";
+  entityId: string;
+  eventType: EventType;
+  payload: string;
+  timestamp: string;
+}
+
+/** Event type classification — mirrors Stewie.Domain.Enums.EventType */
+export type EventType =
+  | "RunCreated"
+  | "RunStarted"
+  | "RunCompleted"
+  | "RunFailed"
+  | "TaskCreated"
+  | "TaskStarted"
+  | "TaskCompleted"
+  | "TaskFailed";
