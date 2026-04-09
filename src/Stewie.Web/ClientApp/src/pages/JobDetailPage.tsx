@@ -1,18 +1,23 @@
 /**
- * JobDetailPage — Displays a single job with tasks, git info, diff viewer,
- * and events mini-timeline.
+ * JobDetailPage — Displays a single job with task chain timeline, governance reports,
+ * git info, diff viewer, and events mini-timeline.
  *
- * Shows: branch badge, commit SHA, diff summary, expandable color-coded diff viewer.
- * Fetches from GET /api/jobs/{id} (CON-002 §4.2) and
- * GET /api/events?entityType=Job&entityId={id} (CON-002 §4.5).
+ * T-076: Task chain as vertical timeline (dev → tester → dev retry → tester)
+ * T-077: Inline GovernanceReportPanel for tester tasks
  *
- * REF: CON-002 §5.2, §5.6
+ * Fetches:
+ * - GET /api/jobs/{id} (CON-002 §4.2)
+ * - GET /api/events?entityType=Job&entityId={id} (CON-002 §4.5)
+ * - GET /api/tasks/{taskId}/governance (CON-002 §4.6) — per tester task
+ *
+ * REF: CON-002 §5.2, §5.6, §4.6
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
-import { fetchJob, fetchEventsByEntity } from "../api/client";
+import { fetchJob, fetchEventsByEntity, fetchTaskGovernance } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
-import type { Job, Event, EventType, Artifact, DiffContent } from "../types";
+import { GovernanceReportPanel } from "../components/GovernanceReportPanel";
+import type { Job, Event, EventType, Artifact, DiffContent, GovernanceReport, WorkTask } from "../types";
 
 /** Maps event types to display colors */
 const EVENT_COLORS: Record<EventType, string> = {
@@ -46,9 +51,15 @@ const EVENT_SHORT_LABELS: Record<EventType, string> = {
   GovernanceRetry: "Gov Retry",
 };
 
+/** Role icons for the task chain timeline */
+const ROLE_ICONS: Record<string, string> = {
+  developer: "🔧",
+  tester: "🔍",
+  researcher: "🔬",
+};
+
 /**
  * Renders a color-coded diff patch — green for added lines, red for removed.
- * Each line is styled individually for readability.
  */
 function DiffViewer({ patch }: { patch: string }) {
   const lines = patch.split("\n");
@@ -69,7 +80,132 @@ function DiffViewer({ patch }: { patch: string }) {
   );
 }
 
-/** Job detail page with metadata cards, git info, diff viewer, tasks table, and events */
+/**
+ * Computes a human-readable duration between two ISO timestamps.
+ */
+function formatDuration(start: string | null, end: string | null): string {
+  if (!start) return "—";
+  const startMs = new Date(start).getTime();
+  const endMs = end ? new Date(end).getTime() : Date.now();
+  const diffSec = Math.floor((endMs - startMs) / 1000);
+  if (diffSec < 60) return `${diffSec}s`;
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ${diffSec % 60}s`;
+  return `${Math.floor(diffSec / 3600)}h ${Math.floor((diffSec % 3600) / 60)}m`;
+}
+
+/**
+ * TaskChainTimeline — Renders the task chain as a vertical timeline.
+ * Each node shows: role icon, status badge, attempt number, duration.
+ * Clicking a tester node toggles the GovernanceReportPanel below it.
+ */
+function TaskChainTimeline({ tasks }: { tasks: WorkTask[] }) {
+  const [expandedTask, setExpandedTask] = useState<string | null>(null);
+  const [reports, setReports] = useState<Record<string, GovernanceReport | null>>({});
+  const [reportLoading, setReportLoading] = useState<Record<string, boolean>>({});
+  const [reportErrors, setReportErrors] = useState<Record<string, string | null>>({});
+
+  /** Toggle governance report for a tester task */
+  const toggleGovernance = useCallback(async (task: WorkTask) => {
+    if (task.role !== "tester") return;
+
+    const taskId = task.id;
+    if (expandedTask === taskId) {
+      setExpandedTask(null);
+      return;
+    }
+
+    setExpandedTask(taskId);
+
+    // Only fetch if not already cached
+    if (reports[taskId] !== undefined) return;
+
+    setReportLoading((prev) => ({ ...prev, [taskId]: true }));
+    try {
+      const report = await fetchTaskGovernance(taskId);
+      setReports((prev) => ({ ...prev, [taskId]: report }));
+      setReportErrors((prev) => ({ ...prev, [taskId]: null }));
+    } catch (err) {
+      setReports((prev) => ({ ...prev, [taskId]: null }));
+      setReportErrors((prev) => ({
+        ...prev,
+        [taskId]: err instanceof Error ? err.message : "Failed to load governance report",
+      }));
+    } finally {
+      setReportLoading((prev) => ({ ...prev, [taskId]: false }));
+    }
+  }, [expandedTask, reports]);
+
+  return (
+    <div className="task-chain" id="task-chain-timeline">
+      {tasks.map((task, idx) => {
+        const isLast = idx === tasks.length - 1;
+        const isTester = task.role === "tester";
+        const isExpanded = expandedTask === task.id;
+        const statusClass = task.status.toLowerCase();
+
+        return (
+          <div className="task-chain-node" key={task.id} id={`chain-node-${task.id}`}>
+            {/* Connector line */}
+            {!isLast && <div className="task-chain-connector" />}
+
+            {/* Node dot */}
+            <div className={`task-chain-dot task-chain-dot--${statusClass}`}>
+              <span className="task-chain-dot-icon">{ROLE_ICONS[task.role] || "📦"}</span>
+            </div>
+
+            {/* Node content */}
+            <div
+              className={`task-chain-content ${isTester ? "task-chain-content--clickable" : ""}`}
+              onClick={() => { if (isTester) void toggleGovernance(task); }}
+              role={isTester ? "button" : undefined}
+              tabIndex={isTester ? 0 : undefined}
+              aria-expanded={isTester ? isExpanded : undefined}
+            >
+              <div className="task-chain-header">
+                <span className="task-chain-role">
+                  {task.role.charAt(0).toUpperCase() + task.role.slice(1)}
+                </span>
+                <StatusBadge status={task.status} />
+                {(task.attemptNumber ?? 1) > 1 && (
+                  <span className="task-chain-attempt">
+                    Attempt {task.attemptNumber}
+                  </span>
+                )}
+                {isTester && (
+                  <span className="task-chain-expand-hint">
+                    {isExpanded ? "▼ Hide Report" : "▶ View Report"}
+                  </span>
+                )}
+              </div>
+              <div className="task-chain-meta">
+                <span className="mono task-chain-id">{task.id.slice(0, 8)}…</span>
+                <span className="task-chain-duration">
+                  {formatDuration(task.startedAt, task.completedAt)}
+                </span>
+                {task.objective && (
+                  <span className="task-chain-objective">{task.objective}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Governance Report Panel (expands below tester nodes) */}
+            {isTester && isExpanded && (
+              <div className="task-chain-governance">
+                <GovernanceReportPanel
+                  report={reports[task.id] ?? null}
+                  loading={reportLoading[task.id]}
+                  error={reportErrors[task.id]}
+                />
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Job detail page with metadata cards, task chain timeline, diff viewer, and events */
 export function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [job, setJob] = useState<Job | null>(null);
@@ -168,6 +304,8 @@ export function JobDetailPage() {
   }
 
   const diffContent = getDiffContent();
+  const hasTasks = job.tasks && job.tasks.length > 0;
+  const hasMultipleTasks = job.tasks && job.tasks.length > 1;
 
   return (
     <div id="job-detail-page">
@@ -230,7 +368,40 @@ export function JobDetailPage() {
         )}
       </div>
 
-      {/* Diff Summary + Viewer (T-033) */}
+      {/* Task Chain Timeline (T-076) */}
+      <h2 className="section-heading">
+        Task Chain ({job.tasks?.length ?? 0})
+      </h2>
+
+      {!hasTasks ? (
+        <div className="empty-state">
+          <div className="empty-icon">📦</div>
+          <h3>No tasks</h3>
+          <p>This job has no associated tasks.</p>
+        </div>
+      ) : hasMultipleTasks ? (
+        /* Multi-task: render vertical timeline */
+        <TaskChainTimeline tasks={job.tasks} />
+      ) : (
+        /* Single task: render compact card */
+        <div className="card" style={{ marginBottom: "var(--space-xl)" }}>
+          <div className="task-chain-single">
+            <span className="task-chain-dot-icon">{ROLE_ICONS[job.tasks[0].role] || "📦"}</span>
+            <StatusBadge status={job.tasks[0].status} />
+            <span className="task-chain-role">
+              {job.tasks[0].role.charAt(0).toUpperCase() + job.tasks[0].role.slice(1)}
+            </span>
+            <span className="mono" style={{ fontSize: "var(--font-size-xs)" }}>
+              {job.tasks[0].id.slice(0, 8)}…
+            </span>
+            <span className="task-chain-duration">
+              {formatDuration(job.tasks[0].startedAt, job.tasks[0].completedAt)}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Diff Summary + Viewer */}
       {(job.diffSummary || diffContent) && (
         <>
           <h2 className="section-heading">Changes</h2>
@@ -284,47 +455,6 @@ export function JobDetailPage() {
             </div>
           </div>
         </>
-      )}
-
-      <h2 className="section-heading">
-        Tasks ({job.tasks?.length ?? 0})
-      </h2>
-
-      {(!job.tasks || job.tasks.length === 0) ? (
-        <div className="empty-state">
-          <div className="empty-icon">📦</div>
-          <h3>No tasks</h3>
-          <p>This job has no associated tasks.</p>
-        </div>
-      ) : (
-        <div className="card">
-          <table className="data-table" id="tasks-table">
-            <thead>
-              <tr>
-                <th>Status</th>
-                <th>Task ID</th>
-                <th>Role</th>
-                <th>Attempt</th>
-                <th>Objective</th>
-                <th>Started</th>
-                <th>Completed</th>
-              </tr>
-            </thead>
-            <tbody>
-              {job.tasks.map((task) => (
-                <tr key={task.id} id={`task-row-${task.id}`}>
-                  <td><StatusBadge status={task.status} /></td>
-                  <td className="mono">{task.id.slice(0, 8)}…</td>
-                  <td>{task.role}</td>
-                  <td>{task.attemptNumber ?? 1}</td>
-                  <td>{task.objective || "—"}</td>
-                  <td>{formatDate(task.startedAt)}</td>
-                  <td>{formatDate(task.completedAt)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       )}
     </div>
   );

@@ -1358,3 +1358,454 @@ textarea.form-input {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* ======================================================================
+ * Task Chain Timeline — T-076
+ * Vertical timeline showing dev → tester → retry → tester flow
+ * ====================================================================== */
+
+.task-chain {
+  position: relative;
+  padding: var(--space-md) 0;
+  margin-bottom: var(--space-xl);
+}
+
+.task-chain-node {
+  position: relative;
+  display: flex;
+  gap: var(--space-md);
+  padding-bottom: var(--space-lg);
+}
+
+.task-chain-node:last-child {
+  padding-bottom: 0;
+}
+
+/* Vertical connector line between nodes */
+.task-chain-connector {
+  position: absolute;
+  left: 19px;
+  top: 40px;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-border);
+  opacity: 0.5;
+}
+
+/* Node dot with role icon */
+.task-chain-dot {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-border);
+  background: var(--bg-card);
+  z-index: 1;
+  transition: all 0.2s ease;
+}
+
+.task-chain-dot--completed {
+  border-color: var(--color-completed);
+  box-shadow: 0 0 0 3px rgba(111, 172, 80, 0.15);
+}
+
+.task-chain-dot--failed {
+  border-color: var(--color-failed);
+  box-shadow: 0 0 0 3px rgba(229, 72, 77, 0.15);
+}
+
+.task-chain-dot--running {
+  border-color: var(--color-warning);
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
+  animation: pulse-ring 2s ease-in-out infinite;
+}
+
+.task-chain-dot--pending {
+  border-color: var(--color-border);
+  opacity: 0.6;
+}
+
+.task-chain-dot-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Node content */
+.task-chain-content {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  transition: all 0.2s ease;
+}
+
+.task-chain-content--clickable {
+  cursor: pointer;
+}
+
+.task-chain-content--clickable:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 8px rgba(111, 172, 80, 0.1);
+}
+
+.task-chain-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.task-chain-role {
+  font-weight: 600;
+  font-size: var(--font-size-md);
+  color: var(--text-primary);
+}
+
+.task-chain-attempt {
+  font-size: var(--font-size-xs);
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(245, 166, 35, 0.15);
+  color: var(--color-warning);
+  font-weight: 600;
+}
+
+.task-chain-expand-hint {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin-left: auto;
+}
+
+.task-chain-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-xs);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+.task-chain-id {
+  font-size: var(--font-size-xs);
+}
+
+.task-chain-duration {
+  font-size: var(--font-size-xs);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+}
+
+.task-chain-objective {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Governance report expansion area */
+.task-chain-governance {
+  margin-left: 56px;
+  margin-top: var(--space-sm);
+  animation: slideDown 0.2s ease-out;
+}
+
+/* Single task compact view */
+.task-chain-single {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-ring {
+  0%, 100% {
+    box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(245, 166, 35, 0.05);
+  }
+}
+
+/* ======================================================================
+ * GovernanceReportPanel — T-077
+ * Verdict badge, progress bar, category groups, expandable rule details
+ * ====================================================================== */
+
+.governance-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.governance-panel--empty,
+.governance-panel--error {
+  padding: var(--space-lg);
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.governance-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  color: var(--color-failed);
+}
+
+.governance-error-icon {
+  font-size: 20px;
+}
+
+.governance-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+.governance-empty-icon {
+  font-size: 20px;
+}
+
+/* Verdict header */
+.governance-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.governance-verdict {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+}
+
+.governance-verdict--pass {
+  background: rgba(111, 172, 80, 0.12);
+  color: var(--color-completed);
+}
+
+.governance-verdict--fail {
+  background: rgba(229, 72, 77, 0.12);
+  color: var(--color-failed);
+}
+
+.governance-verdict-icon {
+  font-size: 22px;
+}
+
+.governance-stats-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Progress bar */
+.governance-progress {
+  height: 6px;
+  background: var(--bg-secondary);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: var(--space-lg);
+}
+
+.governance-progress-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease-out;
+}
+
+/* Category groups */
+.governance-category {
+  margin-bottom: var(--space-md);
+}
+
+.governance-category:last-child {
+  margin-bottom: 0;
+}
+
+.governance-category-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) 0;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-xs);
+}
+
+.governance-category-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.governance-category-icon.pass {
+  background: rgba(111, 172, 80, 0.15);
+  color: var(--color-completed);
+}
+
+.governance-category-icon.fail {
+  background: rgba(229, 72, 77, 0.15);
+  color: var(--color-failed);
+}
+
+.governance-category-name {
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+}
+
+.governance-category-id {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+.governance-category-count {
+  margin-left: auto;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+/* Individual rules */
+.governance-rules {
+  padding-left: var(--space-xs);
+}
+
+.governance-rule {
+  border-left: 2px solid transparent;
+  margin-bottom: 2px;
+}
+
+.governance-rule--pass {
+  border-left-color: var(--color-completed);
+}
+
+.governance-rule--fail {
+  border-left-color: var(--color-failed);
+}
+
+.governance-rule-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+}
+
+.governance-rule--fail .governance-rule-row {
+  cursor: pointer;
+}
+
+.governance-rule--fail .governance-rule-row:hover {
+  background: rgba(229, 72, 77, 0.05);
+}
+
+.governance-rule-icon {
+  font-size: 12px;
+  font-weight: 700;
+  width: 16px;
+  text-align: center;
+}
+
+.governance-rule--pass .governance-rule-icon {
+  color: var(--color-completed);
+}
+
+.governance-rule--fail .governance-rule-icon {
+  color: var(--color-failed);
+}
+
+.governance-rule-name {
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+}
+
+.governance-rule-id {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.governance-severity {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 999px;
+  letter-spacing: 0.5px;
+}
+
+.governance-severity--error {
+  background: rgba(229, 72, 77, 0.12);
+  color: var(--color-failed);
+}
+
+.governance-severity--warning {
+  background: rgba(245, 166, 35, 0.12);
+  color: var(--color-warning);
+}
+
+.governance-severity--info {
+  background: rgba(59, 130, 246, 0.12);
+  color: var(--color-running);
+}
+
+.governance-rule-expand {
+  margin-left: auto;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+/* Expandable details */
+.governance-rule-details {
+  padding: var(--space-sm) var(--space-md);
+  margin: var(--space-xs) 0 var(--space-sm) var(--space-lg);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  animation: slideDown 0.15s ease-out;
+}
+
+.governance-rule-details pre {
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+  line-height: 1.5;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
