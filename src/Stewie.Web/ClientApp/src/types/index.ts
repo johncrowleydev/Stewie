@@ -11,22 +11,27 @@ export interface Project {
   createdAt: string;
 }
 
-/** Run entity — CON-002 §5.2 */
+/** Run entity — CON-002 §5.2 (v1.2.0) */
 export interface Run {
   id: string;
   projectId: string | null;
   status: RunStatus;
+  branch: string | null;
+  diffSummary: string | null;
+  commitSha: string | null;
   createdAt: string;
   completedAt: string | null;
   tasks: WorkTask[];
 }
 
-/** Task entity — CON-002 §5.3 */
+/** Task entity — CON-002 §5.3 (v1.2.0) */
 export interface WorkTask {
   id: string;
   runId: string;
   role: "developer" | "tester" | "researcher";
   status: TaskStatus;
+  objective: string;
+  scope: string | null;
   workspacePath: string;
   createdAt: string;
   startedAt: string | null;
@@ -53,6 +58,30 @@ export interface ApiError {
 export interface CreateProjectRequest {
   name: string;
   repoUrl: string;
+}
+
+/** Create run request body — CON-002 §4.2 (v1.2.0) */
+export interface CreateRunRequest {
+  projectId: string;
+  objective: string;
+  scope?: string | null;
+  script?: string[] | null;
+  acceptanceCriteria?: string[] | null;
+}
+
+/** Artifact entity — CON-002 §5.6 */
+export interface Artifact {
+  id: string;
+  taskId: string;
+  type: string;
+  contentJson?: string;
+  createdAt: string;
+}
+
+/** Diff artifact content — CON-002 §5.6 */
+export interface DiffContent {
+  diffStat: string;
+  diffPatch: string;
 }
 
 /** Status enum values for Runs */

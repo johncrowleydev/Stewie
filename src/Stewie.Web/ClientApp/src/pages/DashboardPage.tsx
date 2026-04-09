@@ -1,44 +1,30 @@
 /**
- * DashboardPage — Overview page with summary stats.
- * Fetches run data to compute stats. Handles loading, error, and empty states.
+ * DashboardPage — Overview page with summary stats and auto-refresh.
+ * Polls GET /api/runs every 5s for live updates.
+ * Shows "New Run" button accessible from the dashboard.
  */
-import { useEffect, useState } from "react";
+import { useCallback } from "react";
+import { Link } from "react-router-dom";
 import { fetchRuns } from "../api/client";
 import type { Run } from "../types";
+import { usePolling } from "../hooks/usePolling";
 
-/** Dashboard overview with summary statistics cards */
+/** Polling interval for dashboard data */
+const DASHBOARD_POLL_MS = 5000;
+
+/** Dashboard overview with summary statistics cards and auto-refresh */
 export function DashboardPage() {
-  const [runs, setRuns] = useState<Run[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const fetchRunsFn = useCallback(() => fetchRuns(), []);
+  const { data: runs, loading, polling, error } = usePolling<Run[]>(
+    fetchRunsFn,
+    DASHBOARD_POLL_MS
+  );
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadData() {
-      try {
-        const data = await fetchRuns();
-        if (!cancelled) {
-          setRuns(data);
-          setError(null);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load dashboard data");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    void loadData();
-    return () => { cancelled = true; };
-  }, []);
-
-  const totalRuns = runs.length;
-  const completedRuns = runs.filter((r) => r.status === "Completed").length;
-  const failedRuns = runs.filter((r) => r.status === "Failed").length;
-  const runningRuns = runs.filter((r) => r.status === "Running").length;
+  const runList = runs ?? [];
+  const totalRuns = runList.length;
+  const completedRuns = runList.filter((r) => r.status === "Completed").length;
+  const failedRuns = runList.filter((r) => r.status === "Failed").length;
+  const runningRuns = runList.filter((r) => r.status === "Running").length;
   const passRate = totalRuns > 0 ? Math.round((completedRuns / totalRuns) * 100) : 0;
 
   if (loading) {
@@ -53,7 +39,7 @@ export function DashboardPage() {
     );
   }
 
-  if (error) {
+  if (error && !runs) {
     return (
       <div className="error-state">
         <h3>Unable to load dashboard</h3>
@@ -64,6 +50,21 @@ export function DashboardPage() {
 
   return (
     <div id="dashboard-page">
+      <div className="page-title-row">
+        <h1>Dashboard</h1>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
+          {polling && (
+            <span className="live-indicator" id="dashboard-live">
+              <span className="live-dot" />
+              Live
+            </span>
+          )}
+          <Link to="/runs/new" className="btn btn-primary" id="dashboard-new-run">
+            + New Run
+          </Link>
+        </div>
+      </div>
+
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-icon blue">⚡</div>
@@ -90,7 +91,7 @@ export function DashboardPage() {
         </div>
       </div>
 
-      {runs.length > 0 && (
+      {runList.length > 0 && (
         <div className="card">
           <div className="card-header">
             <span className="card-title">Recent Runs</span>
@@ -104,7 +105,7 @@ export function DashboardPage() {
               </tr>
             </thead>
             <tbody>
-              {runs.slice(0, 5).map((run) => (
+              {runList.slice(0, 5).map((run) => (
                 <tr key={run.id}>
                   <td>
                     <span className={`status-badge ${run.status.toLowerCase()}`}>
@@ -121,7 +122,7 @@ export function DashboardPage() {
         </div>
       )}
 
-      {runs.length === 0 && (
+      {runList.length === 0 && (
         <div className="empty-state">
           <div className="empty-icon">🐢</div>
           <h3>No runs yet</h3>

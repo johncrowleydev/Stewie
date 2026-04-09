@@ -1,43 +1,28 @@
 /**
- * RunsPage — Lists all runs with status badges.
- * Fetches from GET /api/runs (CON-002 §4.2).
+ * RunsPage — Lists all runs with status badges and auto-refresh.
+ * Polls GET /api/runs every 5s (CON-002 §4.2).
  * Click a row to navigate to run detail page.
  */
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { fetchRuns } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
 import type { Run } from "../types";
+import { usePolling } from "../hooks/usePolling";
 
-/** Runs list page with sortable table and navigation */
+/** Polling interval for runs list */
+const RUNS_POLL_MS = 5000;
+
+/** Runs list page with auto-refresh and navigation */
 export function RunsPage() {
-  const [runs, setRuns] = useState<Run[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const fetchRunsFn = useCallback(() => fetchRuns(), []);
+  const { data: runs, loading, polling, error } = usePolling<Run[]>(
+    fetchRunsFn,
+    RUNS_POLL_MS
+  );
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadRuns() {
-      try {
-        const data = await fetchRuns();
-        if (!cancelled) {
-          setRuns(data);
-          setError(null);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load runs");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    void loadRuns();
-    return () => { cancelled = true; };
-  }, []);
+  const runList = runs ?? [];
 
   /** Format an ISO date string to a human-readable local string */
   function formatDate(dateStr: string | null): string {
@@ -60,7 +45,7 @@ export function RunsPage() {
     );
   }
 
-  if (error) {
+  if (error && !runs) {
     return (
       <div>
         <div className="page-title-row">
@@ -78,10 +63,21 @@ export function RunsPage() {
     <div id="runs-page">
       <div className="page-title-row">
         <h1>Runs</h1>
-        <span className="card-label">{runs.length} total</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
+          {polling && (
+            <span className="live-indicator" id="runs-live">
+              <span className="live-dot" />
+              Live
+            </span>
+          )}
+          <span className="card-label">{runList.length} total</span>
+          <Link to="/runs/new" className="btn btn-primary" id="runs-new-run">
+            + New Run
+          </Link>
+        </div>
       </div>
 
-      {runs.length === 0 ? (
+      {runList.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">📋</div>
           <h3>No runs found</h3>
@@ -101,7 +97,7 @@ export function RunsPage() {
               </tr>
             </thead>
             <tbody>
-              {runs.map((run) => (
+              {runList.map((run) => (
                 <tr
                   key={run.id}
                   className="clickable"

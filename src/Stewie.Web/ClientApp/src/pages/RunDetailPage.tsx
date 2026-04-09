@@ -1,14 +1,18 @@
 /**
- * RunDetailPage — Displays a single run with its tasks and events mini-timeline.
+ * RunDetailPage — Displays a single run with tasks, git info, diff viewer,
+ * and events mini-timeline.
+ *
+ * Shows: branch badge, commit SHA, diff summary, expandable color-coded diff viewer.
  * Fetches from GET /api/runs/{id} (CON-002 §4.2) and
  * GET /api/events?entityType=Run&entityId={id} (CON-002 §4.5).
- * Shows run metadata, tasks table, and lifecycle event timeline.
+ *
+ * REF: CON-002 §5.2, §5.6
  */
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchRun, fetchEventsByEntity } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
-import type { Run, Event, EventType } from "../types";
+import type { Run, Event, EventType, Artifact, DiffContent } from "../types";
 
 /** Maps event types to display colors */
 const EVENT_COLORS: Record<EventType, string> = {
@@ -34,13 +38,37 @@ const EVENT_SHORT_LABELS: Record<EventType, string> = {
   TaskFailed: "Task Failed",
 };
 
-/** Run detail page with metadata cards, tasks table, and events mini-timeline */
+/**
+ * Renders a color-coded diff patch — green for added lines, red for removed.
+ * Each line is styled individually for readability.
+ */
+function DiffViewer({ patch }: { patch: string }) {
+  const lines = patch.split("\n");
+  return (
+    <pre className="diff-viewer" id="diff-viewer">
+      {lines.map((line, i) => {
+        let className = "diff-line";
+        if (line.startsWith("+") && !line.startsWith("+++")) className += " diff-add";
+        else if (line.startsWith("-") && !line.startsWith("---")) className += " diff-del";
+        else if (line.startsWith("@@")) className += " diff-hunk";
+        return (
+          <div key={i} className={className}>
+            {line}
+          </div>
+        );
+      })}
+    </pre>
+  );
+}
+
+/** Run detail page with metadata cards, git info, diff viewer, tasks table, and events */
 export function RunDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [run, setRun] = useState<Run | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [diffExpanded, setDiffExpanded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -54,12 +82,12 @@ export function RunDetailPage() {
           setError(null);
         }
 
-        // Fetch events — soft dependency, don't fail the page if unavailable
+        // Fetch events — soft dependency
         try {
           const eventData = await fetchEventsByEntity("Run", id);
           if (!cancelled) setEvents(eventData);
         } catch {
-          // Events endpoint may not exist yet — ignore
+          // Events endpoint may not exist yet
         }
       } catch (err) {
         if (!cancelled) {
@@ -89,6 +117,24 @@ export function RunDetailPage() {
     });
   }
 
+  /** Try to parse a diff artifact from the run's tasks */
+  function getDiffContent(): DiffContent | null {
+    if (!run?.tasks) return null;
+    for (const task of run.tasks) {
+      const artifacts = (task as unknown as { artifacts?: Artifact[] }).artifacts;
+      if (!artifacts) continue;
+      const diffArtifact = artifacts.find((a) => a.type === "diff");
+      if (diffArtifact?.contentJson) {
+        try {
+          return JSON.parse(diffArtifact.contentJson) as DiffContent;
+        } catch {
+          // Invalid JSON — ignore
+        }
+      }
+    }
+    return null;
+  }
+
   if (loading) {
     return (
       <div>
@@ -113,6 +159,8 @@ export function RunDetailPage() {
     );
   }
 
+  const diffContent = getDiffContent();
+
   return (
     <div id="run-detail-page">
       <Link to="/runs" className="back-link" id="back-to-runs">
@@ -122,6 +170,11 @@ export function RunDetailPage() {
       <div className="detail-header">
         <h1>Run</h1>
         <StatusBadge status={run.status} />
+        {run.branch && (
+          <span className="branch-badge" id="run-branch-badge">
+            🌿 {run.branch}
+          </span>
+        )}
       </div>
 
       <div className="detail-meta">
@@ -147,9 +200,42 @@ export function RunDetailPage() {
             <div className="meta-value mono">{run.projectId}</div>
           </div>
         )}
+        {run.commitSha && (
+          <div className="meta-item">
+            <div className="meta-label">Commit</div>
+            <div className="meta-value mono">{run.commitSha.slice(0, 12)}</div>
+          </div>
+        )}
       </div>
 
-      {/* Events Mini-Timeline (T-026) */}
+      {/* Diff Summary + Viewer (T-033) */}
+      {(run.diffSummary || diffContent) && (
+        <>
+          <h2 className="section-heading">Changes</h2>
+          <div className="card" style={{ marginBottom: "var(--space-xl)" }}>
+            {run.diffSummary && (
+              <div className="diff-summary" id="diff-summary">
+                <pre>{run.diffSummary}</pre>
+              </div>
+            )}
+            {diffContent?.diffPatch && (
+              <div>
+                <button
+                  className="btn btn-ghost"
+                  onClick={() => setDiffExpanded(!diffExpanded)}
+                  id="toggle-diff-btn"
+                  style={{ marginTop: "var(--space-sm)" }}
+                >
+                  {diffExpanded ? "▼ Hide full diff" : "▶ Show full diff"}
+                </button>
+                {diffExpanded && <DiffViewer patch={diffContent.diffPatch} />}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Events Mini-Timeline */}
       {events.length > 0 && (
         <>
           <h2 className="section-heading">Lifecycle Events</h2>
@@ -196,7 +282,7 @@ export function RunDetailPage() {
                 <th>Status</th>
                 <th>Task ID</th>
                 <th>Role</th>
-                <th>Workspace</th>
+                <th>Objective</th>
                 <th>Started</th>
                 <th>Completed</th>
               </tr>
@@ -207,7 +293,7 @@ export function RunDetailPage() {
                   <td><StatusBadge status={task.status} /></td>
                   <td className="mono">{task.id.slice(0, 8)}…</td>
                   <td>{task.role}</td>
-                  <td className="mono">{task.workspacePath || "—"}</td>
+                  <td>{task.objective || "—"}</td>
                   <td>{formatDate(task.startedAt)}</td>
                   <td>{formatDate(task.completedAt)}</td>
                 </tr>

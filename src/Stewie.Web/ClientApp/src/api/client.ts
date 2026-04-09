@@ -2,7 +2,7 @@
  * Stewie API client — typed fetch wrapper for all CON-002 endpoints.
  * Handles error responses and provides typed return values.
  */
-import type { Run, Project, CreateProjectRequest, ApiError, Event } from "../types";
+import type { Run, Project, CreateProjectRequest, CreateRunRequest, ApiError, Event } from "../types";
 
 /** Base URL is proxied via Vite config — no absolute URL needed. */
 const BASE = "";
@@ -36,6 +36,14 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 /** Fetch all runs — GET /api/runs */
 export async function fetchRuns(): Promise<Run[]> {
   return request<Run[]>("/api/runs");
+}
+
+/** Create a new run — POST /api/runs */
+export async function createRun(data: CreateRunRequest): Promise<Run> {
+  return request<Run>("/api/runs", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }
 
 /** Fetch a single run by ID — GET /api/runs/{id} */
