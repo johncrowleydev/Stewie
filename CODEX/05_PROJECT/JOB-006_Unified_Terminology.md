@@ -2,7 +2,7 @@
 id: JOB-006
 title: "Unified Terminology — Run → Job, SPR- → JOB-"
 type: how-to
-status: ACTIVE
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, job, workflow, refactor]
@@ -94,12 +94,12 @@ No new features. No behavior changes. Every file rename, class rename, and conte
 
 | Task | Agent | Status |
 |:-----|:------|:-------|
-| T-057 | A | [ ] |
-| T-058 | A | [ ] |
-| T-059 | A | [ ] |
-| T-060 | A | [ ] |
-| T-061 | B | [ ] |
-| T-062 | B | [ ] |
+| T-057 | A | [x] |
+| T-058 | A | [x] |
+| T-059 | A | [x] |
+| T-060 | A | [x] |
+| T-061 | B | [x] |
+| T-062 | B | [x] |
 | T-063 | Architect | [x] |
 | T-064 | Architect | [x] |
 | T-065 | Architect | [x] |
@@ -116,4 +116,12 @@ No new features. No behavior changes. Every file rename, class rename, and conte
 
 ## Audit Notes (Architect)
 
-_[Pending — will be filled after developer work completes]_
+### Combined Audit (2026-04-09)
+- **Audit report:** `40_VERIFICATION/VER-007_JOB-006_Audit.md`
+- Build: ✅ 0 errors, frontend clean, 54/54 tests pass (3 skipped)
+- Merge conflicts: 4 test files (both agents renamed same files), resolved by accepting Agent A's versions
+- Stale reference scan: ✅ ZERO residual `Run`, `SPR-`, `IRunRepository`, `/api/runs` references
+- **Verdict:** PASS
+
+**Job Verdict:** CLOSED ✅
+**Deploy approved:** YES
