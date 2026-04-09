@@ -2,7 +2,7 @@
 id: DEF-001
 title: "Agent B failed to update existing integration tests for Auth"
 type: reference
-status: OPEN
+status: CLOSED
 owner: coder
 agents: [coder, tester]
 tags: [defect, testing]
@@ -22,7 +22,7 @@ version: 1.0.0
 |:------|:------|
 | **Priority** | P0 |
 | **Severity** | 3-MAJOR |
-| **Status** | OPEN |
+| **Status** | FIXED / CLOSED |
 | **Discovered By** | architect |
 | **Discovered During** | Sprint Audit VER-005 |
 | **Component** | `Stewie.Tests` |

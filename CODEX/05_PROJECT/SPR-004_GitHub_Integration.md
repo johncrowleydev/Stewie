@@ -2,7 +2,7 @@
 id: SPR-004
 title: "GitHub Integration + User System"
 type: how-to
-status: BLOCKED
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, sprint, workflow]
@@ -352,7 +352,7 @@ New environment variables for Sprint 004:
 
 ## Audit Notes (Architect)
 
-[Architect fills this in during audit.]
+[Architect: 40/40 tests now passing. Code verified. DEF-001 resolved.]
 
-**Verdict:** ❌ FAIL
-**Deploy approved:** NO
+**Verdict:** ✅ PASS
+**Deploy approved:** YES
