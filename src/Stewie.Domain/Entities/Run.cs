@@ -34,6 +34,12 @@ public class Run
     /// <summary>Git commit SHA of the auto-committed worker changes. Null if no commit.</summary>
     public virtual string? CommitSha { get; set; }
 
+    /// <summary>URL of the created GitHub pull request. Null if no PR.</summary>
+    public virtual string? PullRequestUrl { get; set; }
+
+    /// <summary>User who created this run. Null for legacy/test runs.</summary>
+    public virtual Guid? CreatedByUserId { get; set; }
+
     /// <summary>Timestamp when the run was created.</summary>
     public virtual DateTime CreatedAt { get; set; }
 

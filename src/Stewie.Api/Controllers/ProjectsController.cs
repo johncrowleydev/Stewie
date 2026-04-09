@@ -7,6 +7,7 @@
 /// 2. If projects list is empty    → check GetAllAsync or DB migration status
 /// 3. If 404 on GET by ID          → check GetByIdAsync return value handling
 /// </summary>
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stewie.Application.Interfaces;
 using Stewie.Domain.Entities;
@@ -18,6 +19,7 @@ namespace Stewie.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ProjectsController : ControllerBase
 {
     private readonly IProjectRepository _projectRepository;

@@ -29,6 +29,8 @@ public class RunMap : ClassMap<Run>
         Map(x => x.Branch);
         Map(x => x.DiffSummary).Length(4000);
         Map(x => x.CommitSha);
+        Map(x => x.PullRequestUrl).Length(1000);
+        Map(x => x.CreatedByUserId);
         Map(x => x.CreatedAt);
         Map(x => x.CompletedAt);
     }

@@ -32,6 +32,7 @@ keys/
 .env
 *credential*
 *secret*.json
+appsettings.Development.json
 
 # OS
 .DS_Store

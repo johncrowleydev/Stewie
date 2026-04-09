@@ -4,6 +4,7 @@
 /// REF: CON-002 §4.4, §5.4
 /// </summary>
 using System.Reflection;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Stewie.Api.Controllers;
@@ -12,6 +13,7 @@ namespace Stewie.Api.Controllers;
 /// Provides a lightweight health check endpoint for monitoring and load balancer probes.
 /// </summary>
 [ApiController]
+[AllowAnonymous]
 public class HealthController : ControllerBase
 {
     private readonly ILogger<HealthController> _logger;
