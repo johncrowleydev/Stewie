@@ -6,14 +6,17 @@ using Stewie.Application.Interfaces;
 namespace Stewie.Infrastructure.Services;
 
 /// <summary>
-/// GitHub API service — Octokit for PRs/repos, git CLI for push.
-/// REF: CON-002 §5.2, boot doc §9
+/// GitHub implementation of <see cref="IGitPlatformService"/> — Octokit for PRs/repos, git CLI for push.
+/// REF: CON-002 §5.2, SPR-005 T-048
 /// </summary>
-public class GitHubService : IGitHubService
+public class GitHubService : IGitPlatformService
 {
     private readonly ILogger<GitHubService> _logger;
 
     public GitHubService(ILogger<GitHubService> logger) => _logger = logger;
+
+    /// <inheritdoc/>
+    public string Provider => "github";
 
     /// <inheritdoc/>
     public async Task PushBranchAsync(string workspacePath, string remoteUrl, string branchName, string patToken)
@@ -61,11 +64,11 @@ public class GitHubService : IGitHubService
     }
 
     /// <inheritdoc/>
-    public async Task<GitHubUserInfo> ValidateTokenAsync(string patToken)
+    public async Task<PlatformUserInfo> ValidateTokenAsync(string patToken)
     {
         var client = CreateClient(patToken);
         var user = await client.User.Current();
-        return new GitHubUserInfo { Login = user.Login, Name = user.Name };
+        return new PlatformUserInfo { Login = user.Login, Name = user.Name };
     }
 
     private static GitHubClient CreateClient(string patToken)

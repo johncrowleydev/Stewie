@@ -28,7 +28,7 @@ public partial class RunOrchestrationService
     private readonly IUserCredentialRepository _credentialRepository;
     private readonly IWorkspaceService _workspaceService;
     private readonly IContainerService _containerService;
-    private readonly IGitHubService _gitHubService;
+    private readonly IGitPlatformService _gitPlatformService;
     private readonly IEncryptionService _encryptionService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<RunOrchestrationService> _logger;
@@ -45,7 +45,7 @@ public partial class RunOrchestrationService
         IUserCredentialRepository credentialRepository,
         IWorkspaceService workspaceService,
         IContainerService containerService,
-        IGitHubService gitHubService,
+        IGitPlatformService gitPlatformService,
         IEncryptionService encryptionService,
         IUnitOfWork unitOfWork,
         ILogger<RunOrchestrationService> logger,
@@ -60,7 +60,7 @@ public partial class RunOrchestrationService
         _credentialRepository = credentialRepository;
         _workspaceService = workspaceService;
         _containerService = containerService;
-        _gitHubService = gitHubService;
+        _gitPlatformService = gitPlatformService;
         _encryptionService = encryptionService;
         _unitOfWork = unitOfWork;
         _logger = logger;
@@ -514,7 +514,7 @@ public partial class RunOrchestrationService
             // Push branch
             if (run.Branch is not null)
             {
-                await _gitHubService.PushBranchAsync(workspacePath, project.RepoUrl, run.Branch, pat);
+                await _gitPlatformService.PushBranchAsync(workspacePath, project.RepoUrl, run.Branch, pat);
 
                 // Parse owner/repo from URL for PR creation
                 var (owner, repo) = ParseOwnerRepo(project.RepoUrl);
@@ -522,7 +522,7 @@ public partial class RunOrchestrationService
                 {
                     var prTitle = task.Objective ?? "Stewie automated changes";
                     var prBody = $"**Run:** `{run.Id}`\n\n**Objective:** {task.Objective}\n\n**Diff Summary:**\n```\n{run.DiffSummary ?? "No changes"}\n```";
-                    var prUrl = await _gitHubService.CreatePullRequestAsync(
+                    var prUrl = await _gitPlatformService.CreatePullRequestAsync(
                         owner, repo, run.Branch, prTitle, prBody, pat);
 
                     run.PullRequestUrl = prUrl;

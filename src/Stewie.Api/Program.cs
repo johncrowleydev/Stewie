@@ -86,7 +86,7 @@ builder.Services.AddSingleton<IWorkspaceService>(sp =>
 builder.Services.AddSingleton<IContainerService>(sp =>
     new DockerContainerService(dockerImageName, sp.GetRequiredService<ILogger<DockerContainerService>>()));
 builder.Services.AddSingleton<IEncryptionService>(new AesEncryptionService(encryptionKey));
-builder.Services.AddScoped<IGitHubService, GitHubService>();
+builder.Services.AddScoped<IGitPlatformService, GitHubService>();
 builder.Services.AddScoped<RunOrchestrationService>(sp =>
     new RunOrchestrationService(
         sp.GetRequiredService<IRunRepository>(),
@@ -98,7 +98,7 @@ builder.Services.AddScoped<RunOrchestrationService>(sp =>
         sp.GetRequiredService<IUserCredentialRepository>(),
         sp.GetRequiredService<IWorkspaceService>(),
         sp.GetRequiredService<IContainerService>(),
-        sp.GetRequiredService<IGitHubService>(),
+        sp.GetRequiredService<IGitPlatformService>(),
         sp.GetRequiredService<IEncryptionService>(),
         sp.GetRequiredService<IUnitOfWork>(),
         sp.GetRequiredService<ILogger<RunOrchestrationService>>(),

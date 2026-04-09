@@ -26,7 +26,7 @@ public class RunOrchestrationServiceTests
     private readonly IUserCredentialRepository _credentialRepository;
     private readonly IWorkspaceService _workspaceService;
     private readonly IContainerService _containerService;
-    private readonly IGitHubService _gitHubService;
+    private readonly IGitPlatformService _gitPlatformService;
     private readonly IEncryptionService _encryptionService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly RunOrchestrationService _sut;
@@ -42,7 +42,7 @@ public class RunOrchestrationServiceTests
         _credentialRepository = Substitute.For<IUserCredentialRepository>();
         _workspaceService = Substitute.For<IWorkspaceService>();
         _containerService = Substitute.For<IContainerService>();
-        _gitHubService = Substitute.For<IGitHubService>();
+        _gitPlatformService = Substitute.For<IGitPlatformService>();
         _encryptionService = Substitute.For<IEncryptionService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
 
@@ -56,7 +56,7 @@ public class RunOrchestrationServiceTests
             _credentialRepository,
             _workspaceService,
             _containerService,
-            _gitHubService,
+            _gitPlatformService,
             _encryptionService,
             _unitOfWork,
             NullLogger<RunOrchestrationService>.Instance,
