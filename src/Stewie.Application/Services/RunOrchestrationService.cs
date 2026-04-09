@@ -25,8 +25,11 @@ public partial class RunOrchestrationService
     private readonly IEventRepository _eventRepository;
     private readonly IWorkspaceRepository _workspaceRepository;
     private readonly IProjectRepository _projectRepository;
+    private readonly IUserCredentialRepository _credentialRepository;
     private readonly IWorkspaceService _workspaceService;
     private readonly IContainerService _containerService;
+    private readonly IGitHubService _gitHubService;
+    private readonly IEncryptionService _encryptionService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<RunOrchestrationService> _logger;
     private readonly string _scriptWorkerImage;
@@ -39,8 +42,11 @@ public partial class RunOrchestrationService
         IEventRepository eventRepository,
         IWorkspaceRepository workspaceRepository,
         IProjectRepository projectRepository,
+        IUserCredentialRepository credentialRepository,
         IWorkspaceService workspaceService,
         IContainerService containerService,
+        IGitHubService gitHubService,
+        IEncryptionService encryptionService,
         IUnitOfWork unitOfWork,
         ILogger<RunOrchestrationService> logger,
         string scriptWorkerImage = "stewie-script-worker")
@@ -51,8 +57,11 @@ public partial class RunOrchestrationService
         _eventRepository = eventRepository;
         _workspaceRepository = workspaceRepository;
         _projectRepository = projectRepository;
+        _credentialRepository = credentialRepository;
         _workspaceService = workspaceService;
         _containerService = containerService;
+        _gitHubService = gitHubService;
+        _encryptionService = encryptionService;
         _unitOfWork = unitOfWork;
         _logger = logger;
         _scriptWorkerImage = scriptWorkerImage;
@@ -230,6 +239,12 @@ public partial class RunOrchestrationService
             {
                 run.CommitSha = commitSha;
                 _logger.LogInformation("Auto-committed changes: {CommitSha}", commitSha);
+            }
+
+            // GitHub push + PR (T-041) — only if user has a PAT
+            if (commitSha is not null && run.CreatedByUserId.HasValue && project?.RepoUrl is not null)
+            {
+                await TryGitHubPushAndPrAsync(run, task, project, workspacePath);
             }
 
             // Update final statuses
@@ -474,6 +489,69 @@ public partial class RunOrchestrationService
         await _eventRepository.SaveAsync(eventRecord);
         _logger.LogDebug("Emitted {EventType} for {EntityType} {EntityId}",
             eventType, entityType, entityId);
+    }
+
+    /// <summary>
+    /// Pushes the branch and creates a PR if the user has a GitHub PAT stored.
+    /// Fails silently — GitHub integration is best-effort, not blocking.
+    /// </summary>
+    private async Task TryGitHubPushAndPrAsync(Run run, WorkTask task, Project project, string workspacePath)
+    {
+        try
+        {
+            var credential = await _credentialRepository.GetByUserAndProviderAsync(
+                run.CreatedByUserId!.Value, "github");
+
+            if (credential is null)
+            {
+                _logger.LogInformation("No GitHub PAT for user {UserId}, skipping push/PR",
+                    run.CreatedByUserId);
+                return;
+            }
+
+            var pat = _encryptionService.Decrypt(credential.EncryptedToken);
+
+            // Push branch
+            if (run.Branch is not null)
+            {
+                await _gitHubService.PushBranchAsync(workspacePath, project.RepoUrl, run.Branch, pat);
+
+                // Parse owner/repo from URL for PR creation
+                var (owner, repo) = ParseOwnerRepo(project.RepoUrl);
+                if (owner is not null && repo is not null)
+                {
+                    var prTitle = task.Objective ?? "Stewie automated changes";
+                    var prBody = $"**Run:** `{run.Id}`\n\n**Objective:** {task.Objective}\n\n**Diff Summary:**\n```\n{run.DiffSummary ?? "No changes"}\n```";
+                    var prUrl = await _gitHubService.CreatePullRequestAsync(
+                        owner, repo, run.Branch, prTitle, prBody, pat);
+
+                    run.PullRequestUrl = prUrl;
+                    await _runRepository.SaveAsync(run);
+                    _logger.LogInformation("Created PR: {PrUrl}", prUrl);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "GitHub push/PR failed for run {RunId} — continuing", run.Id);
+        }
+    }
+
+    /// <summary>Parses owner and repo from a GitHub URL.</summary>
+    private static (string? Owner, string? Repo) ParseOwnerRepo(string repoUrl)
+    {
+        try
+        {
+            var uri = new Uri(repoUrl.TrimEnd('/'));
+            var segments = uri.AbsolutePath.Trim('/').Split('/');
+            if (segments.Length >= 2)
+            {
+                var repo = segments[1].EndsWith(".git") ? segments[1][..^4] : segments[1];
+                return (segments[0], repo);
+            }
+        }
+        catch { /* best-effort parsing */ }
+        return (null, null);
     }
 
     /// <summary>
