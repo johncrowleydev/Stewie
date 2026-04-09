@@ -53,6 +53,7 @@ public class ProjectsController : ControllerBase
             id = p.Id,
             name = p.Name,
             repoUrl = p.RepoUrl,
+            repoProvider = p.RepoProvider,
             createdAt = p.CreatedAt.ToString("o")
         });
 
@@ -98,6 +99,7 @@ public class ProjectsController : ControllerBase
             id = project.Id,
             name = project.Name,
             repoUrl = project.RepoUrl,
+            repoProvider = project.RepoProvider,
             createdAt = project.CreatedAt.ToString("o")
         });
     }
@@ -124,6 +126,7 @@ public class ProjectsController : ControllerBase
             id = project.Id,
             name = project.Name,
             repoUrl = project.RepoUrl,
+            repoProvider = project.RepoProvider,
             createdAt = project.CreatedAt.ToString("o")
         });
     }

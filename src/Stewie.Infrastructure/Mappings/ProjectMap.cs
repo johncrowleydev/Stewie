@@ -23,7 +23,8 @@ public class ProjectMap : ClassMap<Project>
         Table("Projects");
         Id(x => x.Id).GeneratedBy.Assigned();
         Map(x => x.Name).Not.Nullable();
-        Map(x => x.RepoUrl).Not.Nullable();
+        Map(x => x.RepoUrl);
+        Map(x => x.RepoProvider);
         Map(x => x.CreatedAt).Not.Nullable();
     }
 }

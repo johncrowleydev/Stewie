@@ -17,8 +17,11 @@ public class Project
     /// <summary>Human-readable project name.</summary>
     public virtual string Name { get; set; } = string.Empty;
 
-    /// <summary>Repository URL associated with this project.</summary>
-    public virtual string RepoUrl { get; set; } = string.Empty;
+    /// <summary>Repository URL associated with this project. Null during create-mode before repo provisioning.</summary>
+    public virtual string? RepoUrl { get; set; }
+
+    /// <summary>Platform hosting the repo (e.g., "github", "gitlab"). Null for legacy or unrecognized URLs.</summary>
+    public virtual string? RepoProvider { get; set; }
 
     /// <summary>Timestamp when the project was created.</summary>
     public virtual DateTime CreatedAt { get; set; }
