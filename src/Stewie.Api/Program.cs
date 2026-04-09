@@ -1,4 +1,5 @@
 using FluentMigrator.Runner;
+using Stewie.Api.Middleware;
 using Stewie.Application.Interfaces;
 using Stewie.Application.Services;
 using Stewie.Infrastructure.Persistence;
@@ -44,6 +45,9 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IRunRepository, RunRepository>();
 builder.Services.AddScoped<IWorkTaskRepository, WorkTaskRepository>();
 builder.Services.AddScoped<IArtifactRepository, ArtifactRepository>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<IEventRepository, EventRepository>();
+builder.Services.AddScoped<IWorkspaceRepository, WorkspaceEntityRepository>();
 
 // Services
 builder.Services.AddSingleton<IWorkspaceService>(sp =>
@@ -54,6 +58,10 @@ builder.Services.AddScoped<RunOrchestrationService>();
 
 var app = builder.Build();
 
+// Error handling middleware — must be first in the pipeline to catch all exceptions
+// REF: CON-002 §6, GOV-004
+app.UseMiddleware<ErrorHandlingMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -63,3 +71,4 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
+
