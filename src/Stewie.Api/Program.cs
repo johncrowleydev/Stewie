@@ -41,6 +41,27 @@ builder.Services.AddSignalR();
 builder.Services.Configure<RabbitMqOptions>(
     builder.Configuration.GetSection(RabbitMqOptions.SectionName));
 
+builder.Services.AddSingleton(sp => 
+{
+    var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<RabbitMqOptions>>().Value;
+    return new Stewie.Infrastructure.Services.RabbitMqSettings
+    {
+        HostName = options.HostName,
+        Port = options.Port,
+        UserName = options.UserName,
+        Password = options.Password,
+        VirtualHost = options.VirtualHost,
+        MaxRetryAttempts = options.RetryCount,
+        RetryBaseDelayMs = options.RetryDelaySeconds * 1000
+    };
+});
+
+builder.Services.AddSingleton<Stewie.Infrastructure.Services.RabbitMqService>();
+builder.Services.AddSingleton<Stewie.Application.Interfaces.IRabbitMqService>(
+    sp => sp.GetRequiredService<Stewie.Infrastructure.Services.RabbitMqService>());
+builder.Services.AddHostedService<Stewie.Infrastructure.Services.RabbitMqConsumerHostedService>();
+
+
 // CORS — required for SignalR WebSocket upgrade from frontend dev server
 builder.Services.AddCors(options =>
 {

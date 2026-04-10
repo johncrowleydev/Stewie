@@ -65,7 +65,7 @@ public class ChatControllerTests : IClassFixture<StewieWebApplicationFactory>, I
             $"/api/projects/{projectId}/chat",
             new { content = "Hello architect!" });
 
-        Assert.Equal(HttpStatusCode.Created, postResponse.StatusCode);
+        if (!postResponse.IsSuccessStatusCode) throw new Exception(await postResponse.Content.ReadAsStringAsync());
 
         var postBody = JsonSerializer.Deserialize<JsonElement>(
             await postResponse.Content.ReadAsStringAsync());

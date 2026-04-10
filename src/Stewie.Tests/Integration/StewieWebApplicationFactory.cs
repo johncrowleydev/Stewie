@@ -89,6 +89,17 @@ public class StewieWebApplicationFactory : WebApplicationFactory<Program>
                 .ToList();
             foreach (var d in fmDescriptors) services.Remove(d);
 
+            // Remove RabbitMQ services that require a real broker
+            var rabbitmqDescriptors = services
+                .Where(d => d.ServiceType == typeof(IRabbitMqService)
+                         || d.ServiceType == typeof(Stewie.Infrastructure.Services.RabbitMqService)
+                         || d.ImplementationType == typeof(Stewie.Infrastructure.Services.RabbitMqConsumerHostedService))
+                .ToList();
+            foreach (var d in rabbitmqDescriptors) services.Remove(d);
+
+            // Inject NullRabbitMqService for integration tests
+            services.AddSingleton<IRabbitMqService, Stewie.Tests.Mocks.NullRabbitMqService>();
+
             // Create a persistent SQLite in-memory connection
             _keepAliveConnection = new System.Data.SQLite.SQLiteConnection(
                 "Data Source=:memory:;Version=3;New=True;");
