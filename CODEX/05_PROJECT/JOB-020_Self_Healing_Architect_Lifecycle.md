@@ -2,7 +2,7 @@
 id: JOB-020
 title: "Self-Healing Architect Lifecycle"
 type: job
-status: ACTIVE
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, sprint, architecture, health-check, phase-5b]
@@ -47,7 +47,7 @@ Convert the static database queries for `Active` Architects into active polling 
 
 ## 4. Exit Criteria
 This job is considered structurally complete when:
-- [ ] A developer agent pulls the `feature/JOB-020-self-healing-architect` working branch.
-- [ ] Manual deletion of an active Architect Docker container results in the `React UI` gracefully reverting to the default "Start Architect" state within a 5-second window.
-- [ ] Submitting a Chat Message towards a dead container correctly throws a toast failure on the UI.
-- [ ] Testing protocol tiers verify unit execution without failures.
+- [x] A developer agent pulls the `feature/JOB-020-self-healing-architect` working branch.
+- [x] Manual deletion of an active Architect Docker container results in the `React UI` gracefully reverting to the default "Start Architect" state within a 5-second window.
+- [x] Submitting a Chat Message towards a dead container correctly throws a toast failure on the UI.
+- [x] Testing protocol tiers verify unit execution without failures.

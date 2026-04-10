@@ -369,7 +369,7 @@ documents:
     path: 05_PROJECT/JOB-020_Self_Healing_Architect_Lifecycle.md
     title: "Job 020 — Self-Healing Architect Lifecycle"
     type: how-to
-    status: ACTIVE
+    status: CLOSED
     tags: [project-management, job, workflow, phase-5b, architecture, health-check]
     agents: [coder]
     summary: >
