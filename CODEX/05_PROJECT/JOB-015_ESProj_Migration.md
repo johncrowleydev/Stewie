@@ -2,7 +2,7 @@
 id: JOB-015
 title: "Job 015 — Migrate Stewie.Web from csproj to esproj"
 type: how-to
-status: OPEN
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, job, workflow, phase-5a, tooling, infrastructure]
@@ -129,3 +129,4 @@ dotnet build Stewie.sln
 | Date | Change |
 |:-----|:-------|
 | 2026-04-10 | JOB-015 created for .esproj migration. |
+| 2026-04-10 | JOB-015 CLOSED. Passed audit VER-015. |

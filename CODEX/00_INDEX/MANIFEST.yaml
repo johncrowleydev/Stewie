@@ -310,7 +310,7 @@ documents:
     path: 05_PROJECT/JOB-015_ESProj_Migration.md
     title: "Job 015 — Migrate Stewie.Web from csproj to esproj"
     type: how-to
-    status: OPEN
+    status: CLOSED
     tags: [project-management, job, workflow, phase-5a, tooling, infrastructure]
     agents: [coder]
     summary: >
@@ -709,3 +709,15 @@ documents:
       Audit report for JOB-012 (SignalR Real-Time Hub). 59 tests pass.
       SignalR WebSocket hub, typed client interface, IRealTimeNotifier
       abstraction, and frontend useSignalR hook integrated successfully.
+
+  - id: VER-015
+    path: 40_VERIFICATION/VER-015_JOB-015_Audit.md
+    title: "JOB-015 Audit — ESProj Migration"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, phase-5a, tooling, infrastructure]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-015 (Migrate Stewie.Web from csproj to esproj). 
+      Verified Stewie.Web.csproj was deleted, ClientApp was flattened, 
+      and .esproj was integrated properly. Solution builds successfully.
