@@ -224,9 +224,18 @@ if [ -f .env ] || grep -rq 'process\.env\.' src/ 2>/dev/null; then
     done
   fi
 fi
+
+# Migration ForeignKey Check
+for file in $SCAN_FILES; do
+  if echo "$file" | grep -q 'Migration_.*\.cs$'; then
+    if grep -q 'WithColumn(\".*Id\")\|AddColumn(\".*Id\")' "$file" && ! grep -q 'ForeignKey' "$file"; then
+      echo "GOV-008 FAIL: $file adds an ID mapping column but is missing a database-level ForeignKey constraint!"
+    fi
+  fi
+done
 ```
 
-**Result:** FAIL if `.env.example` missing. WARN for undocumented env vars.
+**Result:** FAIL if `.env.example` missing. WARN for undocumented env vars. FAIL if a Migration script defines an `Id` column but maps no foreign keys.
 
 ---
 

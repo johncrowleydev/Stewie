@@ -90,6 +90,15 @@ These are intentionally separate projects. The frontend calls the API over HTTP.
 | **Database name** | `Stewie` (auto-created on first run) |
 | **Schema owner** | `Stewie.Api` (single service owns all tables) |
 
+### 4.1 Schema Normalization & Integrity
+
+> **CRITICAL RULE:** All future database schema updates MUST follow strict relational normalization rules.
+
+1. **Foreign Key Constraints:** Any column referencing another table (e.g., `UserId`, `ProjectId`) **MUST** have an accompanying database-level foreign key constraint defined in the FluentMigrator script.
+2. **Cascading Behavior:** Explicitly define `ON DELETE CASCADE` or `ON DELETE SET NULL` depending on the domain requirements. Never use implicit `NO ACTION` unless explicitly intended to block deletion.
+3. **No Orphaned Data:** Database architecture must prevent orphaned data.
+4. **Data Types:** Use the most restrictive types possible (e.g., specific string lengths, not `MAX` unless necessary).
+
 ### Tables (Milestone 0)
 
 | Table | Entity | Owner |

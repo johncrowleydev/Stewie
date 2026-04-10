@@ -113,6 +113,15 @@ public class RabbitMqConsumerHostedService : BackgroundService
             arguments: null,
             cancellationToken: stoppingToken);
 
+        // Declare the exchange (idempotent)
+        await _channel.ExchangeDeclareAsync(
+            exchange: RabbitMqService.EventsExchange,
+            type: "topic",
+            durable: true,
+            autoDelete: false,
+            arguments: null,
+            cancellationToken: stoppingToken);
+
         // Bind queue to events exchange (idempotent)
         await _channel.QueueBindAsync(
             queue: EventsQueueName,

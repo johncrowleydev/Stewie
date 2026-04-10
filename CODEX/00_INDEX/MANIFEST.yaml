@@ -354,6 +354,17 @@ documents:
       agent chat → ChatMessage persistence, Architect start/stop UI controls,
       frontend status indicators.
 
+  - id: JOB-019
+    path: 05_PROJECT/JOB-019_Artifact_Storage_Abstraction.md
+    title: "Job 019 — Artifact Storage Abstraction"
+    type: how-to
+    status: OPEN
+    tags: [project-management, job, workflow, phase-6, architecture, storage]
+    agents: [coder]
+    summary: >
+      Decouple generic data payloads (task.json, result.json, governance-report.json, and raw binaries)
+      from the physical block storage used for Git clones. Adds IArtifactWorkspaceStore.
+
   # ── 10_GOVERNANCE ───────────────────────────────────────────────────────────
   - id: GOV-001
     path: 10_GOVERNANCE/GOV-001_DocumentationStandard.md
@@ -617,6 +628,16 @@ documents:
       Project-specific boot document for Dev Agent B. Defines frontend file
       territory, React app structure, branding requirements, xUnit test project
       setup, and merge order for JOB-001.
+
+  - id: AGT-019-A
+    path: 80_AGENTS/AGT-019-A_JOB-019_Dev_A_Boot.md
+    title: "Dev Agent A Boot — JOB-019 Artifact Storage Abstraction"
+    type: how-to
+    status: ACTIVE
+    tags: [agent, boot, sprint]
+    agents: [coder]
+    summary: >
+      Project-specific boot document for Dev Agent A on JOB-019. Defines C# abstraction territory and execution order.
 
   - id: AGT-003
     path: 80_AGENTS/AGT-003_Tester_Agent.md
