@@ -284,7 +284,7 @@ documents:
     path: 05_PROJECT/JOB-013_Project_Chat_System.md
     title: "Job 013 — Project Chat System"
     type: how-to
-    status: OPEN
+    status: CLOSED
     tags: [project-management, job, workflow, phase-5a, chat, real-time]
     agents: [coder]
     summary: >
@@ -721,3 +721,15 @@ documents:
       Audit report for JOB-015 (Migrate Stewie.Web from csproj to esproj). 
       Verified Stewie.Web.csproj was deleted, ClientApp was flattened, 
       and .esproj was integrated properly. Solution builds successfully.
+
+  - id: VER-013
+    path: 40_VERIFICATION/VER-013_JOB-013_Audit.md
+    title: "JOB-013 Audit — Project Chat System"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, phase-5a, chat, real-time]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-013 (Project Chat System). 59 tests pass.
+      ChatMessage entity, migration 016, ChatController, ChatPanel component,
+      SignalR real-time push, and ProjectDetailPage integrated successfully.
