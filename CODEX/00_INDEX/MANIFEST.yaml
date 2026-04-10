@@ -234,7 +234,7 @@ documents:
     path: 05_PROJECT/JOB-009_Task_DAG_Infrastructure.md
     title: "Job 009 — Task DAG Infrastructure"
     type: how-to
-    status: ACTIVE
+    status: CLOSED
     tags: [project-management, job, workflow, phase-4, dag]
     agents: [coder]
     summary: >

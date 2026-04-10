@@ -2,7 +2,7 @@
 id: JOB-009
 title: "Job 009 — Task DAG Infrastructure"
 type: how-to
-status: ACTIVE
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, job, workflow, phase-4, dag]
@@ -283,3 +283,4 @@ dotnet test src/Stewie.Tests/Stewie.Tests.csproj --filter "FullyQualifiedName~Ta
 | Date | Change |
 |:-----|:-------|
 | 2026-04-10 | JOB-009 created for Phase 4 Task DAG Infrastructure |
+| 2026-04-10 | JOB-009 CLOSED — 92 tests pass (16 new), merged to main (c78d87f) |
