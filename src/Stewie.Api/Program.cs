@@ -15,7 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Configuration
 var connectionString = builder.Configuration.GetConnectionString("Stewie")
-    ?? throw new InvalidOperationException("Connection string 'Stewie' is required.");
+    ?? (builder.Environment.IsEnvironment("Testing")
+        ? "Data Source=unused;Initial Catalog=unused"
+        : throw new InvalidOperationException("Connection string 'Stewie' is required."));
 var workspaceRoot = builder.Configuration.GetValue<string>("Stewie:WorkspaceRoot") ?? "./workspaces";
 var dockerImageName = builder.Configuration.GetValue<string>("Stewie:DockerImageName") ?? "stewie-dummy-worker";
 var scriptWorkerImage = builder.Configuration.GetValue<string>("Stewie:ScriptWorkerImage") ?? "stewie-script-worker";
@@ -49,28 +51,32 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 
-// Ensure database exists before anything tries to connect
-DatabaseInitializer.EnsureDatabaseExists(connectionString);
-
-// FluentMigrator — run migrations before NHibernate session factory
-builder.Services.AddFluentMigratorCore()
-    .ConfigureRunner(rb => rb
-        .AddSqlServer()
-        .WithGlobalConnectionString(connectionString)
-        .ScanIn(typeof(Stewie.Infrastructure.Persistence.NHibernateHelper).Assembly).For.Migrations())
-    .AddLogging(lb => lb.AddFluentMigratorConsole());
-
-// Build a temporary service provider to run migrations now
-using (var tempProvider = builder.Services.BuildServiceProvider())
+// Database + migration bootstrap — skipped in Testing (integration tests use SQLite)
+if (!builder.Environment.IsEnvironment("Testing"))
 {
-    var runner = tempProvider.GetRequiredService<IMigrationRunner>();
-    runner.MigrateUp();
-}
+    // Ensure database exists before anything tries to connect
+    DatabaseInitializer.EnsureDatabaseExists(connectionString);
 
-// NHibernate — build session factory after DB and schema are ready
-var sessionFactory = NHibernateHelper.BuildSessionFactory(connectionString);
-builder.Services.AddSingleton(sessionFactory);
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+    // FluentMigrator — run migrations before NHibernate session factory
+    builder.Services.AddFluentMigratorCore()
+        .ConfigureRunner(rb => rb
+            .AddSqlServer()
+            .WithGlobalConnectionString(connectionString)
+            .ScanIn(typeof(Stewie.Infrastructure.Persistence.NHibernateHelper).Assembly).For.Migrations())
+        .AddLogging(lb => lb.AddFluentMigratorConsole());
+
+    // Build a temporary service provider to run migrations now
+    using (var tempProvider = builder.Services.BuildServiceProvider())
+    {
+        var runner = tempProvider.GetRequiredService<IMigrationRunner>();
+        runner.MigrateUp();
+    }
+
+    // NHibernate — build session factory after DB and schema are ready
+    var sessionFactory = NHibernateHelper.BuildSessionFactory(connectionString);
+    builder.Services.AddSingleton(sessionFactory);
+    builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+}
 
 // Repositories
 builder.Services.AddScoped<IJobRepository, JobRepository>();
