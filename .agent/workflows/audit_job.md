@@ -139,6 +139,43 @@ For each failure found:
 
 ---
 
+## Step 10: Housekeeping (PASS only)
+
+If the audit **passed**, update all project-level documents before committing:
+
+### README.md
+- [ ] Test count matches actual (`dotnet test` / `npm test` output)
+- [ ] Architecture diagram reflects current capabilities
+- [ ] API table includes any new/changed endpoints
+- [ ] Configuration table includes any new settings
+- [ ] Contract versions match current (`CON-NNN` frontmatter)
+- [ ] Roadmap table reflects current phase status
+
+### BCK-001 Backlog
+- [ ] All tasks delivered in this job are marked `✅ Done`
+- [ ] Phase section header marked `✅ COMPLETE` if all items in phase are done
+- [ ] Future backlog updated if any items were pulled forward or new items emerged
+
+### PRJ-001 Roadmap
+- [ ] Current phase exit criteria checked off
+- [ ] Phase marked `✅ COMPLETE` with completion date if all criteria met
+
+### MANIFEST.yaml
+- [ ] Job status updated (ACTIVE → CLOSED)
+- [ ] VER-NNN audit report entry added
+- [ ] Any new CON-NNN or BLU-NNN documents registered
+
+### SESSION_HANDOFF.md
+- [ ] Updated with current state, completed phases, and next phase context
+
+### Commit
+Commit all housekeeping changes in a single commit:
+```
+docs: housekeeping — update README, backlog, roadmap for JOB-NNN closure
+```
+
+---
+
 ## Quick Reference
 
 | What | Command |
@@ -146,3 +183,5 @@ For each failure found:
 | Full audit | `/audit_job` |
 | Build checks only | Run Step 3 |
 | Governance checks only | Run Step 4 |
+| Housekeeping only | Run Step 10 |
+
