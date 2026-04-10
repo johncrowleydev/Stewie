@@ -2,7 +2,7 @@
 id: JOB-011
 title: "Job 011 — Dashboard + Analytics + stewie.json"
 type: how-to
-status: PLANNED
+status: ACTIVE
 owner: architect
 agents: [coder]
 tags: [project-management, job, workflow, phase-4, dashboard, analytics]
@@ -36,10 +36,10 @@ JOB-010 built the parallel execution engine. JOB-011 surfaces it in the UI and a
 
 | Agent | Territory | Branch |
 |:------|:----------|:-------|
-| Dev A | Backend services (analytics API, config parser, workspace wiring) | `feature/JOB-011-dashboard-analytics` |
-| Dev B | Frontend components (progress panel, DAG view, analytics panel, CSS) | `feature/JOB-011-dashboard-analytics` |
+| Dev A | Backend services (analytics API, config parser, workspace wiring) | `feature/JOB-011-backend` |
+| Dev B | Frontend components (progress panel, DAG view, analytics panel, CSS) | `feature/JOB-011-frontend` |
 
-**Single branch, granular commits per task. Merge order: Dev A first, Dev B second.**
+**Separate branches per agent (GOV-005). Merge order: Dev A first, Dev B rebases onto main after Dev A merges.**
 
 ---
 
