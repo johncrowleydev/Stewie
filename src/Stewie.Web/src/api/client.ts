@@ -9,7 +9,8 @@
 import type {
   Job, Project, CreateProjectRequest, CreateJobRequest,
   ApiError, Event, LoginRequest, RegisterRequest, AuthResponse, GitHubStatus,
-  GovernanceReport, GovernanceAnalytics, ChatMessage, ChatMessagesResponse, ContainerOutputResponse
+  GovernanceReport, GovernanceAnalytics, ChatMessage, ChatMessagesResponse, ContainerOutputResponse,
+  AgentSession, ArchitectStatus
 } from "../types";
 
 /** Base URL is proxied via Vite config — no absolute URL needed. */
@@ -235,4 +236,76 @@ export async function sendChatMessage(
 /** Fetch buffered container output for a task — GET /api/tasks/{taskId}/output (JOB-014) */
 export async function fetchContainerOutput(taskId: string): Promise<ContainerOutputResponse> {
   return request<ContainerOutputResponse>(`/api/tasks/${encodeURIComponent(taskId)}/output`);
+}
+
+// --- Agent lifecycle endpoints (JOB-018) ---
+
+/**
+ * Void request variant — for endpoints returning 204 No Content.
+ * Same auth/error handling as `request`, but does not parse JSON body.
+ */
+async function requestVoid(path: string, options?: RequestInit): Promise<void> {
+  const token = getToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options?.headers as Record<string, string> | undefined),
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${BASE}${path}`, {
+    ...options,
+    headers,
+  });
+
+  if (response.status === 401) {
+    if (!path.startsWith("/api/auth/")) {
+      clearToken();
+      window.location.href = "/login";
+    }
+  }
+
+  if (!response.ok) {
+    let errorBody: ApiError | null = null;
+    try {
+      errorBody = (await response.json()) as ApiError;
+    } catch {
+      // Response wasn't JSON
+    }
+
+    const message =
+      errorBody?.error?.message ?? `Request failed: ${response.status} ${response.statusText}`;
+    throw new Error(message);
+  }
+}
+
+/** Start the Architect Agent — POST /api/agents/architect/{projectId}/start */
+export async function startArchitect(projectId: string): Promise<AgentSession> {
+  return request<AgentSession>(
+    `/api/agents/architect/${encodeURIComponent(projectId)}/start`,
+    { method: "POST" }
+  );
+}
+
+/** Stop the Architect Agent — POST /api/agents/architect/{projectId}/stop */
+export async function stopArchitect(projectId: string): Promise<void> {
+  await requestVoid(
+    `/api/agents/architect/${encodeURIComponent(projectId)}/stop`,
+    { method: "POST" }
+  );
+}
+
+/** Get Architect Agent status — GET /api/agents/architect/{projectId}/status */
+export async function getArchitectStatus(projectId: string): Promise<ArchitectStatus> {
+  return request<ArchitectStatus>(
+    `/api/agents/architect/${encodeURIComponent(projectId)}/status`
+  );
+}
+
+/** List agent sessions for a project — GET /api/agents/sessions/{projectId} */
+export async function getAgentSessions(projectId: string): Promise<AgentSession[]> {
+  return request<AgentSession[]>(
+    `/api/agents/sessions/${encodeURIComponent(projectId)}`
+  );
 }

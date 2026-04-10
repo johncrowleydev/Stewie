@@ -29,12 +29,14 @@ const ROLE_CONFIG: Record<string, { icon: string; label: string }> = {
 interface ChatPanelProps {
   /** The project this chat belongs to */
   projectId: string;
+  /** Whether the Architect Agent is currently online */
+  architectActive?: boolean;
 }
 
 /**
  * ChatPanel — renders a scrollable chat with real-time updates.
  */
-export function ChatPanel({ projectId }: ChatPanelProps) {
+export function ChatPanel({ projectId, architectActive = false }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -194,7 +196,14 @@ export function ChatPanel({ projectId }: ChatPanelProps) {
     <div className="chat-panel" id="chat-panel">
       {/* Header */}
       <div className="chat-header">
-        <span className="chat-header-title">💬 Project Chat</span>
+        <span className="chat-header-title">
+          💬 Project Chat
+          {architectActive && (
+            <span className="chat-architect-indicator" title="Architect is online">
+              <span className="chat-architect-dot" />
+            </span>
+          )}
+        </span>
         {isLive ? (
           <span className="live-indicator live-indicator--ws">
             <span className="live-dot" />
@@ -249,17 +258,25 @@ export function ChatPanel({ projectId }: ChatPanelProps) {
       </div>
 
       {/* Input area */}
-      <div className="chat-input" id="chat-input">
+      <div className={`chat-input ${!architectActive ? "chat-input--disabled" : ""}`} id="chat-input">
+        {!architectActive && (
+          <div className="chat-offline-hint" id="chat-offline-hint">
+            Start the Architect to begin chatting
+          </div>
+        )}
         {sendError && <div className="chat-send-error">{sendError}</div>}
         <div className="chat-input-row">
           <textarea
             className="chat-textarea"
             id="chat-textarea"
-            placeholder="Type a message… (Enter to send, Shift+Enter for newline)"
+            placeholder={architectActive
+              ? "Type a message… (Enter to send, Shift+Enter for newline)"
+              : "Architect is offline…"
+            }
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            disabled={sending}
+            disabled={sending || !architectActive}
             rows={1}
             maxLength={MAX_CONTENT_LENGTH}
           />
@@ -267,7 +284,7 @@ export function ChatPanel({ projectId }: ChatPanelProps) {
             className="btn btn-primary chat-send-btn"
             id="chat-send-btn"
             onClick={() => void handleSend()}
-            disabled={sending || !input.trim()}
+            disabled={sending || !input.trim() || !architectActive}
           >
             {sending ? "…" : "Send"}
           </button>
