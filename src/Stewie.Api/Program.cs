@@ -89,6 +89,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IInviteCodeRepository, InviteCodeRepository>();
 builder.Services.AddScoped<IUserCredentialRepository, UserCredentialRepository>();
 builder.Services.AddScoped<IGovernanceReportRepository, GovernanceReportRepository>();
+builder.Services.AddScoped<ITaskDependencyRepository, TaskDependencyRepository>();
 
 // Services
 builder.Services.AddSingleton<IWorkspaceService>(sp =>
