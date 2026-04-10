@@ -9,7 +9,7 @@
 import type {
   Job, Project, CreateProjectRequest, CreateJobRequest,
   ApiError, Event, LoginRequest, RegisterRequest, AuthResponse, GitHubStatus,
-  GovernanceReport
+  GovernanceReport, GovernanceAnalytics
 } from "../types";
 
 /** Base URL is proxied via Vite config — no absolute URL needed. */
@@ -185,4 +185,16 @@ export async function fetchJobGovernance(jobId: string): Promise<GovernanceRepor
 /** Fetch governance report for a specific task — GET /api/tasks/{taskId}/governance */
 export async function fetchTaskGovernance(taskId: string): Promise<GovernanceReport> {
   return request<GovernanceReport>(`/api/tasks/${encodeURIComponent(taskId)}/governance`);
+}
+
+// --- Analytics endpoints ---
+
+/** Fetch governance analytics — GET /api/governance/analytics */
+export async function fetchGovernanceAnalytics(
+  days: number = 30,
+  projectId?: string
+): Promise<GovernanceAnalytics> {
+  const params = new URLSearchParams({ days: days.toString() });
+  if (projectId) params.set("projectId", projectId);
+  return request<GovernanceAnalytics>(`/api/governance/analytics?${params.toString()}`);
 }

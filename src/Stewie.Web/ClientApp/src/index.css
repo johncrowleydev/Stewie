@@ -479,6 +479,29 @@ a:hover {
   color: var(--color-failed);
 }
 
+.status-badge.partiallycompleted {
+  background: rgba(245, 166, 35, 0.15);
+  color: var(--color-warning);
+}
+
+.status-badge.blocked {
+  background: rgba(139, 141, 147, 0.12);
+  color: var(--color-text-muted);
+}
+
+.status-badge.blocked .status-dot {
+  background: var(--color-text-muted);
+  border: 1px solid var(--color-text-muted);
+  background: transparent;
+}
+
+.status-badge.cancelled {
+  background: rgba(139, 141, 147, 0.08);
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
 .status-dot {
   width: 6px;
   height: 6px;
@@ -1808,4 +1831,418 @@ textarea.form-input {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* ===================================================================
+   Job Progress Panel (T-102)
+   =================================================================== */
+
+.job-progress-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.progress-header h3 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+.progress-counts {
+  display: flex;
+  gap: var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.progress-count {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.progress-count .count-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.progress-count .count-dot.green { background: var(--color-completed); }
+.progress-count .count-dot.red { background: var(--color-failed); }
+.progress-count .count-dot.blue { background: var(--color-running); }
+.progress-count .count-dot.gray { background: var(--color-pending); }
+.progress-count .count-dot.amber { background: var(--color-warning); }
+
+.progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background: var(--color-border);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  margin-bottom: var(--space-lg);
+}
+
+.progress-bar-segment {
+  height: 100%;
+  transition: width var(--transition-normal);
+}
+
+.progress-bar-segment.completed { background: var(--color-completed); }
+.progress-bar-segment.failed { background: var(--color-failed); }
+.progress-bar-segment.running { background: var(--color-running); }
+.progress-bar-segment.cancelled { background: var(--color-text-muted); opacity: 0.4; }
+
+.progress-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.progress-task-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  transition: background var(--transition-fast);
+}
+
+.progress-task-item:hover {
+  background: var(--color-surface-hover);
+}
+
+.progress-task-role {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  min-width: 80px;
+}
+
+.progress-task-objective {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===================================================================
+   Task DAG Visualization (T-103)
+   =================================================================== */
+
+.dag-view {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-xl);
+  overflow-x: auto;
+}
+
+.dag-layers {
+  display: flex;
+  gap: var(--space-2xl);
+  align-items: flex-start;
+  min-height: 120px;
+  padding: var(--space-md) 0;
+  position: relative;
+}
+
+.dag-layer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  align-items: center;
+  min-width: 160px;
+}
+
+.dag-layer-label {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-xs);
+  font-weight: 600;
+}
+
+.dag-node {
+  background: var(--color-bg);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  min-width: 140px;
+  max-width: 200px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.dag-node:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.dag-node.completed { border-color: var(--color-completed); }
+.dag-node.failed { border-color: var(--color-failed); }
+.dag-node.running { border-color: var(--color-running); }
+.dag-node.blocked { border-color: var(--color-text-muted); opacity: 0.6; }
+.dag-node.cancelled { border-color: var(--color-text-muted); opacity: 0.4; }
+
+.dag-node-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.dag-node-role {
+  font-size: 1rem;
+}
+
+.dag-node-objective {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Dependency arrows — horizontal connectors between layers */
+.dag-connector {
+  position: absolute;
+  height: 2px;
+  background: var(--color-border);
+  z-index: 0;
+}
+
+.dag-connector::after {
+  content: '→';
+  position: absolute;
+  right: -4px;
+  top: -10px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* Single-row layout for all-parallel (no deps) */
+.dag-parallel-row {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+/* Single-column for linear chain */
+.dag-linear-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.dag-linear-connector {
+  width: 2px;
+  height: 16px;
+  background: var(--color-border);
+  margin-left: 70px;
+}
+
+/* ===================================================================
+   Governance Analytics Panel (T-106)
+   =================================================================== */
+
+.analytics-panel {
+  margin-bottom: var(--space-xl);
+}
+
+.analytics-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+}
+
+.analytics-header h2 {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+}
+
+.analytics-time-filter {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.time-filter-btn {
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: none;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.time-filter-btn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.time-filter-btn.active {
+  background: var(--color-primary-muted);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.analytics-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.analytics-stat {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  text-align: center;
+}
+
+.analytics-stat-value {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+}
+
+.analytics-stat-value.green { color: var(--color-completed); }
+.analytics-stat-value.red { color: var(--color-failed); }
+.analytics-stat-value.blue { color: var(--color-running); }
+
+.analytics-stat-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* Pass rate visual bar */
+.pass-rate-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--color-border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: var(--space-sm);
+}
+
+.pass-rate-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width var(--transition-normal);
+}
+
+.pass-rate-fill.good { background: var(--color-completed); }
+.pass-rate-fill.moderate { background: var(--color-warning); }
+.pass-rate-fill.poor { background: var(--color-failed); }
+
+/* Failing rules table */
+.analytics-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.analytics-section h3 {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  margin-bottom: var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.trend-indicator {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+}
+
+.trend-indicator.increasing { color: var(--color-failed); }
+.trend-indicator.decreasing { color: var(--color-completed); }
+.trend-indicator.stable { color: var(--color-text-muted); }
+
+/* Suggestion cards */
+.suggestion-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-warning);
+}
+
+.suggestion-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.suggestion-content {
+  flex: 1;
+}
+
+.suggestion-doc {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: var(--space-xs);
+}
+
+.suggestion-reason {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+/* Analytics empty state */
+.analytics-empty {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--color-text-muted);
+}
+
+.analytics-empty .empty-icon {
+  font-size: 3rem;
+  opacity: 0.3;
+  margin-bottom: var(--space-md);
+}
+
+.analytics-empty h3 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--space-sm);
 }
