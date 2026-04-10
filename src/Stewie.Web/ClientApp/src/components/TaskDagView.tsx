@@ -15,8 +15,8 @@ import type { WorkTask } from "../types";
 
 /** Role icons consistent with the design system */
 const ROLE_ICONS: Record<string, string> = {
-  developer: "🔧",
-  tester: "🔍",
+  developer: "D",
+  tester: "T",
   researcher: "🔬",
 };
 
@@ -109,7 +109,7 @@ function DagNode({
       }}
     >
       <div className="dag-node-header">
-        <span className="dag-node-role">{ROLE_ICONS[task.role] || "📦"}</span>
+        <span className="dag-node-role">{ROLE_ICONS[task.role] || "?"}</span>
         <StatusBadge status={task.status} />
       </div>
       <div className="dag-node-objective">
@@ -150,7 +150,7 @@ export function TaskDagView({ tasks, dependencies = [], onTaskClick }: TaskDagVi
     return (
       <div className="dag-view" id="dag-view-empty">
         <div className="empty-state">
-          <div className="empty-icon">🔗</div>
+          <div className="empty-icon">--</div>
           <h3>No tasks</h3>
           <p>This job has no associated tasks.</p>
         </div>

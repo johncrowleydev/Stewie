@@ -152,7 +152,7 @@ export function ProjectsPage() {
     return (
       <div>
         <div className="page-title-row">
-          <h1>Projects</h1>
+          
         </div>
         <div className="projects-grid">
           {[1, 2, 3].map((i) => (
@@ -167,7 +167,7 @@ export function ProjectsPage() {
     return (
       <div>
         <div className="page-title-row">
-          <h1>Projects</h1>
+          
         </div>
         <div className="error-state">
           <h3>Failed to load projects</h3>
@@ -180,7 +180,7 @@ export function ProjectsPage() {
   return (
     <div id="projects-page">
       <div className="page-title-row">
-        <h1>Projects</h1>
+        
         <button
           className="btn btn-primary"
           onClick={() => { setShowForm(!showForm); if (showForm) resetForm(); }}
@@ -208,7 +208,7 @@ export function ProjectsPage() {
               onClick={() => { setCreationMode("link"); setFormError(null); }}
               id="mode-link"
             >
-              <span className="mode-icon">🔗</span>
+              
               Link Existing Repository
             </button>
             <button
@@ -217,7 +217,7 @@ export function ProjectsPage() {
               onClick={() => { setCreationMode("create"); setFormError(null); }}
               id="mode-create"
             >
-              <span className="mode-icon">✨</span>
+              
               Create New Repository
             </button>
           </div>
@@ -329,7 +329,7 @@ export function ProjectsPage() {
 
       {projects.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-icon">📁</div>
+          <div className="empty-icon">--</div>
           <h3>No projects yet</h3>
           <p>Create a project to organize your orchestration runs.</p>
         </div>

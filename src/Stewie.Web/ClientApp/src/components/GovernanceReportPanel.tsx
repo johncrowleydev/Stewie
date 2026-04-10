@@ -80,7 +80,7 @@ export function GovernanceReportPanel({ report, loading, error }: GovernanceRepo
     return (
       <div className="governance-panel governance-panel--error" id="governance-panel">
         <div className="governance-error">
-          <span className="governance-error-icon">⚠️</span>
+          <span className="governance-error-icon">!</span>
           <span>{error}</span>
         </div>
       </div>
@@ -91,7 +91,7 @@ export function GovernanceReportPanel({ report, loading, error }: GovernanceRepo
     return (
       <div className="governance-panel governance-panel--empty" id="governance-panel">
         <div className="governance-empty">
-          <span className="governance-empty-icon">📋</span>
+          <span className="governance-empty-icon">--</span>
           <span>No governance report available</span>
         </div>
       </div>
@@ -110,7 +110,7 @@ export function GovernanceReportPanel({ report, loading, error }: GovernanceRepo
       <div className="governance-header">
         <div className={`governance-verdict ${report.passed ? "governance-verdict--pass" : "governance-verdict--fail"}`}>
           <span className="governance-verdict-icon">
-            {report.passed ? "✅" : "❌"}
+            {report.passed ? "PASS" : "FAIL"}
           </span>
           <span className="governance-verdict-label">
             {report.passed ? "PASSED" : "FAILED"}

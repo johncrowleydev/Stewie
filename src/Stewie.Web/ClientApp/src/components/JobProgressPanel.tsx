@@ -12,8 +12,8 @@ import type { WorkTask } from "../types";
 
 /** Role icons consistent with JobDetailPage */
 const ROLE_ICONS: Record<string, string> = {
-  developer: "🔧",
-  tester: "🔍",
+  developer: "D",
+  tester: "T",
   researcher: "🔬",
 };
 
@@ -64,7 +64,7 @@ export function JobProgressPanel({ tasks, onTaskClick }: JobProgressPanelProps) 
     return (
       <div className="job-progress-panel" id="job-progress-single">
         <div className="progress-task-item">
-          <span className="dag-node-role">{ROLE_ICONS[task.role] || "📦"}</span>
+          <span className="dag-node-role">{ROLE_ICONS[task.role] || "?"}</span>
           <span className="progress-task-role">
             {task.role.charAt(0).toUpperCase() + task.role.slice(1)}
           </span>
@@ -158,7 +158,7 @@ export function JobProgressPanel({ tasks, onTaskClick }: JobProgressPanelProps) 
             onClick={() => onTaskClick?.(task.id)}
             style={{ cursor: onTaskClick ? "pointer" : undefined }}
           >
-            <span className="dag-node-role">{ROLE_ICONS[task.role] || "📦"}</span>
+            <span className="dag-node-role">{ROLE_ICONS[task.role] || "?"}</span>
             <span className="progress-task-role">
               {task.role.charAt(0).toUpperCase() + task.role.slice(1)}
             </span>

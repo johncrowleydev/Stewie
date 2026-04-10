@@ -53,8 +53,8 @@ const EVENT_SHORT_LABELS: Record<EventType, string> = {
 
 /** Role icons for the task chain timeline */
 const ROLE_ICONS: Record<string, string> = {
-  developer: "🔧",
-  tester: "🔍",
+  developer: "D",
+  tester: "T",
   researcher: "🔬",
 };
 
@@ -150,7 +150,7 @@ function TaskChainTimeline({ tasks }: { tasks: WorkTask[] }) {
 
             {/* Node dot */}
             <div className={`task-chain-dot task-chain-dot--${statusClass}`}>
-              <span className="task-chain-dot-icon">{ROLE_ICONS[task.role] || "📦"}</span>
+              <span className="task-chain-dot-icon">{ROLE_ICONS[task.role] || "?"}</span>
             </div>
 
             {/* Node content */}
@@ -314,7 +314,7 @@ export function JobDetailPage() {
       </Link>
 
       <div className="detail-header">
-        <h1>Job</h1>
+        
         <StatusBadge status={job.status} />
         {job.branch && (
           <span className="branch-badge" id="job-branch-badge">
@@ -375,7 +375,7 @@ export function JobDetailPage() {
 
       {!hasTasks ? (
         <div className="empty-state">
-          <div className="empty-icon">📦</div>
+          <div className="empty-icon">--</div>
           <h3>No tasks</h3>
           <p>This job has no associated tasks.</p>
         </div>
@@ -386,7 +386,7 @@ export function JobDetailPage() {
         /* Single task: render compact card */
         <div className="card" style={{ marginBottom: "var(--space-xl)" }}>
           <div className="task-chain-single">
-            <span className="task-chain-dot-icon">{ROLE_ICONS[job.tasks[0].role] || "📦"}</span>
+            <span className="task-chain-dot-icon">{ROLE_ICONS[job.tasks[0].role] || "?"}</span>
             <StatusBadge status={job.tasks[0].status} />
             <span className="task-chain-role">
               {job.tasks[0].role.charAt(0).toUpperCase() + job.tasks[0].role.slice(1)}

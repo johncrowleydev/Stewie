@@ -93,7 +93,7 @@ export function CreateJobPage() {
   return (
     <div id="create-job-page">
       <div className="page-title-row">
-        <h1>Create Job</h1>
+        
       </div>
 
       <form className="create-form" onSubmit={(e) => { void handleSubmit(e); }} id="create-job-form">

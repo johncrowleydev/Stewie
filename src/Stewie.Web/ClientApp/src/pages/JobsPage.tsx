@@ -34,7 +34,7 @@ export function JobsPage() {
     return (
       <div>
         <div className="page-title-row">
-          <h1>Jobs</h1>
+          
         </div>
         <div className="card">
           {[1, 2, 3, 4, 5].map((i) => (
@@ -49,7 +49,7 @@ export function JobsPage() {
     return (
       <div>
         <div className="page-title-row">
-          <h1>Jobs</h1>
+          
         </div>
         <div className="error-state">
           <h3>Failed to load jobs</h3>
@@ -62,7 +62,7 @@ export function JobsPage() {
   return (
     <div id="jobs-page">
       <div className="page-title-row">
-        <h1>Jobs</h1>
+        
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
           {polling && (
             <span className="live-indicator" id="jobs-live">
@@ -79,7 +79,7 @@ export function JobsPage() {
 
       {jobList.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-icon">📋</div>
+          <div className="empty-icon">--</div>
           <h3>No jobs found</h3>
           <p>Jobs will appear here once orchestration begins.</p>
         </div>

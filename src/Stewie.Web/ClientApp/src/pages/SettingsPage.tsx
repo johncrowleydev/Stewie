@@ -81,7 +81,7 @@ export function SettingsPage() {
   if (loading) {
     return (
       <div>
-        <div className="page-title-row"><h1>Settings</h1></div>
+        <div className="page-title-row"></div>
         <div className="skeleton skeleton-card" />
       </div>
     );
@@ -90,7 +90,7 @@ export function SettingsPage() {
   return (
     <div id="settings-page">
       <div className="page-title-row">
-        <h1>Settings</h1>
+        
       </div>
 
       <div className="card" style={{ maxWidth: 600 }}>

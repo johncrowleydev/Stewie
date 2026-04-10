@@ -1,8 +1,9 @@
 /**
  * Layout — App shell component with sidebar navigation and main content area.
  * Provides consistent structure across all pages with Stewie branding.
- * Includes theme toggle, user display, logout button, and Settings nav link.
+ * User menu with theme toggle and logout in the top-right header.
  */
+import { useState, useRef, useEffect } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useTheme } from "../hooks/useTheme";
 import { useAuth } from "../contexts/AuthContext";
@@ -72,6 +73,19 @@ export function Layout() {
   const pageTitle = getPageTitle(location.pathname);
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <div className="app-layout">
@@ -102,38 +116,65 @@ export function Layout() {
             Settings
           </NavLink>
         </nav>
-
-        <div className="sidebar-footer">
-          {user && (
-            <div className="sidebar-user" id="sidebar-user">
-              <span className="sidebar-user-name">{user.username}</span>
-              <span className="sidebar-user-role">{user.role}</span>
-            </div>
-          )}
-          <button
-            className="theme-toggle"
-            onClick={toggleTheme}
-            id="theme-toggle-btn"
-            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
-          >
-            <span className="theme-icon">{theme === "dark" ? "☀️" : "🌙"}</span>
-            {theme === "dark" ? "Light mode" : "Dark mode"}
-          </button>
-          <button
-            className="theme-toggle"
-            onClick={logout}
-            id="logout-btn"
-            style={{ marginTop: "var(--space-xs)" }}
-          >
-            <span className="theme-icon">🚪</span>
-            Sign out
-          </button>
-        </div>
       </aside>
 
       <main className="main-content">
         <header className="main-header">
           <h2>{pageTitle}</h2>
+          <div className="header-actions" ref={menuRef}>
+            <button
+              className="user-menu-trigger"
+              onClick={() => setMenuOpen(!menuOpen)}
+              id="user-menu-btn"
+              aria-label="User menu"
+            >
+              <svg className="user-avatar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              {user && <span className="user-menu-name">{user.username}</span>}
+              <svg className={`user-menu-chevron ${menuOpen ? "open" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            {menuOpen && (
+              <div className="user-dropdown" id="user-dropdown">
+                {user && (
+                  <div className="user-dropdown-header">
+                    <span className="user-dropdown-name">{user.username}</span>
+                    <span className="user-dropdown-role">{user.role}</span>
+                  </div>
+                )}
+                <div className="user-dropdown-divider" />
+                <button
+                  className="user-dropdown-item"
+                  onClick={() => { toggleTheme(); setMenuOpen(false); }}
+                  id="theme-toggle-btn"
+                >
+                  {theme === "dark" ? (
+                    <svg className="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                    </svg>
+                  ) : (
+                    <svg className="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                    </svg>
+                  )}
+                  {theme === "dark" ? "Light mode" : "Dark mode"}
+                </button>
+                <button
+                  className="user-dropdown-item danger"
+                  onClick={() => { logout(); setMenuOpen(false); }}
+                  id="logout-btn"
+                >
+                  <svg className="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                  Sign out
+                </button>
+              </div>
+            )}
+          </div>
         </header>
         <div className="page-content">
           <Outlet />

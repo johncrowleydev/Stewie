@@ -51,7 +51,7 @@ export function DashboardPage() {
   return (
     <div id="dashboard-page">
       <div className="page-title-row">
-        <h1>Dashboard</h1>
+        
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
           {polling && (
             <span className="live-indicator" id="dashboard-live">
@@ -67,7 +67,7 @@ export function DashboardPage() {
 
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-icon blue">⚡</div>
+          <div className="stat-icon blue">B</div>
           <div className="card-value">{totalJobs}</div>
           <div className="card-label">Total Jobs</div>
         </div>
@@ -124,7 +124,7 @@ export function DashboardPage() {
 
       {jobList.length === 0 && (
         <div className="empty-state">
-          <div className="empty-icon">🐢</div>
+          <div className="empty-icon">~</div>
           <h3>No jobs yet</h3>
           <p>Create your first job to see orchestration data here.</p>
         </div>

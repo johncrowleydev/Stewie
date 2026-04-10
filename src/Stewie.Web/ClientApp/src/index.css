@@ -109,36 +109,9 @@
 }
 
 /* --- Theme Toggle --- */
-.theme-toggle {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 6px 12px;
-  cursor: pointer;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-xs);
-  font-family: var(--font-family);
-  transition: all var(--transition-fast);
-  width: 100%;
-  justify-content: center;
-}
-
-.theme-toggle:hover {
-  background: var(--color-surface-hover);
-  color: var(--color-text);
-  border-color: var(--color-border-hover);
-}
-
-.theme-toggle .theme-icon {
-  font-size: 1rem;
-  transition: transform var(--transition-normal);
-}
-
-.theme-toggle:hover .theme-icon {
-  transform: rotate(15deg);
+.theme-toggle .nav-icon {
+  width: 14px;
+  height: 14px;
 }
 
 /* --- Reset & Base --- */
@@ -223,7 +196,8 @@ a:hover {
 }
 
 .sidebar-brand img {
-  height: 52px;
+  width: 100%;
+  padding: 0 var(--space-lg);
   border-radius: var(--radius-sm);
 }
 
@@ -281,13 +255,6 @@ a:hover {
   opacity: 1;
 }
 
-.sidebar-footer {
-  padding: var(--space-md) var(--space-lg);
-  border-top: 1px solid var(--color-border);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-muted);
-}
-
 /* --- Main Content --- */
 .main-content {
   flex: 1;
@@ -300,6 +267,7 @@ a:hover {
   border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 0 var(--space-xl);
   background: var(--color-surface);
   position: sticky;
@@ -311,6 +279,124 @@ a:hover {
   font-size: var(--font-size-lg);
   font-weight: 600;
   color: var(--color-text);
+}
+
+/* --- Header User Menu --- */
+.header-actions {
+  position: relative;
+}
+
+.user-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 6px 12px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  transition: all var(--transition-fast);
+}
+
+.user-menu-trigger:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+  border-color: var(--color-border-hover);
+}
+
+.user-avatar-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.user-menu-name {
+  font-weight: 500;
+}
+
+.user-menu-chevron {
+  width: 14px;
+  height: 14px;
+  transition: transform var(--transition-fast);
+}
+
+.user-menu-chevron.open {
+  transform: rotate(180deg);
+}
+
+.user-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 200px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 200;
+  overflow: hidden;
+  animation: dropdown-appear 150ms ease;
+}
+
+@keyframes dropdown-appear {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.user-dropdown-header {
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-dropdown-name {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.user-dropdown-role {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-transform: capitalize;
+}
+
+.user-dropdown-divider {
+  height: 1px;
+  background: var(--color-border);
+}
+
+.user-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family);
+  transition: all var(--transition-fast);
+}
+
+.user-dropdown-item:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.user-dropdown-item.danger:hover {
+  color: var(--color-failed);
+}
+
+.dropdown-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .page-content {

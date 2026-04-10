@@ -74,7 +74,7 @@ export function GovernanceAnalyticsPanel({ projectId }: GovernanceAnalyticsPanel
     return (
       <div className="analytics-panel" id="analytics-panel">
         <div className="analytics-header">
-          <h2>📊 Governance Analytics</h2>
+          <h2>Governance Analytics</h2>
         </div>
         <div className="skeleton skeleton-card" style={{ marginBottom: 16 }} />
         <div className="skeleton skeleton-card" />
@@ -86,7 +86,7 @@ export function GovernanceAnalyticsPanel({ projectId }: GovernanceAnalyticsPanel
     return (
       <div className="analytics-panel" id="analytics-panel">
         <div className="analytics-header">
-          <h2>📊 Governance Analytics</h2>
+          <h2>Governance Analytics</h2>
         </div>
         <div className="error-state">
           <h3>Analytics Unavailable</h3>
@@ -100,11 +100,11 @@ export function GovernanceAnalyticsPanel({ projectId }: GovernanceAnalyticsPanel
     return (
       <div className="analytics-panel" id="analytics-panel">
         <div className="analytics-header">
-          <h2>📊 Governance Analytics</h2>
+          <h2>Governance Analytics</h2>
           <TimeFilter days={days} onChange={setDays} />
         </div>
         <div className="analytics-empty">
-          <div className="empty-icon">📊</div>
+          <div className="empty-icon">--</div>
           <h3>No governance data</h3>
           <p>Run some jobs with governance checks to see analytics here.</p>
         </div>
@@ -119,7 +119,7 @@ export function GovernanceAnalyticsPanel({ projectId }: GovernanceAnalyticsPanel
     <div className="analytics-panel" id="analytics-panel">
       {/* Header with time filter */}
       <div className="analytics-header">
-        <h2>📊 Governance Analytics</h2>
+        <h2>Governance Analytics</h2>
         <TimeFilter days={days} onChange={setDays} />
       </div>
 
@@ -181,11 +181,11 @@ export function GovernanceAnalyticsPanel({ projectId }: GovernanceAnalyticsPanel
       {/* GOV update suggestions */}
       {data.suggestedGovUpdates.length > 0 && (
         <div className="analytics-section" id="gov-suggestions-section">
-          <h3>💡 Suggested Updates</h3>
+          <h3>Suggested Updates</h3>
           <div className="suggestion-list">
             {data.suggestedGovUpdates.map((suggestion, idx) => (
               <div className="suggestion-item" key={idx}>
-                <span className="suggestion-icon">📋</span>
+                
                 <div className="suggestion-content">
                   <div className="suggestion-doc">{suggestion.govDoc}</div>
                   <div className="suggestion-reason">{suggestion.reason}</div>

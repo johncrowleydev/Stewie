@@ -102,7 +102,7 @@ export function EventsPage() {
     return (
       <div>
         <div className="page-title-row">
-          <h1>Events</h1>
+          
         </div>
         {[1, 2, 3, 4, 5].map((i) => (
           <div key={i} className="skeleton skeleton-row" />
@@ -115,7 +115,7 @@ export function EventsPage() {
     return (
       <div>
         <div className="page-title-row">
-          <h1>Events</h1>
+          
         </div>
         <div className="error-state">
           <h3>Unable to load events</h3>
@@ -131,7 +131,7 @@ export function EventsPage() {
   return (
     <div id="events-page">
       <div className="page-title-row">
-        <h1>Events</h1>
+        
         <div className="event-filters">
           {FILTER_OPTIONS.map((opt) => (
             <button
@@ -148,7 +148,7 @@ export function EventsPage() {
 
       {filteredEvents.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-icon">📡</div>
+          <div className="empty-icon">--</div>
           <h3>No events{entityFilter ? ` for ${entityFilter}s` : ""}</h3>
           <p>Events will appear here as orchestration actions occur.</p>
         </div>
