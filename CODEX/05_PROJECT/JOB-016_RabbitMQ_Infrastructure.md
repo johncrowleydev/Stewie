@@ -2,7 +2,7 @@
 id: JOB-016
 title: "Job 016 — RabbitMQ Infrastructure + CON-004"
 type: how-to
-status: OPEN
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, job, workflow, phase-5b, rabbitmq, messaging]
