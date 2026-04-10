@@ -14,6 +14,7 @@ import { JobsPage } from "./pages/JobsPage";
 import { CreateJobPage } from "./pages/CreateJobPage";
 import { JobDetailPage } from "./pages/JobDetailPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
+import { ProjectDetailPage } from "./pages/ProjectDetailPage";
 import { EventsPage } from "./pages/EventsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 
@@ -32,6 +33,7 @@ function App() {
           <Route path="/jobs/new" element={<CreateJobPage />} />
           <Route path="/jobs/:id" element={<JobDetailPage />} />
           <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/projects/:id" element={<ProjectDetailPage />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>

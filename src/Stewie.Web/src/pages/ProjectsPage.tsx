@@ -7,6 +7,7 @@
  *   - "Create New Repository": requires name + repoName, optionally description + isPrivate
  */
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { fetchProjects, createProject } from "../api/client";
 import type { Project, CreateProjectRequest } from "../types";
 
@@ -39,6 +40,7 @@ function ProviderBadge({ provider }: { provider: string | null }) {
 
 /** Projects page with list and inline create form */
 export function ProjectsPage() {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -336,7 +338,12 @@ export function ProjectsPage() {
       ) : (
         <div className="projects-grid">
           {projects.map((project) => (
-            <div className="project-card" key={project.id} id={`project-${project.id}`}>
+            <div
+              className="project-card clickable"
+              key={project.id}
+              id={`project-${project.id}`}
+              onClick={() => { void navigate(`/projects/${project.id}`); }}
+            >
               <div className="project-card-header">
                 <h3>{project.name}</h3>
                 <ProviderBadge provider={project.repoProvider} />

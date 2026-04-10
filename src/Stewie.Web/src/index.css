@@ -2447,3 +2447,594 @@ textarea.form-input {
   color: var(--color-text);
   margin-bottom: var(--space-sm);
 }
+
+/* ===================================================================
+   Terminal Panel — Container Output Streaming (JOB-014 T-148)
+   Dark terminal aesthetic with scroll lock, stderr highlights,
+   and streaming status indicator.
+   =================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* --- Terminal Container --- */
+.terminal-panel {
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+  margin-top: var(--space-md);
+  transition: all var(--transition-normal);
+}
+
+.terminal-panel:hover {
+  border-color: #3a3a5a;
+  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+/* --- Terminal Header Bar --- */
+.terminal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-md);
+  background: #141428;
+  border-bottom: 1px solid #2a2a4a;
+  min-height: 36px;
+}
+
+.terminal-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.terminal-header-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.terminal-header-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.terminal-header-dot--red { background: #ff5f57; }
+.terminal-header-dot--yellow { background: #febc2e; }
+.terminal-header-dot--green { background: #28c840; }
+
+.terminal-header-title {
+  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  font-size: var(--font-size-xs);
+  color: #8888aa;
+  margin-left: var(--space-sm);
+  user-select: none;
+}
+
+.terminal-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* --- Line Numbers Toggle --- */
+.terminal-toggle-btn {
+  background: none;
+  border: 1px solid #2a2a4a;
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  font-size: 10px;
+  color: #6666aa;
+  transition: all var(--transition-fast);
+}
+
+.terminal-toggle-btn:hover {
+  background: rgba(100, 100, 180, 0.1);
+  border-color: #4a4a6a;
+  color: #9999cc;
+}
+
+.terminal-toggle-btn.active {
+  background: rgba(100, 100, 180, 0.15);
+  border-color: #5555aa;
+  color: #aaaaee;
+}
+
+/* --- Terminal Body (Scrollable Output) --- */
+.terminal-body {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: var(--space-md);
+  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  scroll-behavior: smooth;
+}
+
+.terminal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terminal-body::-webkit-scrollbar-track {
+  background: #1a1a2e;
+}
+
+.terminal-body::-webkit-scrollbar-thumb {
+  background: #3a3a5a;
+  border-radius: 4px;
+}
+
+.terminal-body::-webkit-scrollbar-thumb:hover {
+  background: #4a4a6a;
+}
+
+/* --- Terminal Lines --- */
+.terminal-line {
+  display: flex;
+  padding: 1px var(--space-xs);
+  border-radius: 2px;
+  transition: background var(--transition-fast);
+  white-space: pre-wrap;
+  word-break: break-all;
+  animation: terminal-line-appear 200ms ease-out;
+}
+
+.terminal-line:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+@keyframes terminal-line-appear {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Line number gutter */
+.terminal-line-number {
+  color: #3a3a5a;
+  min-width: 40px;
+  text-align: right;
+  padding-right: var(--space-sm);
+  margin-right: var(--space-sm);
+  border-right: 1px solid #2a2a4a;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* Line text content */
+.terminal-line-text {
+  color: #c8c8e0;
+  flex: 1;
+}
+
+/* --- Stderr Lines --- */
+.terminal-line--stderr {
+  background: rgba(229, 72, 77, 0.06);
+  border-left: 2px solid var(--color-failed);
+  padding-left: var(--space-sm);
+}
+
+.terminal-line--stderr .terminal-line-text {
+  color: #f0a0a0;
+}
+
+.terminal-line--stderr:hover {
+  background: rgba(229, 72, 77, 0.1);
+}
+
+.terminal-stderr-tag {
+  color: var(--color-failed);
+  font-weight: 500;
+  margin-right: var(--space-xs);
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+/* --- Terminal Status Bar --- */
+.terminal-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-xs) var(--space-md);
+  background: #141428;
+  border-top: 1px solid #2a2a4a;
+  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  font-size: 10px;
+  color: #6666aa;
+  user-select: none;
+}
+
+.terminal-status-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.terminal-status-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* --- Streaming Indicator --- */
+.terminal-streaming-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-completed);
+  animation: terminal-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes terminal-pulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 4px rgba(111, 172, 80, 0.5);
+  }
+  50% {
+    opacity: 0.4;
+    box-shadow: 0 0 8px rgba(111, 172, 80, 0.2);
+  }
+}
+
+.terminal-status-text--streaming {
+  color: var(--color-completed);
+}
+
+.terminal-status-text--completed {
+  color: #6666aa;
+}
+
+/* --- Scroll Lock Badge --- */
+.terminal-scroll-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(245, 166, 35, 0.12);
+  color: var(--color-warning);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  animation: scroll-lock-appear 200ms ease;
+}
+
+@keyframes scroll-lock-appear {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.terminal-scroll-lock-icon {
+  font-size: 8px;
+}
+
+/* --- Empty State (Waiting for output) --- */
+.terminal-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl) var(--space-md);
+  color: #5555aa;
+  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  font-size: var(--font-size-sm);
+}
+
+.terminal-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 16px;
+  background: var(--color-completed);
+  margin-left: var(--space-xs);
+  animation: terminal-blink 1s step-end infinite;
+}
+
+@keyframes terminal-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* --- Collapsible Output Toggle (in task chain) --- */
+.terminal-collapse-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background: none;
+  border: 1px solid #2a2a4a;
+  border-radius: var(--radius-sm);
+  padding: 3px 10px;
+  cursor: pointer;
+  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  font-size: 11px;
+  color: #6666aa;
+  margin-top: var(--space-sm);
+  transition: all var(--transition-fast);
+}
+
+.terminal-collapse-toggle:hover {
+  background: rgba(100, 100, 180, 0.08);
+  border-color: #4a4a6a;
+  color: #9999cc;
+}
+
+.terminal-collapse-toggle-icon {
+  font-size: 9px;
+  transition: transform var(--transition-fast);
+}
+
+.terminal-collapse-toggle-icon.expanded {
+  transform: rotate(90deg);
+}
+
+/* --- Light theme adjustments --- */
+[data-theme="light"] .terminal-panel {
+  background: #1e1e2e;
+  border-color: #2e2e4e;
+}
+
+[data-theme="light"] .terminal-header {
+  background: #181830;
+}
+
+[data-theme="light"] .terminal-status {
+  background: #181830;
+}
+
+
+/* ===================================================================
+   Chat Panel (T-136, T-137)
+   =================================================================== */
+
+.chat-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  height: 520px;
+  max-height: 70vh;
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--bg-card);
+  flex-shrink: 0;
+}
+
+.chat-header-title {
+  font-weight: 600;
+  font-size: var(--font-size-md);
+}
+
+.chat-header-hint {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+/* Messages area */
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-md) var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  scroll-behavior: smooth;
+}
+
+.chat-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--text-secondary);
+  padding: var(--space-2xl);
+}
+
+.chat-empty .empty-icon {
+  font-size: 3rem;
+  opacity: 0.3;
+  margin-bottom: var(--space-md);
+}
+
+.chat-empty h3 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.chat-error {
+  padding: var(--space-md);
+  background: rgba(229, 72, 77, 0.08);
+  border-bottom: 1px solid rgba(229, 72, 77, 0.2);
+  text-align: center;
+  color: var(--color-failed);
+  font-size: var(--font-size-sm);
+}
+
+/* Chat bubbles */
+.chat-bubble {
+  max-width: 80%;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-lg);
+  animation: fadeIn 0.2s ease-out;
+  word-break: break-word;
+}
+
+/* Human messages — right-aligned, green tint */
+.chat-bubble--human {
+  align-self: flex-end;
+  background: rgba(111, 172, 80, 0.12);
+  border: 1px solid rgba(111, 172, 80, 0.2);
+  border-bottom-right-radius: var(--radius-sm);
+}
+
+/* Architect messages — left-aligned, gray */
+.chat-bubble--architect {
+  align-self: flex-start;
+  background: var(--bg-secondary);
+  border: 1px solid var(--color-border);
+  border-bottom-left-radius: var(--radius-sm);
+}
+
+/* System messages — left-aligned, muted, italic */
+.chat-bubble--system {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px dashed var(--color-border);
+  border-bottom-left-radius: var(--radius-sm);
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* Sender line */
+.chat-sender {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-xs);
+}
+
+.chat-sender-icon {
+  font-size: 14px;
+}
+
+.chat-sender-name {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Role badge */
+.chat-role-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.chat-role-badge--human {
+  background: rgba(111, 172, 80, 0.15);
+  color: var(--color-completed);
+}
+
+.chat-role-badge--architect {
+  background: rgba(118, 117, 115, 0.15);
+  color: var(--text-secondary);
+}
+
+.chat-role-badge--system {
+  background: rgba(59, 130, 246, 0.12);
+  color: var(--color-running);
+}
+
+/* Message content */
+.chat-content {
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+}
+
+/* Timestamp */
+.chat-time {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-top: var(--space-xs);
+  text-align: right;
+  opacity: 0.7;
+}
+
+/* Input area */
+.chat-input {
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-card);
+  flex-shrink: 0;
+}
+
+.chat-input-row {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: flex-end;
+}
+
+.chat-textarea {
+  flex: 1;
+  resize: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  background: var(--color-surface);
+  outline: none;
+  transition: border-color var(--transition-fast);
+  min-height: 40px;
+  max-height: 120px;
+  line-height: 1.5;
+}
+
+.chat-textarea:focus {
+  border-color: var(--color-primary);
+}
+
+.chat-textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+.chat-send-btn {
+  flex-shrink: 0;
+  min-width: 64px;
+  height: 40px;
+}
+
+.chat-input-hint {
+  min-height: 18px;
+  text-align: right;
+  font-size: 10px;
+  color: var(--text-secondary);
+  padding-top: 2px;
+}
+
+.chat-char-warn {
+  color: var(--color-warning);
+  font-weight: 600;
+}
+
+.chat-send-error {
+  font-size: var(--font-size-xs);
+  color: var(--color-failed);
+  margin-bottom: var(--space-xs);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .chat-panel {
+    height: 400px;
+    max-height: 60vh;
+  }
+
+  .chat-bubble {
+    max-width: 92%;
+  }
+}
