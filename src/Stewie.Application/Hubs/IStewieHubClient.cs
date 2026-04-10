@@ -22,4 +22,7 @@ public interface IStewieHubClient
 
     /// <summary>Streams a container output line to connected clients. (JOB-014)</summary>
     Task ContainerOutput(Guid taskId, string line);
+
+    /// <summary>Notifies clients that an agent session's status has changed. (JOB-017)</summary>
+    Task AgentStatusChanged(Guid projectId, Guid sessionId, string status);
 }

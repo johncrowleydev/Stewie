@@ -100,4 +100,21 @@ public class SignalRNotifier : IRealTimeNotifier
             _logger.LogWarning(ex, "Failed to push ContainerOutput for task {TaskId}", taskId);
         }
     }
+
+    /// <inheritdoc/>
+    public async Task NotifyAgentStatusChangedAsync(Guid projectId, Guid sessionId, string status)
+    {
+        try
+        {
+            await _hubContext.Clients.Group($"project:{projectId}")
+                .AgentStatusChanged(projectId, sessionId, status);
+
+            _logger.LogDebug("Pushed AgentStatusChanged: projectId={ProjectId}, sessionId={SessionId}, status={Status}",
+                projectId, sessionId, status);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to push AgentStatusChanged for session {SessionId}", sessionId);
+        }
+    }
 }

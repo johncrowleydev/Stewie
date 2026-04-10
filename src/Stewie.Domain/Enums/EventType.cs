@@ -44,5 +44,11 @@ public enum EventType
     GovernanceFailed = 10,
 
     /// <summary>Governance checks failed — retrying with violation feedback.</summary>
-    GovernanceRetry = 11
+    GovernanceRetry = 11,
+
+    /// <summary>An agent container session has started. (JOB-017)</summary>
+    AgentStarted = 12,
+
+    /// <summary>An agent container session has been terminated. (JOB-017)</summary>
+    AgentTerminated = 13
 }
