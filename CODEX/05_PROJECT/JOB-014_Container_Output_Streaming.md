@@ -2,7 +2,7 @@
 id: JOB-014
 title: "Job 014 — Live Container Output Streaming"
 type: how-to
-status: OPEN
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, job, workflow, phase-5a, streaming, containers, real-time]
@@ -359,3 +359,5 @@ cd src/Stewie.Web/ClientApp && npx tsc --noEmit
 | Date | Change |
 |:-----|:-------|
 | 2026-04-10 | JOB-014 created for Phase 5a Live Container Output Streaming |
+| 2026-04-10 | DEF-001 filed: frontend build failure (missing API client + implicit any) |
+| 2026-04-10 | DEF-001 resolved. JOB-014 CLOSED. Passed audit VER-014 with 121 tests passing. |

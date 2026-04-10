@@ -297,7 +297,7 @@ documents:
     path: 05_PROJECT/JOB-014_Container_Output_Streaming.md
     title: "Job 014 — Live Container Output Streaming"
     type: how-to
-    status: OPEN
+    status: CLOSED
     tags: [project-management, job, workflow, phase-5a, streaming, containers, real-time]
     agents: [coder]
     summary: >
@@ -733,3 +733,28 @@ documents:
       Audit report for JOB-013 (Project Chat System). 59 tests pass.
       ChatMessage entity, migration 016, ChatController, ChatPanel component,
       SignalR real-time push, and ProjectDetailPage integrated successfully.
+
+  - id: VER-014
+    path: 40_VERIFICATION/VER-014_JOB-014_Audit.md
+    title: "JOB-014 Audit — Live Container Output Streaming"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, phase-5a, streaming, containers, real-time]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-014 (Live Container Output Streaming). 121 tests pass.
+      ContainerOutputBuffer, streaming DockerContainerService, terminal-style
+      ContainerOutputPanel with scroll lock and stderr highlighting.
+
+  # ---- 50_DEFECTS ----
+  - id: DEF-001
+    path: 50_DEFECTS/DEF-001_JOB-014_Frontend_Build_Failure.md
+    title: "JOB-014 Frontend Build Failure — Missing API Client + Implicit Any"
+    type: reference
+    status: CLOSED
+    tags: [defect, phase-5a, streaming, frontend, typescript]
+    agents: [coder]
+    summary: >
+      Frontend branch failed npm run build with 3 TS errors: missing
+      fetchContainerOutput client function, missing ContainerOutputResponse type,
+      and implicit any on .map() params. Resolved by Dev B on second pass.

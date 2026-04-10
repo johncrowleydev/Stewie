@@ -2,7 +2,7 @@
 id: DEF-001
 title: "JOB-014 Frontend Build Failure — Missing API Client + Implicit Any"
 type: reference
-status: OPEN
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [defect, phase-5a, streaming, frontend, typescript]
