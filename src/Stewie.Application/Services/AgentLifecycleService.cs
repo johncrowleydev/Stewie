@@ -240,6 +240,8 @@ public class AgentLifecycleService
         var session = await _sessionRepo.GetByIdAsync(sessionId)
             ?? throw new KeyNotFoundException($"Agent session {sessionId} not found.");
 
+        await VerifyAndHealSessionAsync(session, ct);
+
         return session;
     }
 
@@ -261,6 +263,60 @@ public class AgentLifecycleService
     /// <returns>The active Architect session, or null if none exists.</returns>
     public async Task<AgentSession?> GetActiveArchitectAsync(Guid projectId)
     {
-        return await _sessionRepo.GetActiveByProjectAndRoleAsync(projectId, "architect");
+        var session = await _sessionRepo.GetActiveByProjectAndRoleAsync(projectId, "architect");
+        if (session is not null)
+        {
+            await VerifyAndHealSessionAsync(session, default);
+            if (session.Status is AgentSessionStatus.Terminated or AgentSessionStatus.Failed)
+            {
+                return null;
+            }
+        }
+        return session;
+    }
+
+    private async Task VerifyAndHealSessionAsync(AgentSession session, CancellationToken ct)
+    {
+        if (session.Status is AgentSessionStatus.Active or AgentSessionStatus.Starting && !string.IsNullOrEmpty(session.ContainerId))
+        {
+            var runtime = _runtimes.FirstOrDefault(r => r.RuntimeName == session.RuntimeName);
+            if (runtime is not null)
+            {
+                try
+                {
+                    var containerStatus = await runtime.GetStatusAsync(session.ContainerId, ct);
+                    if (containerStatus is AgentRuntimeStatus.Stopped or AgentRuntimeStatus.Failed)
+                    {
+                        _logger.LogWarning("Agent session {SessionId} (Container {ContainerId}) found offline during health check. Auto-healing.", session.Id, session.ContainerId);
+                        
+                        session.Status = AgentSessionStatus.Terminated;
+                        session.StoppedAt = DateTime.UtcNow;
+                        session.StopReason = "Auto-healed: Container process died unexpectedly.";
+                        
+                        _unitOfWork.BeginTransaction();
+                        await _sessionRepo.SaveAsync(session);
+                        
+                        var terminateEvent = new Event
+                        {
+                            Id = Guid.NewGuid(),
+                            EntityType = "AgentSession",
+                            EntityId = session.Id,
+                            EventType = EventType.AgentTerminated,
+                            Payload = $"{{\"reason\":\"{session.StopReason}\",\"projectId\":\"{session.ProjectId}\"}}",
+                            Timestamp = DateTime.UtcNow
+                        };
+                        await _eventRepo.SaveAsync(terminateEvent);
+                        
+                        await _unitOfWork.CommitAsync();
+                        
+                        await _notifier.NotifyAgentStatusChangedAsync(session.ProjectId, session.Id, "Terminated");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to verify status for container {ContainerId} of session {SessionId}", session.ContainerId, session.Id);
+                }
+            }
+        }
     }
 }

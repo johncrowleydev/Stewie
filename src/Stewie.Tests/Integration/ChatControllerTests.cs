@@ -45,6 +45,21 @@ public class ChatControllerTests : IClassFixture<StewieWebApplicationFactory>, I
 
         uow.BeginTransaction();
         await projectRepo.SaveAsync(project);
+
+        // Seed an active Architect session so chat messages are accepted (JOB-020)
+        var sessionRepo = scope.ServiceProvider.GetRequiredService<IAgentSessionRepository>();
+        var architectSession = new AgentSession
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = project.Id,
+            AgentRole = "architect",
+            RuntimeName = "stub",
+            ContainerId = "test-fake-container",
+            Status = Stewie.Domain.Enums.AgentSessionStatus.Active,
+            StartedAt = DateTime.UtcNow
+        };
+        await sessionRepo.SaveAsync(architectSession);
+
         await uow.CommitAsync();
         return project.Id;
     }

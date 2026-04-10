@@ -244,10 +244,10 @@ public class ArchitectSessionEndpointTests
     }
 
     /// <summary>
-    /// GetArchitectStatus with no active session returns 404.
+    /// GetArchitectStatus with no active session returns 200 with active = false.
     /// </summary>
     [Fact]
-    public async Task GetArchitectStatus_NoSession_Returns404()
+    public async Task GetArchitectStatus_NoSession_Returns200WithActiveFalse()
     {
         // Arrange
         _sessionRepo.GetActiveByProjectAndRoleAsync(_projectId, "architect")
@@ -257,6 +257,9 @@ public class ArchitectSessionEndpointTests
         var result = await _controller.GetArchitectStatus(_projectId);
 
         // Assert
-        Assert.IsType<NotFoundObjectResult>(result);
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        var valueType = okResult.Value!.GetType();
+        var activeProp = valueType.GetProperty("active")?.GetValue(okResult.Value);
+        Assert.Equal(false, activeProp);
     }
 }

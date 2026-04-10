@@ -100,8 +100,9 @@ You discover a bug that isn't part of your sprint scope:
 ### 4.4 Completing Your Sprint
 1. All tasks done → update your `JOB-NNN.md` task list to reflect completion
 2. Run all applicable tests per `GOV-002_TestingProtocol.md`
-3. Notify the Architect Agent for audit review
-4. Respond to any `DEF-` reports the Architect files against your work
+3. **MANDATORY:** Push your working branch to GitHub (e.g., `git push origin <branch-name>`)
+4. Notify the Architect Agent for audit review
+5. Respond to any `DEF-` reports the Architect files against your work
 
 ---
 
