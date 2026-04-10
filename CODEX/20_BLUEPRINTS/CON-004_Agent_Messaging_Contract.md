@@ -29,6 +29,7 @@ refs: [BLU-001, JOB-016]
 | Broker | RabbitMQ 3.x with management plugin |
 | Protocol | AMQP 0-9-1 |
 | Serialization | JSON (UTF-8, `application/json`) |
+| Serialization Policy | Strict `camelCase` enforcement for all top-level properties and nested domains |
 | Virtual Host | `stewie` |
 
 ---

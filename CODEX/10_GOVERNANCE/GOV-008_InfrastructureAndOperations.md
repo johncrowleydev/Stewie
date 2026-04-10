@@ -129,7 +129,7 @@ These are intentionally separate projects. The frontend calls the API over HTTP.
 | **Execution model** | `docker run --rm` with volume mounts |
 | **I/O contract** | Input: `/workspace/input/task.json` → Output: `/workspace/output/result.json` |
 | **Isolation** | Each task runs in its own container |
-| **Networking** | No network access (containers are compute-only) |
+| **Networking** | MUST be injected with `--network host` (local mode) to access the host's localhost (SQL, RabbitMQ) |
 
 ---
 

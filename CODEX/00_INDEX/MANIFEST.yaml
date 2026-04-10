@@ -365,6 +365,18 @@ documents:
       Decouple generic data payloads (task.json, result.json, governance-report.json, and raw binaries)
       from the physical block storage used for Git clones. Adds IArtifactWorkspaceStore.
 
+  - id: JOB-020
+    path: 05_PROJECT/JOB-020_Self_Healing_Architect_Lifecycle.md
+    title: "Job 020 — Self-Healing Architect Lifecycle"
+    type: how-to
+    status: ACTIVE
+    tags: [project-management, job, workflow, phase-6, architecture, health-check]
+    agents: [coder]
+    summary: >
+      Addresses systemic UI/Docker uncoupling by injecting live container state inspections 
+      into the REST API polling endpoint alongside defensive 409 rejections for Chat inputs 
+      routed to definitively offline systems.
+
   # ── 10_GOVERNANCE ───────────────────────────────────────────────────────────
   - id: GOV-001
     path: 10_GOVERNANCE/GOV-001_DocumentationStandard.md
