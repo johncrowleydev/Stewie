@@ -171,18 +171,85 @@ version: 1.2.0
 
 ---
 
+## Phase 5a: Chat + Real-Time UI ✅ COMPLETE
+
+### JOB-012 — SignalR Real-Time Hub ✅ CLOSED
+
+| ID | Task | Description | Priority | Status |
+|:---|:-----|:------------|:---------|:-------|
+| B-500 | ~~SignalR WebSocket hub~~ | ✅ Done (JOB-012) | P0 | Done |
+| B-501 | ~~IRealTimeNotifier abstraction~~ | ✅ Done (JOB-012) | P0 | Done |
+| B-502 | ~~Frontend useSignalR hook~~ | ✅ Done (JOB-012) | P1 | Done |
+
+### JOB-013 — Project Chat System ✅ CLOSED
+
+| ID | Task | Description | Priority | Status |
+|:---|:-----|:------------|:---------|:-------|
+| B-510 | ~~ChatMessage entity + migration~~ | ✅ Done (JOB-013 T-130) | P0 | Done |
+| B-511 | ~~ChatController REST API~~ | ✅ Done (JOB-013 T-132) | P0 | Done |
+| B-512 | ~~ChatPanel frontend component~~ | ✅ Done (JOB-013 T-135) | P1 | Done |
+| B-513 | ~~SignalR chat push~~ | ✅ Done (JOB-013 T-133) | P1 | Done |
+
+### JOB-014 — Container Output Streaming ✅ CLOSED
+
+| ID | Task | Description | Priority | Status |
+|:---|:-----|:------------|:---------|:-------|
+| B-520 | ~~ContainerOutputBuffer~~ | ✅ Done (JOB-014 T-142) | P0 | Done |
+| B-521 | ~~Streaming DockerContainerService~~ | ✅ Done (JOB-014 T-141) | P0 | Done |
+| B-522 | ~~ContainerOutputPanel frontend~~ | ✅ Done (JOB-014 T-147) | P1 | Done |
+| B-523 | ~~Container output REST endpoint~~ | ✅ Done (JOB-014 T-144) | P1 | Done |
+
+### JOB-015 — ESProj Migration ✅ CLOSED
+
+| ID | Task | Description | Priority | Status |
+|:---|:-----|:------------|:---------|:-------|
+| B-530 | ~~Migrate csproj to esproj~~ | ✅ Done (JOB-015 T-151) | P1 | Done |
+
+---
+
+## Phase 5b: Message Bus + Agent Lifecycle (IN PROGRESS)
+
+### JOB-016 — RabbitMQ Infrastructure ✅ CLOSED
+
+| ID | Task | Description | Priority | Status |
+|:---|:-----|:------------|:---------|:-------|
+| B-600 | ~~Docker compose (RabbitMQ)~~ | ✅ Done (JOB-016 T-154) | P0 | Done |
+| B-601 | ~~CON-004 Agent Messaging Contract~~ | ✅ Done (JOB-016 T-156) | P0 | Done |
+| B-602 | ~~IRabbitMqService + implementation~~ | ✅ Done (JOB-016 T-158/T-159) | P0 | Done |
+| B-603 | ~~RabbitMqConsumerHostedService~~ | ✅ Done (JOB-016 T-160) | P0 | Done |
+| B-604 | ~~RabbitMQ health check~~ | ✅ Done (JOB-016 T-157) | P1 | Done |
+
+### JOB-017 — IAgentRuntime + Stub ✅ CLOSED
+
+| ID | Task | Description | Priority | Status |
+|:---|:-----|:------------|:---------|:-------|
+| B-610 | ~~IAgentRuntime interface~~ | ✅ Done (JOB-017 T-162) | P0 | Done |
+| B-611 | ~~AgentSession entity + migration~~ | ✅ Done (JOB-017 T-163) | P0 | Done |
+| B-612 | ~~AgentLifecycleService~~ | ✅ Done (JOB-017 T-164) | P0 | Done |
+| B-613 | ~~StubAgentRuntime~~ | ✅ Done (JOB-017 T-167) | P0 | Done |
+| B-614 | ~~stewie-stub-agent Python image~~ | ✅ Done (JOB-017 T-168) | P1 | Done |
+| B-615 | ~~AgentsController REST API~~ | ✅ Done (JOB-017 T-165) | P1 | Done |
+
+### JOB-018 — Chat Bridge + Architect Lifecycle (OPEN)
+
+| ID | Task | Description | Priority | Status |
+|:---|:-----|:------------|:---------|:-------|
+| B-620 | Chat-to-RabbitMQ relay | Chat messages forwarded to Architect queue | P0 | Todo |
+| B-621 | Agent chat → ChatMessage persistence | Agent events persisted as chat messages | P0 | Todo |
+| B-622 | Architect session management endpoints | Start/stop Architect from API | P0 | Todo |
+| B-623 | ArchitectControls frontend component | Start/stop UI + status indicator | P1 | Todo |
+| B-624 | ChatPanel Architect integration | Disabled input when offline | P1 | Todo |
+
+---
+
 ## Future Backlog
 
 | ID | Task | Description | Priority |
 |:---|:-----|:------------|:---------|
-| B-500 | Workspace TTL-based cleanup | Auto-delete old workspaces | P3 |
-| B-501 | AI agent worker | Container with LLM API for code generation | P2 |
-| B-502 | WebSocket/SSE live updates | Replace polling with real-time push | P1 → Phase 5 |
-| B-503 | Human ↔ Architect chat | Interactive chat through dashboard | P1 → Phase 5 |
-| B-504 | Live container output streaming | Stream stdout from running containers | P1 → Phase 5 |
-| B-505 | RabbitMQ event distribution | Async event bus for multi-service architecture | P2 → Phase 5 |
-| B-506 | GitLab provider | IGitPlatformService implementation for GitLab | P3 |
-| B-507 | Bitbucket provider | IGitPlatformService implementation for Bitbucket | P3 |
+| B-700 | Workspace TTL-based cleanup | Auto-delete old workspaces | P3 |
+| B-701 | AI agent worker (Phase 6) | Container with LLM API for code generation | P1 → Phase 6 |
+| B-702 | GitLab provider | IGitPlatformService implementation for GitLab | P3 |
+| B-703 | Bitbucket provider | IGitPlatformService implementation for Bitbucket | P3 |
 
 ---
 
@@ -196,3 +263,6 @@ version: 1.2.0
 | 2026-04-09 | Phase 2.5 marked complete (JOB-004). Added Phase 2.75 (Repo Automation) for JOB-005. |
 | 2026-04-10 | Phase 4 backlog created. B-301, B-304 pulled from Future into JOB-009/010/011. |
 | 2026-04-10 | Phase 4 COMPLETE. All B-400 through B-426 marked done. Renumbered future items B-500+. |
+| 2026-04-10 | Phase 5a COMPLETE. B-500 through B-530 done (JOB-012/013/014/015). |
+| 2026-04-10 | Phase 5b started. JOB-016 and JOB-017 CLOSED. JOB-018 OPEN. B-600 through B-615 done. |
+

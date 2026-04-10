@@ -229,15 +229,16 @@ Phases are **scope-bounded**, not time-bounded.
 
 ---
 
-### Phase 5a: Chat + Real-Time UI
+### Phase 5a: Chat + Real-Time UI ✅ COMPLETE
 **Goal:** Human ↔ Architect chat interface and real-time dashboard updates.
+**Completed:** 2026-04-10 (JOB-012, JOB-013, JOB-014, JOB-015)
 **Exit criteria:**
-- [ ] SignalR WebSocket hub replacing polling for job/task updates
-- [ ] Per-project chat persistence (ChatMessage entity, GET/POST endpoints)
-- [ ] Chat UI panel as the primary project interface
-- [ ] Live container output streaming to dashboard
-- [ ] Graceful fallback to polling if WebSocket disconnects
-- [ ] CON-002 updated with WebSocket and chat endpoints
+- [x] SignalR WebSocket hub replacing polling for job/task updates (JOB-012)
+- [x] Per-project chat persistence (ChatMessage entity, GET/POST endpoints) (JOB-013)
+- [x] Chat UI panel as the primary project interface (JOB-013)
+- [x] Live container output streaming to dashboard (JOB-014)
+- [x] Graceful fallback to polling if WebSocket disconnects (JOB-012)
+- [x] CON-002 updated with WebSocket and chat endpoints (JOB-012)
 
 ---
 

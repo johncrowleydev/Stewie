@@ -317,6 +317,43 @@ documents:
       Modernize the frontend project file by converting Stewie.Web.csproj
       (legacy SpaProxy middleware) into a native Stewie.Web.esproj
       (JavaScript Project System). Includes flattening the ClientApp folder structure.
+
+  - id: JOB-016
+    path: 05_PROJECT/JOB-016_RabbitMQ_Infrastructure.md
+    title: "Job 016 — RabbitMQ Infrastructure + CON-004"
+    type: how-to
+    status: CLOSED
+    tags: [project-management, job, workflow, phase-5b, rabbitmq, messaging]
+    agents: [coder]
+    summary: >
+      Stand up RabbitMQ, define CON-004 agent messaging contract, and wire
+      publish/consume pipeline into the API. Docker compose, IRabbitMqService,
+      RabbitMqConsumerHostedService, and health check.
+
+  - id: JOB-017
+    path: 05_PROJECT/JOB-017_AgentRuntime_Abstraction.md
+    title: "Job 017 — IAgentRuntime Abstraction + Stub Runtime"
+    type: how-to
+    status: CLOSED
+    tags: [project-management, job, workflow, phase-5b, agent-runtime, containers]
+    agents: [coder]
+    summary: >
+      Pluggable IAgentRuntime interface, AgentSession entity, AgentLifecycleService,
+      AgentsController REST API, StubAgentRuntime (Docker), stewie-stub-agent
+      Python image for end-to-end messaging validation.
+
+  - id: JOB-018
+    path: 05_PROJECT/JOB-018_Chat_Bridge_Architect_Lifecycle.md
+    title: "Job 018 — Chat-to-RabbitMQ Bridge + Architect Lifecycle"
+    type: how-to
+    status: OPEN
+    tags: [project-management, job, workflow, phase-5b, chat, rabbitmq, architect]
+    agents: [coder]
+    summary: >
+      Wire Human chat system into RabbitMQ backbone. Chat relay to Architect,
+      agent chat → ChatMessage persistence, Architect start/stop UI controls,
+      frontend status indicators.
+
   # ── 10_GOVERNANCE ───────────────────────────────────────────────────────────
   - id: GOV-001
     path: 10_GOVERNANCE/GOV-001_DocumentationStandard.md
@@ -483,6 +520,18 @@ documents:
       in a repository root, replaces heuristic stack detection with explicit
       build/test commands, governance settings, and path constraints.
       CON-003 v1.0.0.
+
+  - id: CON-004
+    path: 20_BLUEPRINTS/CON-004_Agent_Messaging_Contract.md
+    title: "Agent Messaging Contract — RabbitMQ"
+    type: reference
+    status: DRAFT
+    tags: [standards, specification, rabbitmq, messaging, agents]
+    agents: [all]
+    summary: >
+      Defines the RabbitMQ exchange topology, routing keys, and JSON message
+      schemas for agent-to-API communication. Three exchanges: stewie.commands
+      (direct), stewie.events (topic), stewie.chat (direct). CON-004 v1.0.0.
 
   # ── 30_RUNBOOKS ────────────────────────────────────────────────────────────
   - id: RUN-001
@@ -758,3 +807,27 @@ documents:
       Frontend branch failed npm run build with 3 TS errors: missing
       fetchContainerOutput client function, missing ContainerOutputResponse type,
       and implicit any on .map() params. Resolved by Dev B on second pass.
+
+  - id: VER-016
+    path: 40_VERIFICATION/VER-016_JOB-016_Audit.md
+    title: "JOB-016 Audit — RabbitMQ Infrastructure"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, phase-5b, rabbitmq, messaging]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-016. 150 tests pass (29 new). Docker compose,
+      CON-004, IRabbitMqService, RabbitMqService, consumer hosted service,
+      RabbitMQ health check. Minor csproj conflict resolved.
+
+  - id: VER-017
+    path: 40_VERIFICATION/VER-017_JOB-017_Audit.md
+    title: "JOB-017 Audit — IAgentRuntime + Stub Runtime"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, phase-5b, agent-runtime, containers]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-017. 177 tests pass (27 new). Interface signature
+      mismatch and duplicate AgentLaunchRequest model resolved during merge.
+      StubAgentRuntime, stewie-stub-agent Python image, AgentSession entity.
