@@ -72,6 +72,7 @@ public class JobOrchestrationServiceTests
             _governanceReportRepository,
             _taskDependencyRepository,
             new NullRealTimeNotifier(),
+            new ContainerOutputBuffer(),
             "stewie-script-worker");
     }
 
