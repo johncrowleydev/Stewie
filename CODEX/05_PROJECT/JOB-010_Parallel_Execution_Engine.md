@@ -2,7 +2,7 @@
 id: JOB-010
 title: "Job 010 — Parallel Execution Engine + API"
 type: how-to
-status: PLANNED
+status: ACTIVE
 owner: architect
 agents: [coder]
 tags: [project-management, job, workflow, phase-4, parallel-execution]
@@ -34,10 +34,10 @@ JOB-009 built the graph primitives (TaskDependency entity, TaskGraph service, Bl
 
 | Agent | Territory | Branch |
 |:------|:----------|:-------|
-| Dev A | Execution engine, API controller, workspace service, contract docs | `feature/JOB-010-parallel-exec` |
-| Dev B | Integration tests, backward compatibility tests | `feature/JOB-010-parallel-exec` |
+| Dev A | Execution engine, API controller, workspace service, contract docs | `feature/JOB-010-exec-engine` |
+| Dev B | Integration tests, backward compatibility tests | `feature/JOB-010-exec-tests` |
 
-**Single branch, granular commits per task. Merge order: Dev A first, Dev B second.**
+**Separate branches per agent (GOV-005). Merge order: Dev A first, Dev B rebases onto main after Dev A merges.**
 
 ---
 
