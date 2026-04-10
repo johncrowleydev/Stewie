@@ -3,6 +3,7 @@ using FluentMigrator.Runner;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Stewie.Api.Middleware;
+using Stewie.Application.Hubs;
 using Stewie.Application.Interfaces;
 using Stewie.Application.Services;
 using Stewie.Domain.Entities;
@@ -33,6 +34,19 @@ var encryptionKey = builder.Configuration["Stewie:EncryptionKey"]
 // Controllers & OpenAPI
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddSignalR();
+
+// CORS — required for SignalR WebSocket upgrade from frontend dev server
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("StewieCors", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://localhost:5275")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();  // Required for SignalR
+    });
+});
 
 // JWT Authentication — T-038
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -48,6 +62,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
             NameClaimType = "sub"
+        };
+
+        // SignalR sends JWT via query string during WebSocket handshake
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
         };
     });
 builder.Services.AddAuthorization();
@@ -101,6 +130,7 @@ builder.Services.AddSingleton<IEncryptionService>(new AesEncryptionService(encry
 builder.Services.AddScoped<IGitPlatformService, GitHubService>();
 builder.Services.AddScoped<GovernanceAnalyticsService>();
 builder.Services.AddScoped<ProjectConfigService>();
+builder.Services.AddSingleton<IRealTimeNotifier, SignalRNotifier>();
 builder.Services.AddScoped<JobOrchestrationService>(sp =>
     new JobOrchestrationService(
         sp.GetRequiredService<IJobRepository>(),
@@ -118,6 +148,7 @@ builder.Services.AddScoped<JobOrchestrationService>(sp =>
         sp.GetRequiredService<ILogger<JobOrchestrationService>>(),
         sp.GetRequiredService<IGovernanceReportRepository>(),
         sp.GetRequiredService<ITaskDependencyRepository>(),
+        sp.GetRequiredService<IRealTimeNotifier>(),
         scriptWorkerImage,
         governanceWorkerImage,
         maxGovernanceRetries,
@@ -138,9 +169,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("StewieCors");
 app.UseAuthentication(); // Must be before UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<StewieHub>("/hubs/stewie");
 app.Run();
 
 /// <summary>Seeds the first admin user if no users exist in the database.</summary>

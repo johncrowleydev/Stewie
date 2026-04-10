@@ -22,6 +22,7 @@ using Stewie.Application.Services;
 using Stewie.Domain.Contracts;
 using Stewie.Domain.Entities;
 using Stewie.Domain.Enums;
+using Stewie.Tests.Mocks;
 using Xunit;
 
 namespace Stewie.Tests.Services;
@@ -80,6 +81,7 @@ public class RetryLogicTests
             NullLogger<JobOrchestrationService>.Instance,
             governanceReportRepository,
             taskDependencyRepository,
+            new NullRealTimeNotifier(),
             "stewie-script-worker");
     }
 

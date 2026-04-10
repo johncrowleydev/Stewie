@@ -35,6 +35,7 @@ public partial class JobOrchestrationService
     private readonly string _scriptWorkerImage;
     private readonly IGovernanceReportRepository _governanceReportRepository;
     private readonly ITaskDependencyRepository _taskDependencyRepository;
+    private readonly IRealTimeNotifier _realTimeNotifier;
     private readonly string _governanceWorkerImage;
     private readonly int _maxGovernanceRetries;
     private readonly SemaphoreSlim _taskSemaphore;
@@ -56,6 +57,7 @@ public partial class JobOrchestrationService
         ILogger<JobOrchestrationService> logger,
         IGovernanceReportRepository governanceReportRepository,
         ITaskDependencyRepository taskDependencyRepository,
+        IRealTimeNotifier realTimeNotifier,
         string scriptWorkerImage = "stewie-script-worker",
         string governanceWorkerImage = "stewie-governance-worker",
         int maxGovernanceRetries = 2,
@@ -76,6 +78,7 @@ public partial class JobOrchestrationService
         _logger = logger;
         _governanceReportRepository = governanceReportRepository;
         _taskDependencyRepository = taskDependencyRepository;
+        _realTimeNotifier = realTimeNotifier;
         _scriptWorkerImage = scriptWorkerImage;
         _governanceWorkerImage = governanceWorkerImage;
         _maxGovernanceRetries = maxGovernanceRetries;
@@ -1436,6 +1439,38 @@ public partial class JobOrchestrationService
         await _eventRepository.SaveAsync(eventRecord);
         _logger.LogDebug("Emitted {EventType} for {EntityType} {EntityId}",
             eventType, entityType, entityId);
+
+        // Push real-time notification to connected clients
+        await PushRealTimeNotificationAsync(entityType, entityId, eventType);
+    }
+
+    /// <summary>
+    /// Pushes a real-time notification via SignalR for the given event.
+    /// Failures are swallowed and logged — never breaks orchestration.
+    /// REF: JOB-012 T-124
+    /// </summary>
+    private async Task PushRealTimeNotificationAsync(string entityType, Guid entityId, EventType eventType)
+    {
+        try
+        {
+            var statusString = eventType.ToString();
+            if (entityType == "Job")
+            {
+                var job = await _jobRepository.GetByIdAsync(entityId);
+                await _realTimeNotifier.NotifyJobUpdatedAsync(job?.ProjectId, entityId, statusString);
+            }
+            else if (entityType == "Task")
+            {
+                var task = await _workTaskRepository.GetByIdAsync(entityId);
+                if (task != null)
+                    await _realTimeNotifier.NotifyTaskUpdatedAsync(task.JobId, entityId, statusString);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to push real-time notification for {EntityType} {EntityId}",
+                entityType, entityId);
+        }
     }
 
     /// <summary>
