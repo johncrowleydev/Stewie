@@ -120,15 +120,54 @@ version: 1.1.0
 
 ---
 
+## Phase 4: Multi-Task Jobs
+
+### JOB-009 — Task DAG Infrastructure (ACTIVE)
+
+| ID | Task | Description | Priority | Status |
+|:---|:-----|:------------|:---------|:-------|
+| B-400 | TaskDependency entity + migration | Junction table for task→task edges | P0 | → JOB-009 T-081 |
+| B-401 | TaskDependency repository | CRUD for dependency edges | P0 | → JOB-009 T-082 |
+| B-402 | TaskGraph service | Topological sort, readiness, cycle detection | P0 | → JOB-009 T-084/T-085 |
+| B-403 | Blocked + Cancelled WorkTask states | New enum values for DAG support | P0 | → JOB-009 T-086 |
+| B-404 | PartiallyCompleted Job status | New enum value for mixed outcomes | P0 | → JOB-009 T-087 |
+| B-405 | TaskGraph unit tests | Full coverage of graph operations | P1 | → JOB-009 T-088/T-089 |
+
+### JOB-010 — Parallel Execution Engine + API (PLANNED)
+
+| ID | Task | Description | Priority | Status |
+|:---|:-----|:------------|:---------|:-------|
+| B-410 | Multi-task execution loop | Replace single-task path with scheduler | P0 | Planned |
+| B-411 | Parallel container launcher | SemaphoreSlim-bounded concurrency | P0 | Planned |
+| B-412 | Per-task workspace isolation | Each task gets own workspace clone | P0 | Planned |
+| B-413 | Multi-task API (POST /api/jobs) | Accept tasks array with deps | P0 | Planned |
+| B-414 | CON-002 v1.7.0 | Multi-task API contract update | P0 | Planned |
+| B-415 | Per-task governance cycle | Each dev task gets own tester | P1 | Planned |
+| B-416 | Integration tests (multi-task) | Parallel, DAG, failure cascade | P1 | Planned |
+
+### JOB-011 — Dashboard + Analytics + stewie.json (PLANNED)
+
+| ID | Task | Description | Priority | Status |
+|:---|:-----|:------------|:---------|:-------|
+| B-420 | Multi-task progress UI | Dashboard component for N-task jobs | P1 | Planned |
+| B-421 | Task DAG visualization | Graph/timeline view of task deps | P1 | Planned |
+| B-422 | Governance analytics API | Violation trending, top failing rules | P1 | Planned |
+| B-423 | Governance analytics UI | Dashboard panel for analytics | P2 | Planned |
+| B-424 | stewie.json parser | Project config service | P1 | Planned |
+| B-425 | CON-003 stewie.json contract | New contract for project config | P1 | Planned |
+| B-426 | GOV update suggestions | Suggest governance changes from failure data | P2 | Planned |
+
+---
+
 ## Future Backlog
 
 | ID | Task | Description | Priority |
 |:---|:-----|:------------|:---------|
 | B-300 | Workspace TTL-based cleanup | Auto-delete old workspaces | P3 |
-| B-301 | Multi-task runs (Phase 4) | One run spawns N parallel tasks | P2 |
+| ~~B-301~~ | ~~Multi-task runs~~ | Pulled into Phase 4 (JOB-009/010) | — |
 | B-302 | AI agent worker | Container with LLM API for code generation | P2 |
 | B-303 | WebSocket/SSE live updates | Replace polling with real-time push | P3 |
-| B-304 | Task dependency graph | Sequential and parallel task ordering | P3 |
+| ~~B-304~~ | ~~Task dependency graph~~ | Pulled into Phase 4 (JOB-009) | — |
 | B-305 | GitLab provider | IGitPlatformService implementation for GitLab | P3 |
 | B-306 | Bitbucket provider | IGitPlatformService implementation for Bitbucket | P3 |
 
@@ -142,3 +181,5 @@ version: 1.1.0
 | 2026-04-09 | JOB-001 items marked complete. B-020, B-043 → JOB-002. Phase 2 items unchanged. |
 | 2026-04-09 | Phase 2 items assigned to JOB-003. Added Phase 2.5 (GitHub/Users) and future backlog. |
 | 2026-04-09 | Phase 2.5 marked complete (JOB-004). Added Phase 2.75 (Repo Automation) for JOB-005. |
+| 2026-04-10 | Phase 4 backlog created. B-301, B-304 pulled from Future into JOB-009/010/011. |
+

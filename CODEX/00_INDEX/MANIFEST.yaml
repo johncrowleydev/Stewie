@@ -230,6 +230,43 @@ documents:
       GOV docs + SEC-001 secret scanning). Task chain timeline and GovernanceReportPanel
       on the dashboard. Integration tests for happy path and retry flows.
 
+  - id: JOB-009
+    path: 05_PROJECT/JOB-009_Task_DAG_Infrastructure.md
+    title: "Job 009 — Task DAG Infrastructure"
+    type: how-to
+    status: ACTIVE
+    tags: [project-management, job, workflow, phase-4, dag]
+    agents: [coder]
+    summary: >
+      Phase 4 infrastructure: TaskDependency entity/migration, TaskGraph service
+      with topological sort and cycle detection, Blocked/Cancelled WorkTask states,
+      PartiallyCompleted Job status. Purely additive — no execution behavior changes.
+
+  - id: JOB-010
+    path: 05_PROJECT/JOB-010_Parallel_Execution_Engine.md
+    title: "Job 010 — Parallel Execution Engine + API"
+    type: how-to
+    status: PLANNED
+    tags: [project-management, job, workflow, phase-4, parallel-execution]
+    agents: [coder]
+    summary: >
+      Phase 4 execution: replaces single-task path with parallel DAG scheduler,
+      SemaphoreSlim-bounded concurrency, per-task workspace isolation, per-task
+      governance cycle, multi-task POST /api/jobs. CON-002 v1.7.0, CON-001 v1.5.0.
+
+  - id: JOB-011
+    path: 05_PROJECT/JOB-011_Dashboard_Analytics.md
+    title: "Job 011 — Dashboard + Analytics + stewie.json"
+    type: how-to
+    status: PLANNED
+    tags: [project-management, job, workflow, phase-4, dashboard, analytics]
+    agents: [coder]
+    summary: >
+      Phase 4 frontend and analytics: multi-task job progress panel, task DAG
+      visualization, governance failure analytics (trending violations, GOV update
+      suggestions), stewie.json project configuration (CON-003), aggregated status
+      badges.
+
   # ── 10_GOVERNANCE ───────────────────────────────────────────────────────────
   - id: GOV-001
     path: 10_GOVERNANCE/GOV-001_DocumentationStandard.md
