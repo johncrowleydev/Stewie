@@ -258,7 +258,7 @@ documents:
     path: 05_PROJECT/JOB-011_Dashboard_Analytics.md
     title: "Job 011 — Dashboard + Analytics + stewie.json"
     type: how-to
-    status: PLANNED
+    status: CLOSED
     tags: [project-management, job, workflow, phase-4, dashboard, analytics]
     agents: [coder]
     summary: >
@@ -635,3 +635,15 @@ documents:
     summary: >
       Audit report for JOB-010 (Parallel Execution Engine). 101 tests pass (9 new),
       multi-task DAG scheduler, per-task governance, CON-002 v1.7.0, CON-001 v1.5.0.
+
+  - id: VER-011
+    path: 40_VERIFICATION/VER-011_JOB-011_Audit.md
+    title: "JOB-011 Audit — Dashboard + Analytics + stewie.json (Phase 4 Complete)"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, phase-4, dashboard, analytics]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-011 and Phase 4 completion. 110 tests pass (9 new),
+      governance analytics API, stewie.json parser (CON-003), multi-task dashboard
+      components, all Phase 4 exit criteria verified.

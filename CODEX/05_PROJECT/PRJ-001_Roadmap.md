@@ -167,14 +167,16 @@ Phases are **scope-bounded**, not time-bounded.
 
 ---
 
-### Phase 4: Multi-Task Jobs
+### Phase 4: Multi-Task Jobs ✅ COMPLETE
 **Goal:** A single Job can spawn and coordinate multiple parallel Tasks with dependency graphs.
+**Completed:** 2026-04-10 (JOB-009, JOB-010, JOB-011)
 **Exit criteria:**
-- [ ] Job with N tasks executing in parallel containers
-- [ ] Task dependency DAG (sequential and parallel)
-- [ ] Aggregated Job status from constituent Tasks
-- [ ] Dashboard shows multi-task Job progress
-- [ ] Governance failure analytics (trending violations, GOV update suggestions)
+- [x] Job with N tasks executing in parallel containers (JOB-010)
+- [x] Task dependency DAG (sequential and parallel) (JOB-009)
+- [x] Aggregated Job status from constituent Tasks (JOB-010)
+- [x] Dashboard shows multi-task Job progress (JOB-011)
+- [x] Governance failure analytics (trending violations, GOV update suggestions) (JOB-011)
+- [x] `stewie.json` project config (JOB-011, CON-003)
 
 ---
 
