@@ -1,26 +1,59 @@
 /**
- * JobsPage — Lists all jobs with status badges and auto-refresh.
- * Polls GET /api/jobs every 5s (CON-002 §4.2).
- * Click a row to navigate to job detail page.
+ * JobsPage — Lists all jobs with status badges and real-time updates.
+ *
+ * Primary: SignalR WebSocket push via "dashboard" group (receives all job updates).
+ * Fallback: Polls GET /api/jobs every 5s when WebSocket disconnects.
+ *
+ * REF: JOB-012 T-127, CON-002 §4.2
  */
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { fetchJobs } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
 import type { Job } from "../types";
 import { usePolling } from "../hooks/usePolling";
+import { useSignalR } from "../hooks/useSignalR";
 
-/** Polling interval for jobs list */
-const JOBS_POLL_MS = 5000;
+/** Polling interval — only used as fallback */
+const FALLBACK_POLL_MS = 5000;
 
-/** Jobs list page with auto-refresh and navigation */
+/** Jobs list page with real-time updates and navigation */
 export function JobsPage() {
   const navigate = useNavigate();
+  const { state: signalRState, joinGroup, leaveGroup, on } = useSignalR();
+  const isLive = signalRState === "connected";
+
   const fetchJobsFn = useCallback(() => fetchJobs(), []);
-  const { data: jobs, loading, polling, error } = usePolling<Job[]>(
+  const { data: jobs, loading, polling, error, refresh } = usePolling<Job[]>(
     fetchJobsFn,
-    JOBS_POLL_MS
+    FALLBACK_POLL_MS,
+    !isLive // Disable polling when WebSocket is connected
   );
+
+  // Join/leave dashboard group
+  const joinedRef = useRef(false);
+  useEffect(() => {
+    if (isLive && !joinedRef.current) {
+      void joinGroup("dashboard");
+      joinedRef.current = true;
+    }
+
+    return () => {
+      if (joinedRef.current) {
+        void leaveGroup("dashboard");
+        joinedRef.current = false;
+      }
+    };
+  }, [isLive, joinGroup, leaveGroup]);
+
+  // Listen for JobUpdated events and re-fetch
+  useEffect(() => {
+    if (!isLive) return;
+    const cleanup = on("JobUpdated", () => {
+      refresh();
+    });
+    return cleanup;
+  }, [isLive, on, refresh]);
 
   const jobList = jobs ?? [];
 
@@ -64,12 +97,18 @@ export function JobsPage() {
       <div className="page-title-row">
         
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
-          {polling && (
-            <span className="live-indicator" id="jobs-live">
+          {/* Connection mode indicator */}
+          {isLive ? (
+            <span className="live-indicator live-indicator--ws" id="jobs-live">
               <span className="live-dot" />
               Live
             </span>
-          )}
+          ) : polling ? (
+            <span className="live-indicator live-indicator--poll" id="jobs-polling">
+              <span className="live-dot live-dot--poll" />
+              Polling
+            </span>
+          ) : null}
           <span className="card-label">{jobList.length} total</span>
           <Link to="/jobs/new" className="btn btn-primary" id="jobs-new-job">
             + New Job

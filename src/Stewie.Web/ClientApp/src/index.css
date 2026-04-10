@@ -1168,12 +1168,26 @@ textarea.form-input {
   color: var(--color-completed);
 }
 
+/* WebSocket connected — green */
+.live-indicator--ws {
+  color: var(--color-completed);
+}
+
+/* Polling fallback — blue */
+.live-indicator--poll {
+  color: var(--color-running);
+}
+
 .live-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: var(--color-completed);
   animation: pulse 1.5s ease-in-out infinite;
+}
+
+.live-dot--poll {
+  background: var(--color-running);
 }
 
 /* --- Auth Pages --- */

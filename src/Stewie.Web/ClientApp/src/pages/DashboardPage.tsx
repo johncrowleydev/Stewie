@@ -1,24 +1,64 @@
 /**
- * DashboardPage — Overview page with summary stats and auto-refresh.
- * Polls GET /api/jobs every 5s for live updates.
- * Shows "New Job" button accessible from the dashboard.
+ * DashboardPage — Overview page with summary stats and real-time updates.
+ *
+ * Primary: SignalR WebSocket push via "dashboard" group.
+ * Fallback: Polls GET /api/jobs every 5s when WebSocket disconnects.
+ *
+ * Live indicator shows connection mode:
+ * - Green "Live" = WebSocket connected
+ * - Blue "Polling" = HTTP polling fallback
+ *
+ * REF: JOB-012 T-126
  */
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { fetchJobs } from "../api/client";
 import type { Job } from "../types";
 import { usePolling } from "../hooks/usePolling";
+import { useSignalR } from "../hooks/useSignalR";
 
-/** Polling interval for dashboard data */
-const DASHBOARD_POLL_MS = 5000;
+/** Polling interval — only used as fallback when SignalR is disconnected */
+const FALLBACK_POLL_MS = 5000;
 
-/** Dashboard overview with summary statistics cards and auto-refresh */
+/** Dashboard overview with summary statistics cards and real-time updates */
 export function DashboardPage() {
+  const { state: signalRState, joinGroup, leaveGroup, on } = useSignalR();
+  const isLive = signalRState === "connected";
+
+  // Use polling only as fallback when SignalR is NOT connected
   const fetchJobsFn = useCallback(() => fetchJobs(), []);
-  const { data: jobs, loading, polling, error } = usePolling<Job[]>(
+  const { data: jobs, loading, polling, error, refresh } = usePolling<Job[]>(
     fetchJobsFn,
-    DASHBOARD_POLL_MS
+    FALLBACK_POLL_MS,
+    !isLive // Disable polling when WebSocket is connected
   );
+
+  // Join/leave dashboard group when SignalR connects/disconnects
+  const joinedRef = useRef(false);
+  useEffect(() => {
+    if (isLive && !joinedRef.current) {
+      void joinGroup("dashboard");
+      joinedRef.current = true;
+    }
+
+    return () => {
+      if (joinedRef.current) {
+        void leaveGroup("dashboard");
+        joinedRef.current = false;
+      }
+    };
+  }, [isLive, joinGroup, leaveGroup]);
+
+  // Listen for JobUpdated events and re-fetch when received
+  useEffect(() => {
+    if (!isLive) return;
+
+    const cleanup = on("JobUpdated", () => {
+      refresh();
+    });
+
+    return cleanup;
+  }, [isLive, on, refresh]);
 
   const jobList = jobs ?? [];
   const totalJobs = jobList.length;
@@ -53,12 +93,18 @@ export function DashboardPage() {
       <div className="page-title-row">
         
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
-          {polling && (
-            <span className="live-indicator" id="dashboard-live">
+          {/* Connection mode indicator */}
+          {isLive ? (
+            <span className="live-indicator live-indicator--ws" id="dashboard-live">
               <span className="live-dot" />
               Live
             </span>
-          )}
+          ) : polling ? (
+            <span className="live-indicator live-indicator--poll" id="dashboard-polling">
+              <span className="live-dot live-dot--poll" />
+              Polling
+            </span>
+          ) : null}
           <Link to="/jobs/new" className="btn btn-primary" id="dashboard-new-job">
             + New Job
           </Link>
