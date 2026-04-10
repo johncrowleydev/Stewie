@@ -2,7 +2,7 @@
 id: JOB-017
 title: "Job 017 — IAgentRuntime Abstraction + Stub Runtime"
 type: how-to
-status: OPEN
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, job, workflow, phase-5b, agent-runtime, containers]
