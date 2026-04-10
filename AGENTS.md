@@ -10,21 +10,25 @@
 
 ## 1. Project Overview
 
-**Stewie** is a GitHub-native orchestration system that enables multiple AI agents to collaboratively develop software in parallel under strict governance. It acts as a steward of software development — coordinating work, enforcing standards, and ensuring high-quality outcomes.
+**Stewie** is an autonomous AI development platform where a Human directs software development entirely through conversation with an Architect Agent. The Human never creates jobs, writes task specs, or manages agents directly — they chat, and the Architect handles everything else.
 
-**Tech stack:** C# .NET 10 (API), React/Vite (frontend), SQL Server 2022, NHibernate, Docker containers for worker runtimes. See `CODEX/10_GOVERNANCE/GOV-008_InfrastructureAndOperations.md` for full infrastructure decisions.
+**How it works:** The Human opens a project and chats with the Architect Agent (an LLM). The Architect plans the work, creates jobs, spins up ephemeral Developer Agent containers to execute tasks in parallel, monitors their output, enforces CODEX governance, and reports back. Dev Agents can ask the Architect questions mid-task via a RabbitMQ message bus. The Architect answers — or escalates to the Human.
+
+**Stewie.Api is the control plane** — it manages state, persistence, messaging, and the dashboard. It contains **zero AI**. All intelligence lives in pluggable agent containers that can run any LLM provider (Claude, GPT, Gemini) via any agentic framework (Claude Code, OpenCode, Aider).
+
+**Tech stack:** C# .NET 10 (API), React/Vite (frontend), SQL Server 2022, NHibernate, SignalR (real-time), RabbitMQ (agent messaging), Docker containers for agent runtimes. See `CODEX/10_GOVERNANCE/GOV-008_InfrastructureAndOperations.md` for full infrastructure decisions.
 
 ### Three-Tier Hierarchy
 
 ```
 Human (final authority)
-    ↓ works with
-Architect Agent (AI project manager)
-    ↓ assigns work to
-Developer Agents + Tester Agents (execution)
+    ↓ chats with (SignalR)
+Architect Agent (LLM — plans, assigns, reviews, governs)
+    ↓ orchestrates via (RabbitMQ)
+Developer Agents + Tester Agents (ephemeral LLM containers)
 ```
 
-The Human brings vision and final decisions. The Architect Agent translates vision into concrete work and audits output. Developer and Tester Agents execute and verify.
+The Human brings vision and final decisions. The Architect Agent autonomously translates that vision into concrete work, assigns it, and audits output. Developer and Tester Agents execute and verify in isolated containers.
 
 ---
 

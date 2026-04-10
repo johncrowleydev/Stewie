@@ -8,11 +8,11 @@ agents: [all]
 tags: [project-management, roadmap, governance, agentic-development]
 related: [BCK-001, GOV-008, BLU-001]
 created: 2026-04-09
-updated: 2026-04-09
-version: 1.1.0
+updated: 2026-04-10
+version: 2.0.0
 ---
 
-> **BLUF:** Stewie is a GitHub-native orchestration system that coordinates multiple AI agents to develop software in parallel under strict governance. It creates and manages Runs/Tasks, prepares isolated workspaces, launches worker containers, ingests structured results, and enforces CODEX governance. Stewie does not write code — it orchestrates agents that do.
+> **BLUF:** Stewie is an autonomous AI development platform where a Human interacts exclusively with an Architect Agent through a chat interface. The Architect Agent plans work, creates jobs, spins up Developer Agent containers, monitors their output, and enforces governance — all without the Human touching code, jobs, or tasks directly. Stewie is the control plane; the agents are the intelligence.
 
 # Stewie — Project Roadmap
 
@@ -22,51 +22,100 @@ version: 1.1.0
 
 ## 1. Project Vision
 
-Stewie is an **execution engine for governed software development**. It acts as a steward — coordinating work, enforcing standards, and ensuring high-quality outcomes across multiple AI agents working in parallel.
+Stewie automates the process of turning a Human's vision into working, governed software.
 
-Stewie does not write software itself. It:
-- Creates and manages **Runs** and **Tasks**
-- Prepares **isolated workspaces** (filesystem + container)
-- Launches **worker runtimes** (Docker containers)
-- Ingests **structured results** (result.json)
-- Enforces **governance** (CODEX)
-- Maintains **system-of-record state** (SQL Server)
+**The end-state experience:**
+1. Human opens a project → sees a chat window
+2. Human describes what they want in natural language
+3. The Architect Agent (an LLM) plans the work, breaks it into jobs and tasks
+4. The Architect spins up Developer Agent containers to execute the work in parallel
+5. Dev Agents write code, commit, push, and report back via a message bus
+6. The Architect reviews output, enforces governance, and iterates
+7. When a Dev Agent is blocked, the Architect answers — or escalates to the Human
+8. The Human watches progress in real time and provides guidance via chat
 
-The Human interacts with an Architect Agent. The Architect Agent creates tasks. Stewie orchestrates execution. Workers are stateless and ephemeral. Stewie owns truth.
+**The Human never creates jobs, writes task specs, or manages agents directly.** They chat with the Architect; the Architect handles everything else.
+
+### What Stewie Is
+
+- **Control plane** — manages state, persistence, messaging, and the dashboard
+- **Agent orchestrator** — spins up, monitors, and tears down LLM agent containers
+- **Communication hub** — routes messages between Human, Architect, and Dev Agents via RabbitMQ
+- **Governance engine** — enforces CODEX standards on all agent output
+- **System of record** — SQL Server is the single source of truth for all state
+
+### What Stewie Is NOT
+
+- Stewie is not an AI itself — it orchestrates AI agents
+- Stewie does not write code — agents running inside containers do
+- Stewie is not an IDE replacement — it's the infrastructure behind autonomous development
+
+### Architecture
+
+```
+Human ←—— chat (SignalR) ——→ Stewie.Api (control plane)
+                                     ↕
+                               RabbitMQ (message bus)
+                            ↙        ↓         ↘
+                     Architect     Dev A       Dev B
+                     Agent         Agent       Agent
+                     (container)  (container) (container)
+                     [claude-code] [aider]    [open-code]
+```
+
+- **Stewie.Api** — the control plane. Serves the dashboard, persists state, manages SignalR connections, publishes/subscribes to RabbitMQ. Contains zero AI.
+- **Architect Agent** — an LLM agent running in a container. Connected to RabbitMQ. Receives Human messages, plans work, creates jobs via Stewie API, monitors Dev Agents, reports back.
+- **Dev Agents** — ephemeral LLM agent containers. Spun up per task, connected to RabbitMQ. Work on assigned tasks, can ask the Architect questions, exit when done.
+
+### Agent Runtime Abstraction
+
+Agent runtimes are pluggable — the same way `IGitPlatformService` abstracts GitHub/GitLab/Bitbucket:
+
+```
+IAgentRuntime
+├── ClaudeCodeRuntime     (Claude Code CLI in a container)
+├── OpenCodeRuntime       (OpenCode CLI in a container)
+├── AiderRuntime          (Aider CLI in a container)
+└── DirectApiRuntime      (raw LLM API calls, no framework)
+```
+
+Each runtime knows how to build/launch a container, configure it with the right LLM provider and API keys, wire it to RabbitMQ, and manage its lifecycle. The model and runtime can be configured per project.
 
 ---
 
 ## 2. Guiding Principles
 
 - **Governance First:** All work must follow CODEX governance, respect contracts, and pass validation before integration.
-- **Orchestrator Owns Truth:** Stewie is the system-of-record. Workers are stateless and replaceable.
-- **Structured Work Only:** All work flows through `task.json` (input) and `result.json` (output). No unstructured communication.
+- **Control Plane Owns Truth:** Stewie.Api is the system-of-record. Agents are stateless and replaceable.
+- **Chat is the Primary Interface:** The Human interacts only through conversation with the Architect Agent.
+- **Agents Communicate Through the Message Bus:** All agent-to-agent coordination flows through RabbitMQ. Agents never talk directly to each other.
 - **Isolation by Default:** Each task runs in its own workspace and its own container.
-- **Git is the Integration Layer:** All code changes flow through Git.
-- **Agents are Replaceable:** Agent runtimes are pluggable and vendor-agnostic.
-- **No Agent-to-Agent Chat:** All coordination flows through Stewie. Agents never talk to each other directly.
-- **Human Oversight:** Human interacts with the Architect Agent and retains final control.
+- **Git is the Integration Layer:** All code changes flow through Git branches and PRs.
+- **Agents are Replaceable:** Agent runtimes and LLM providers are pluggable and vendor-agnostic. No lock-in.
+- **Human Retains Final Authority:** The Architect can plan and execute autonomously, but the Human can intervene, redirect, or override at any time.
 
 ---
 
 ## 3. Scope
 
 ### 3.1 In Scope
-- Run/Task lifecycle management
+- Job/Task lifecycle management
 - Workspace creation and cleanup
-- Container-based worker execution
-- Structured I/O (task.json / result.json)
+- Container-based agent execution with pluggable runtimes
+- Human ↔ Architect real-time chat (SignalR)
+- Agent ↔ Agent messaging (RabbitMQ)
+- Live container output streaming
 - SQL Server persistence (NHibernate)
-- React dashboard for monitoring
-- Real-time Human ↔ Architect interaction
+- React dashboard for chat + monitoring
 - CODEX governance enforcement
+- Multi-model, multi-provider LLM support
 
-### 3.2 Out of Scope
-- Full autonomy (Human always in the loop)
+### 3.2 Out of Scope (current)
+- Full autonomy without Human oversight
 - IDE replacement
 - Complex infrastructure (Kubernetes, cloud orchestration)
-- Multi-repo orchestration (initially)
-- Agent-to-agent direct communication
+- Multi-repo orchestration
+- Self-modifying governance (governance updates require Human approval)
 
 ---
 
@@ -180,23 +229,51 @@ Phases are **scope-bounded**, not time-bounded.
 
 ---
 
-### Phase 5: Real-Time Interaction
-**Goal:** Human ↔ Architect interaction in real-time through the dashboard.
+### Phase 5a: Chat + Real-Time UI
+**Goal:** Human ↔ Architect chat interface and real-time dashboard updates.
 **Exit criteria:**
-- [ ] WebSocket or SSE for live Job/Task updates
-- [ ] Chat-like interface for Human ↔ Architect
-- [ ] Live container output streaming
-- [ ] RabbitMQ for async event distribution
+- [ ] SignalR WebSocket hub replacing polling for job/task updates
+- [ ] Per-project chat persistence (ChatMessage entity, GET/POST endpoints)
+- [ ] Chat UI panel as the primary project interface
+- [ ] Live container output streaming to dashboard
+- [ ] Graceful fallback to polling if WebSocket disconnects
+- [ ] CON-002 updated with WebSocket and chat endpoints
+
+---
+
+### Phase 5b: Message Bus + Agent Lifecycle
+**Goal:** RabbitMQ messaging backbone and agent container lifecycle management.
+**Exit criteria:**
+- [ ] RabbitMQ Docker setup (compose, connection config)
+- [ ] Message exchange topology (task assignment, progress, blocker, completion)
+- [ ] `IAgentRuntime` interface for pluggable agent runtimes
+- [ ] Agent container lifecycle: create → connect → work → exit
+- [ ] Architect Agent receives events from Dev Agents via RabbitMQ
+- [ ] Dev Agent publishes progress, blockers, and completion via RabbitMQ
+- [ ] CON-004: Agent Messaging Contract
+
+---
+
+### Phase 6: AI Agent Intelligence
+**Goal:** Plug actual LLM brains into the agent infrastructure.
+**Exit criteria:**
+- [ ] First `IAgentRuntime` implementation (likely Claude Code or OpenCode)
+- [ ] Architect Agent container: receives chat, plans work, creates jobs, monitors
+- [ ] Dev Agent container: receives task, writes code, asks questions when blocked
+- [ ] Model/provider selector in dashboard (per project)
+- [ ] Conversation history persistence for Architect context
+- [ ] End-to-end autonomous loop: Human chats → Architect plans → Dev executes → Architect reviews
 
 ---
 
 ## 5. Agent Team
 
-| Role | Agent Type | Count | Primary CODEX Docs |
-|:-----|:-----------|:------|:-------------------|
-| Project manager | Architect Agent | 1 | `AGT-001`, all `JOB-`, all `CON-` |
-| Implementation | Developer Agent | 2 | `AGT-002`, assigned `JOB-` |
-| Quality | Tester Agent | 0 (future) | `AGT-003`, `VER-`, `40_VERIFICATION/` |
+| Role | Agent Type | Count | Notes |
+|:-----|:-----------|:------|:------|
+| Human | N/A | 1 | Vision, decisions, final authority. Interacts only via chat. |
+| Architect Agent | LLM Agent (container) | 1 per project | Plans, assigns, reviews, enforces governance. |
+| Developer Agent | LLM Agent (container) | Dynamic per job | Ephemeral. Spun up per task, destroyed on completion. Count determined by Architect. |
+| Tester Agent | LLM Agent (container) | Dynamic per job | Ephemeral. Verifies dev output against contracts. |
 
 ---
 
@@ -204,33 +281,39 @@ Phases are **scope-bounded**, not time-bounded.
 
 | Contract | Description | Status |
 |:---------|:------------|:-------|
-| `CON-001` | Runtime Contract (task.json / result.json) | `DRAFT` |
-| `CON-002` | API Contract (HTTP endpoints) | `DRAFT` |
+| `CON-001` | Runtime Contract (task.json / result.json) | `DRAFT` — v1.5.0 |
+| `CON-002` | API Contract (HTTP endpoints) | `DRAFT` — v1.8.0 |
+| `CON-003` | Project Configuration (stewie.json) | `DRAFT` — v1.0.0 |
+| `CON-004` | Agent Messaging Contract (RabbitMQ) | Planned — Phase 5b |
 
 ---
 
 ## 7. System Shape
 
-| Component | Technology |
-|:----------|:-----------|
-| Frontend | React (Vite) — `Stewie.Web` |
-| Backend | C# .NET 10 — `Stewie.Api` |
-| Database | SQL Server 2022 |
-| ORM | NHibernate |
-| Migrations | FluentMigrator |
-| Runtime | Docker containers |
-| Messaging | RabbitMQ (future — Phase 5) |
-| Governance | CODEX |
+| Component | Technology | Status |
+|:----------|:-----------|:-------|
+| Frontend | React (Vite) — `Stewie.Web` | Active |
+| Backend / Control Plane | C# .NET 10 — `Stewie.Api` | Active |
+| Database | SQL Server 2022 | Active |
+| ORM | NHibernate | Active |
+| Migrations | FluentMigrator | Active |
+| Real-Time (client) | SignalR WebSocket | Phase 5a |
+| Messaging (agents) | RabbitMQ | Phase 5b |
+| Agent Runtime | Docker containers + `IAgentRuntime` | Phase 5b |
+| AI / LLM | Pluggable (Claude, GPT, Gemini, etc.) | Phase 6 |
+| Governance | CODEX | Active |
 
 ---
 
 ## 8. Success Criteria
 
 This project is complete when:
-- [ ] All phases completed and archived
+- [ ] A Human can chat with an Architect Agent to build software end-to-end
+- [ ] The Architect autonomously creates jobs, spins up Dev Agents, and enforces governance
+- [ ] Dev Agents write code, commit, and push without Human intervention
+- [ ] Multiple LLM providers and agentic frameworks are supported
 - [ ] All contracts at `STABLE` status
 - [ ] All `DEF-` defects resolved or explicitly deferred
-- [ ] Human signs off on final verification report
 
 ---
 
@@ -239,3 +322,4 @@ This project is complete when:
 | Date | Version | Change | Author |
 |:-----|:--------|:-------|:-------|
 | 2026-04-09 | 1.0.0 | Initial roadmap from constitution v0.1 | Architect (drafted), Human (approved) |
+| 2026-04-10 | 2.0.0 | Major rewrite — clarified end-state vision (chat-driven, LLM-powered agents, RabbitMQ message bus, IAgentRuntime). Split Phase 5 into 5a/5b/6. Updated agent team, contracts, system shape, success criteria. | Human + Architect |
