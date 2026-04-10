@@ -67,4 +67,11 @@ public class TaskPacket
     /// <summary>Which retry iteration this task belongs to. Starts at 1.</summary>
     [JsonPropertyName("attemptNumber")]
     public int AttemptNumber { get; set; } = 1;
+
+    /// <summary>
+    /// Project configuration parsed from stewie.json. Null if no config file exists.
+    /// REF: JOB-011 T-109, CON-001 v1.6.0, CON-003
+    /// </summary>
+    [JsonPropertyName("projectConfig")]
+    public StewieProjectConfig? ProjectConfig { get; set; }
 }

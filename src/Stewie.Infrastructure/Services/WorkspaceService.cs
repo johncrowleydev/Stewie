@@ -66,7 +66,8 @@ public class WorkspaceService : IWorkspaceService
 
     /// <inheritdoc/>
     public string PrepareWorkspaceForRun(WorkTask task, Job job, string? repoUrl,
-        string? branch, List<string>? script, List<string>? acceptanceCriteria)
+        string? branch, List<string>? script, List<string>? acceptanceCriteria,
+        StewieProjectConfig? projectConfig = null)
     {
         var taskDir = Path.Combine(_workspaceRoot, task.Id.ToString());
         var repoDir = Path.Combine(taskDir, "repo");
@@ -91,7 +92,8 @@ public class WorkspaceService : IWorkspaceService
             AcceptanceCriteria = acceptanceCriteria ?? [],
             RepoUrl = repoUrl,
             Branch = branch,
-            Script = script
+            Script = script,
+            ProjectConfig = projectConfig
         };
 
         WriteTaskJsonInternal(taskDir, taskPacket);

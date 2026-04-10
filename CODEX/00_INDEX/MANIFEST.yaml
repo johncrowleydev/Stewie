@@ -421,6 +421,19 @@ documents:
       and planned Phase 1 CRUD endpoints for Projects, Runs, Tasks, and Health.
       Standardized error response format per GOV-004.
 
+  - id: CON-003
+    path: 20_BLUEPRINTS/CON-003_ProjectConfig_Contract.md
+    title: "Project Configuration Contract — stewie.json"
+    type: reference
+    status: DRAFT
+    tags: [standards, specification, project-management, governance]
+    agents: [all]
+    summary: >
+      Defines the stewie.json project configuration file format. When present
+      in a repository root, replaces heuristic stack detection with explicit
+      build/test commands, governance settings, and path constraints.
+      CON-003 v1.0.0.
+
   # ── 30_RUNBOOKS ────────────────────────────────────────────────────────────
   - id: RUN-001
     path: 30_RUNBOOKS/RUN-001_Dev_Environment_Setup.md
