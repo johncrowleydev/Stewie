@@ -267,6 +267,44 @@ documents:
       suggestions), stewie.json project configuration (CON-003), aggregated status
       badges.
 
+  - id: JOB-012
+    path: 05_PROJECT/JOB-012_SignalR_RealTime_Hub.md
+    title: "Job 012 — SignalR Real-Time Hub"
+    type: how-to
+    status: OPEN
+    tags: [project-management, job, workflow, phase-5a, signalr, real-time]
+    agents: [coder]
+    summary: >
+      Phase 5a foundation: SignalR WebSocket hub with JWT auth, typed client
+      interface, group-based subscriptions (project/job/dashboard), IRealTimeNotifier
+      abstraction wired into JobOrchestrationService. Frontend useSignalR hook
+      replaces usePolling with WebSocket push + polling fallback.
+
+  - id: JOB-013
+    path: 05_PROJECT/JOB-013_Project_Chat_System.md
+    title: "Job 013 — Project Chat System"
+    type: how-to
+    status: OPEN
+    tags: [project-management, job, workflow, phase-5a, chat, real-time]
+    agents: [coder]
+    summary: >
+      Phase 5a chat: ChatMessage entity with SQL persistence, REST API for
+      send/retrieve, SignalR real-time push to project subscribers, ChatPanel
+      UI component with message bubbles, auto-scroll, and Human/Architect/System
+      role-based styling. AI integration deferred to Phase 6.
+
+  - id: JOB-014
+    path: 05_PROJECT/JOB-014_Container_Output_Streaming.md
+    title: "Job 014 — Live Container Output Streaming"
+    type: how-to
+    status: OPEN
+    tags: [project-management, job, workflow, phase-5a, streaming, containers, real-time]
+    agents: [coder]
+    summary: >
+      Phase 5a streaming: refactors IContainerService to stream stdout/stderr
+      line-by-line via callback, in-memory ContainerOutputBuffer (ring buffer),
+      SignalR push to job subscribers, terminal-style ContainerOutputPanel with
+      scroll lock, stderr highlighting, and backlog REST endpoint.
   # ── 10_GOVERNANCE ───────────────────────────────────────────────────────────
   - id: GOV-001
     path: 10_GOVERNANCE/GOV-001_DocumentationStandard.md
