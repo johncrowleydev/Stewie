@@ -60,6 +60,7 @@ public class ContainerTimeoutTests
         _unitOfWork = Substitute.For<IUnitOfWork>();
 
         var governanceReportRepository = Substitute.For<IGovernanceReportRepository>();
+        var taskDependencyRepository = Substitute.For<ITaskDependencyRepository>();
 
         _sut = new JobOrchestrationService(
             _jobRepository,
@@ -76,6 +77,7 @@ public class ContainerTimeoutTests
             _unitOfWork,
             NullLogger<JobOrchestrationService>.Instance,
             governanceReportRepository,
+            taskDependencyRepository,
             "stewie-script-worker");
     }
 

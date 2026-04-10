@@ -185,6 +185,61 @@ public class TaskGraph
     }
 
     /// <summary>
+    /// Returns all direct downstream dependents of the given task.
+    /// Used for failure cascade — when a task fails, its dependents are cancelled.
+    /// REF: JOB-010 T-094
+    /// </summary>
+    /// <param name="taskId">The upstream task ID.</param>
+    /// <returns>Tasks that directly depend on the given task.</returns>
+    public IReadOnlyList<WorkTask> GetDependentsOf(Guid taskId)
+    {
+        if (!_dependentsOf.TryGetValue(taskId, out var dependentIds))
+        {
+            return Array.Empty<WorkTask>();
+        }
+
+        return dependentIds
+            .Where(id => _taskMap.ContainsKey(id))
+            .Select(id => _taskMap[id])
+            .ToList();
+    }
+
+    /// <summary>
+    /// Returns all transitive downstream dependents of the given task (recursive).
+    /// Used for failure cascade — all tasks downstream of a failure are cancelled.
+    /// REF: JOB-010 T-094
+    /// </summary>
+    /// <param name="taskId">The upstream task ID.</param>
+    /// <returns>All tasks transitively dependent on the given task.</returns>
+    public IReadOnlyList<WorkTask> GetAllDownstream(Guid taskId)
+    {
+        var result = new List<WorkTask>();
+        var visited = new HashSet<Guid>();
+        var queue = new Queue<Guid>();
+        queue.Enqueue(taskId);
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            if (!_dependentsOf.TryGetValue(current, out var dependentIds))
+            {
+                continue;
+            }
+
+            foreach (var depId in dependentIds)
+            {
+                if (visited.Add(depId) && _taskMap.TryGetValue(depId, out var task))
+                {
+                    result.Add(task);
+                    queue.Enqueue(depId);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// Kahn's algorithm for topological sorting.
     /// Returns as many nodes as possible in topological order.
     /// If the graph has cycles, nodes in cycles will be excluded from the result.

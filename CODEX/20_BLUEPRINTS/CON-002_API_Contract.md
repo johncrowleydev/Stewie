@@ -8,8 +8,8 @@ agents: [all]
 tags: [standards, specification, project-management, governance]
 related: [BLU-001, CON-001, GOV-004]
 created: 2026-04-09
-updated: 2026-04-09
-version: 1.6.0
+updated: 2026-04-10
+version: 1.7.0
 ---
 
 > **BLUF:** This contract defines the HTTP API surface of Stewie.Api. All frontend and external consumers MUST conform to these routes, request/response shapes, and error formats. No deviation without Human approval.
@@ -46,7 +46,7 @@ version: 1.6.0
 
 | Field | Value |
 |:------|:------|
-| Contract version | `1.6.0` |
+| Contract version | `1.7.0` |
 | Stability | `EXPERIMENTAL` |
 | Base URL | `http://localhost:5275` |
 | Content-Type | `application/json` |
@@ -220,6 +220,48 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
 | `script` | `string[]` | ❌ | Bash commands for script worker |
 | `acceptanceCriteria` | `string[]` | ❌ | Conditions for success |
 
+#### Multi-Task Mode (v1.7.0)
+
+Alternatively, create a multi-task DAG job by providing a `tasks` array instead of a single `objective`:
+
+```json
+{
+  "projectId": "uuid",
+  "tasks": [
+    {
+      "clientId": "setup",
+      "objective": "Set up project scaffolding",
+      "scope": "src/",
+      "script": ["npm init -y"],
+      "acceptanceCriteria": ["package.json exists"]
+    },
+    {
+      "clientId": "frontend",
+      "objective": "Build React frontend",
+      "dependsOn": ["setup"]
+    },
+    {
+      "clientId": "backend",
+      "objective": "Build Express API",
+      "dependsOn": ["setup"]
+    }
+  ]
+}
+```
+
+| Field | Type | Required | Description |
+|:------|:-----|:--------:|:------------|
+| `tasks[].clientId` | `string` | ❌ | Client-generated ID for dependency references |
+| `tasks[].objective` | `string` | ✅ | What this task should accomplish |
+| `tasks[].scope` | `string` | ❌ | Boundaries of this task |
+| `tasks[].script` | `string[]` | ❌ | Bash commands for script worker |
+| `tasks[].acceptanceCriteria` | `string[]` | ❌ | Conditions for success |
+| `tasks[].dependsOn` | `string[]` | ❌ | ClientIds of upstream tasks |
+
+> **Routing logic:** If `tasks` is non-null and non-empty → multi-task. If `objective` is non-null → single-task (legacy). Both null → 400.
+>
+> **Validation:** Invalid dependency references → 400. Cycle in dependencies → 400.
+
 ### 4.3 Tasks
 
 | Method | Path | Description |
@@ -310,16 +352,21 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
 {
   "id": "uuid",
   "projectId": "uuid | null",
-  "status": "Pending | Running | Completed | Failed",
+  "status": "Pending | Running | Completed | Failed | PartiallyCompleted",
   "branch": "string | null",
   "diffSummary": "string | null",
   "commitSha": "string | null",
   "pullRequestUrl": "string | null",
   "createdAt": "ISO 8601 datetime",
   "completedAt": "ISO 8601 datetime | null",
+  "taskCount": "int (developer tasks)",
+  "completedTaskCount": "int (developer tasks completed)",
+  "failedTaskCount": "int (developer tasks failed)",
   "tasks": ["Task[]"]
 }
 ```
+
+> `PartiallyCompleted` (v1.7.0): Some tasks succeeded, others failed or were cancelled.
 
 ### 5.3 Task
 
@@ -327,16 +374,22 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
 {
   "id": "uuid",
   "jobId": "uuid",
+  "parentTaskId": "uuid | null",
+  "attemptNumber": "int",
   "role": "developer | tester | researcher",
-  "status": "Pending | Running | Completed | Failed",
+  "status": "Pending | Running | Completed | Failed | Blocked | Cancelled",
   "objective": "string",
   "scope": "string | null",
   "workspacePath": "string",
+  "failureReason": "string | null",
   "createdAt": "ISO 8601 datetime",
   "startedAt": "ISO 8601 datetime | null",
   "completedAt": "ISO 8601 datetime | null"
 }
 ```
+
+> `Blocked` (v1.7.0): Task has unmet dependencies and cannot execute yet.
+> `Cancelled` (v1.7.0): Upstream task failed; this task will not execute.
 
 ### 5.6 Artifact (Diff)
 

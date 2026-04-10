@@ -24,6 +24,7 @@ var scriptWorkerImage = builder.Configuration.GetValue<string>("Stewie:ScriptWor
 var governanceWorkerImage = builder.Configuration.GetValue<string>("Stewie:GovernanceWorkerImage") ?? "stewie-governance-worker";
 var maxGovernanceRetries = builder.Configuration.GetValue<int>("Stewie:MaxGovernanceRetries", 2);
 var taskTimeoutSeconds = builder.Configuration.GetValue<int>("Stewie:TaskTimeoutSeconds", 300);
+var maxConcurrentTasks = builder.Configuration.GetValue<int>("Stewie:MaxConcurrentTasks", 5);
 var jwtSecret = builder.Configuration["Stewie:JwtSecret"]
     ?? throw new InvalidOperationException("JWT secret is required. Set Stewie:JwtSecret or STEWIE_JWT_SECRET.");
 var encryptionKey = builder.Configuration["Stewie:EncryptionKey"]
@@ -114,9 +115,11 @@ builder.Services.AddScoped<JobOrchestrationService>(sp =>
         sp.GetRequiredService<IUnitOfWork>(),
         sp.GetRequiredService<ILogger<JobOrchestrationService>>(),
         sp.GetRequiredService<IGovernanceReportRepository>(),
+        sp.GetRequiredService<ITaskDependencyRepository>(),
         scriptWorkerImage,
         governanceWorkerImage,
-        maxGovernanceRetries));
+        maxGovernanceRetries,
+        maxConcurrentTasks));
 
 var app = builder.Build();
 
