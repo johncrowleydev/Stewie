@@ -201,3 +201,28 @@ export interface GovUpdateSuggestion {
   govDoc: string;
   reason: string;
 }
+
+/** Chat message entity — CON-002 v2.0.0 */
+export interface ChatMessage {
+  id: string;
+  projectId: string;
+  senderRole: "Human" | "Architect" | "System";
+  senderName: string;
+  content: string;
+  createdAt: string;
+}
+
+/** Paginated chat messages response — CON-002 v2.0.0 */
+export interface ChatMessagesResponse {
+  messages: ChatMessage[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+/** Container output response — CON-002 v2.0.0 (JOB-014) */
+export interface ContainerOutputResponse {
+  taskId: string;
+  lines: string[];
+  lineCount: number;
+}
