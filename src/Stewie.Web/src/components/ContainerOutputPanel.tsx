@@ -109,7 +109,7 @@ export function ContainerOutputPanel({ taskId, jobId, isActive = false }: Contai
         if (cancelled) return;
         if (response.lines.length > 0) {
           lineCountRef.current = 0;
-          const parsed = response.lines.map((raw, idx) => parseLine(raw, idx + 1));
+          const parsed = response.lines.map((raw: string, idx: number) => parseLine(raw, idx + 1));
           lineCountRef.current = parsed.length;
           setLines(parsed);
         }
