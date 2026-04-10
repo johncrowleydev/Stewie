@@ -2,7 +2,7 @@
 id: JOB-012
 title: "Job 012 — SignalR Real-Time Hub"
 type: how-to
-status: OPEN
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, job, workflow, phase-5a, signalr, real-time]
@@ -359,3 +359,4 @@ cd src/Stewie.Web/ClientApp && npx tsc --noEmit
 | Date | Change |
 |:-----|:-------|
 | 2026-04-10 | JOB-012 created for Phase 5a SignalR Real-Time Hub |
+| 2026-04-10 | JOB-012 CLOSED. Passed audit VER-012 with 59 tests passing. |
