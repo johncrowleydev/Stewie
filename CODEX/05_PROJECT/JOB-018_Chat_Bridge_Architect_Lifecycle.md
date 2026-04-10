@@ -2,7 +2,7 @@
 id: JOB-018
 title: "Job 018 — Chat-to-RabbitMQ Bridge + Architect Lifecycle"
 type: how-to
-status: OPEN
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, job, workflow, phase-5b, chat, rabbitmq, architect]

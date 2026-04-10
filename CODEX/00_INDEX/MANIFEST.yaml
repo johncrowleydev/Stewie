@@ -346,7 +346,7 @@ documents:
     path: 05_PROJECT/JOB-018_Chat_Bridge_Architect_Lifecycle.md
     title: "Job 018 — Chat-to-RabbitMQ Bridge + Architect Lifecycle"
     type: how-to
-    status: OPEN
+    status: CLOSED
     tags: [project-management, job, workflow, phase-5b, chat, rabbitmq, architect]
     agents: [coder]
     summary: >
@@ -831,3 +831,15 @@ documents:
       Audit report for JOB-017. 177 tests pass (27 new). Interface signature
       mismatch and duplicate AgentLaunchRequest model resolved during merge.
       StubAgentRuntime, stewie-stub-agent Python image, AgentSession entity.
+
+  - id: VER-018
+    path: 40_VERIFICATION/VER-018_JOB-018_Audit.md
+    title: "JOB-018 Audit — Chat Bridge Architect Lifecycle"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, phase-5b, chat, architect]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-018. 209 tests pass. Backend DI configuration
+      resolved. Frontend CSS @import fixed. Architect start/stop integration 
+      with ChatPanel disabled input states successfully completed.

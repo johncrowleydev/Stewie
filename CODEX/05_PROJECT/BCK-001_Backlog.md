@@ -207,7 +207,7 @@ version: 1.2.0
 
 ---
 
-## Phase 5b: Message Bus + Agent Lifecycle (IN PROGRESS)
+## Phase 5b: Message Bus + Agent Lifecycle ✅ COMPLETE
 
 ### JOB-016 — RabbitMQ Infrastructure ✅ CLOSED
 
@@ -230,15 +230,15 @@ version: 1.2.0
 | B-614 | ~~stewie-stub-agent Python image~~ | ✅ Done (JOB-017 T-168) | P1 | Done |
 | B-615 | ~~AgentsController REST API~~ | ✅ Done (JOB-017 T-165) | P1 | Done |
 
-### JOB-018 — Chat Bridge + Architect Lifecycle (OPEN)
+### JOB-018 — Chat Bridge + Architect Lifecycle ✅ CLOSED
 
 | ID | Task | Description | Priority | Status |
 |:---|:-----|:------------|:---------|:-------|
-| B-620 | Chat-to-RabbitMQ relay | Chat messages forwarded to Architect queue | P0 | Todo |
-| B-621 | Agent chat → ChatMessage persistence | Agent events persisted as chat messages | P0 | Todo |
-| B-622 | Architect session management endpoints | Start/stop Architect from API | P0 | Todo |
-| B-623 | ArchitectControls frontend component | Start/stop UI + status indicator | P1 | Todo |
-| B-624 | ChatPanel Architect integration | Disabled input when offline | P1 | Todo |
+| B-620 | ~~Chat-to-RabbitMQ relay~~ | ✅ Done (JOB-018 T-170) | P0 | Done |
+| B-621 | ~~Agent chat → ChatMessage persistence~~ | ✅ Done (JOB-018 T-171) | P0 | Done |
+| B-622 | ~~Architect session management endpoints~~ | ✅ Done (JOB-018 T-172) | P0 | Done |
+| B-623 | ~~ArchitectControls frontend component~~ | ✅ Done (JOB-018 T-174) | P1 | Done |
+| B-624 | ~~ChatPanel Architect integration~~ | ✅ Done (JOB-018 T-176) | P1 | Done |
 
 ---
 
@@ -265,4 +265,5 @@ version: 1.2.0
 | 2026-04-10 | Phase 4 COMPLETE. All B-400 through B-426 marked done. Renumbered future items B-500+. |
 | 2026-04-10 | Phase 5a COMPLETE. B-500 through B-530 done (JOB-012/013/014/015). |
 | 2026-04-10 | Phase 5b started. JOB-016 and JOB-017 CLOSED. JOB-018 OPEN. B-600 through B-615 done. |
+| 2026-04-10 | Phase 5b COMPLETE. JOB-018 CLOSED. B-620 through B-624 done. |
 

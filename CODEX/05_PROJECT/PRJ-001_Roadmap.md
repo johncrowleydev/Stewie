@@ -242,16 +242,17 @@ Phases are **scope-bounded**, not time-bounded.
 
 ---
 
-### Phase 5b: Message Bus + Agent Lifecycle
+### Phase 5b: Message Bus + Agent Lifecycle ✅ COMPLETE
 **Goal:** RabbitMQ messaging backbone and agent container lifecycle management.
+**Completed:** 2026-04-10 (JOB-016, JOB-017, JOB-018)
 **Exit criteria:**
-- [ ] RabbitMQ Docker setup (compose, connection config)
-- [ ] Message exchange topology (task assignment, progress, blocker, completion)
-- [ ] `IAgentRuntime` interface for pluggable agent runtimes
-- [ ] Agent container lifecycle: create → connect → work → exit
-- [ ] Architect Agent receives events from Dev Agents via RabbitMQ
-- [ ] Dev Agent publishes progress, blockers, and completion via RabbitMQ
-- [ ] CON-004: Agent Messaging Contract
+- [x] RabbitMQ Docker setup (compose, connection config)
+- [x] Message exchange topology (task assignment, progress, blocker, completion)
+- [x] `IAgentRuntime` interface for pluggable agent runtimes
+- [x] Agent container lifecycle: create → connect → work → exit
+- [x] Architect Agent receives events from Dev Agents via RabbitMQ
+- [x] Dev Agent publishes progress, blockers, and completion via RabbitMQ
+- [x] CON-004: Agent Messaging Contract
 
 ---
 
