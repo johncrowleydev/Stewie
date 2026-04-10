@@ -18,6 +18,7 @@ import { useParams, Link } from "react-router-dom";
 import { fetchJob, fetchEventsByEntity, fetchTaskGovernance } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
 import { GovernanceReportPanel } from "../components/GovernanceReportPanel";
+import { ContainerOutputPanel } from "../components/ContainerOutputPanel";
 import type { Job, Event, EventType, Artifact, DiffContent, GovernanceReport, WorkTask } from "../types";
 import { useSignalR } from "../hooks/useSignalR";
 
@@ -100,11 +101,12 @@ function formatDuration(start: string | null, end: string | null): string {
  * Each node shows: role icon, status badge, attempt number, duration.
  * Clicking a tester node toggles the GovernanceReportPanel below it.
  */
-function TaskChainTimeline({ tasks }: { tasks: WorkTask[] }) {
+function TaskChainTimeline({ tasks, jobId }: { tasks: WorkTask[]; jobId: string }) {
   const [expandedTask, setExpandedTask] = useState<string | null>(null);
   const [reports, setReports] = useState<Record<string, GovernanceReport | null>>({});
   const [reportLoading, setReportLoading] = useState<Record<string, boolean>>({});
   const [reportErrors, setReportErrors] = useState<Record<string, string | null>>({});
+  const [expandedOutput, setExpandedOutput] = useState<Record<string, boolean>>({});
 
   /** Toggle governance report for a tester task */
   const toggleGovernance = useCallback(async (task: WorkTask) => {
@@ -200,6 +202,33 @@ function TaskChainTimeline({ tasks }: { tasks: WorkTask[] }) {
                 />
               </div>
             )}
+
+            {/* Container Output Panel (JOB-014 T-149) */}
+            {task.status === "Running" ? (
+              <ContainerOutputPanel
+                taskId={task.id}
+                jobId={jobId}
+                isActive={true}
+              />
+            ) : (task.status === "Completed" || task.status === "Failed") ? (
+              <>
+                <button
+                  className="terminal-collapse-toggle"
+                  onClick={() => setExpandedOutput(prev => ({ ...prev, [task.id]: !prev[task.id] }))}
+                  id={`toggle-output-${task.id}`}
+                >
+                  <span className={`terminal-collapse-toggle-icon ${expandedOutput[task.id] ? "expanded" : ""}`}>▶</span>
+                  {expandedOutput[task.id] ? "Hide output" : "Show output"}
+                </button>
+                {expandedOutput[task.id] && (
+                  <ContainerOutputPanel
+                    taskId={task.id}
+                    jobId={jobId}
+                    isActive={false}
+                  />
+                )}
+              </>
+            ) : null}
           </div>
         );
       })}
@@ -416,7 +445,7 @@ export function JobDetailPage() {
         </div>
       ) : hasMultipleTasks ? (
         /* Multi-task: render vertical timeline */
-        <TaskChainTimeline tasks={job.tasks} />
+        <TaskChainTimeline tasks={job.tasks} jobId={job.id} />
       ) : (
         /* Single task: render compact card */
         <div className="card" style={{ marginBottom: "var(--space-xl)" }}>
@@ -433,6 +462,14 @@ export function JobDetailPage() {
               {formatDuration(job.tasks[0].startedAt, job.tasks[0].completedAt)}
             </span>
           </div>
+          {/* Container output for single task (JOB-014) */}
+          {(job.tasks[0].status === "Running" || job.tasks[0].status === "Completed" || job.tasks[0].status === "Failed") && (
+            <ContainerOutputPanel
+              taskId={job.tasks[0].id}
+              jobId={job.id}
+              isActive={job.tasks[0].status === "Running"}
+            />
+          )}
         </div>
       )}
 
