@@ -93,11 +93,11 @@ export interface DiffContent {
   diffPatch: string;
 }
 
-/** Status enum values for Jobs */
-export type JobStatus = "Pending" | "Running" | "Completed" | "Failed";
+/** Status enum values for Jobs — includes Phase 4 PartiallyCompleted */
+export type JobStatus = "Pending" | "Running" | "Completed" | "Failed" | "PartiallyCompleted";
 
-/** Status enum values for Tasks */
-export type TaskStatus = "Pending" | "Running" | "Completed" | "Failed";
+/** Status enum values for Tasks — includes Phase 4 Blocked/Cancelled */
+export type TaskStatus = "Pending" | "Running" | "Completed" | "Failed" | "Blocked" | "Cancelled";
 
 /** Event entity — CON-002 §5.5 */
 export interface Event {
@@ -177,4 +177,27 @@ export interface GovernanceCheckResult {
   passed: boolean;
   details: string | null;
   severity: "error" | "warning" | "info";
+}
+
+/** Governance analytics response — CON-002 v1.8.0 */
+export interface GovernanceAnalytics {
+  totalJobs: number;
+  totalGovernanceRuns: number;
+  passRate: number;
+  topFailingRules: FailingRule[];
+  suggestedGovUpdates: GovUpdateSuggestion[];
+}
+
+/** Top failing governance rule — part of analytics response */
+export interface FailingRule {
+  ruleId: string;
+  ruleName: string;
+  failCount: number;
+  trend: "increasing" | "decreasing" | "stable";
+}
+
+/** Suggested GOV document update — part of analytics response */
+export interface GovUpdateSuggestion {
+  govDoc: string;
+  reason: string;
 }
