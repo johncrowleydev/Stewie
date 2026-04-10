@@ -3,6 +3,7 @@ using FluentMigrator.Runner;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Stewie.Api.Middleware;
+using Stewie.Application.Configuration;
 using Stewie.Application.Hubs;
 using Stewie.Application.Interfaces;
 using Stewie.Application.Services;
@@ -35,6 +36,10 @@ var encryptionKey = builder.Configuration["Stewie:EncryptionKey"]
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
+
+// RabbitMQ configuration — JOB-016 T-155
+builder.Services.Configure<RabbitMqOptions>(
+    builder.Configuration.GetSection(RabbitMqOptions.SectionName));
 
 // CORS — required for SignalR WebSocket upgrade from frontend dev server
 builder.Services.AddCors(options =>
@@ -132,6 +137,15 @@ builder.Services.AddScoped<GovernanceAnalyticsService>();
 builder.Services.AddScoped<ProjectConfigService>();
 builder.Services.AddSingleton<IRealTimeNotifier, SignalRNotifier>();
 builder.Services.AddSingleton<ContainerOutputBuffer>();
+
+// Health checks — T-157
+// Base health check services always registered (required by MapHealthChecks).
+// RabbitMQ health check only in non-Testing environments (no broker in test).
+var healthChecks = builder.Services.AddHealthChecks();
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    healthChecks.AddCheck<RabbitMqHealthCheck>("rabbitmq", tags: new[] { "ready" });
+}
 builder.Services.AddScoped<JobOrchestrationService>(sp =>
     new JobOrchestrationService(
         sp.GetRequiredService<IJobRepository>(),
@@ -176,6 +190,7 @@ app.UseAuthentication(); // Must be before UseAuthorization
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<StewieHub>("/hubs/stewie");
+app.MapHealthChecks("/health");
 app.Run();
 
 /// <summary>Seeds the first admin user if no users exist in the database.</summary>
