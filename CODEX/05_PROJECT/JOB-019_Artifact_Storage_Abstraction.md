@@ -2,7 +2,7 @@
 id: JOB-019
 title: "Job 019 — Artifact Storage Abstraction"
 type: how-to
-status: OPEN
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, job, workflow, phase-6, architecture, storage]
