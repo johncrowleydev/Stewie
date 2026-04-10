@@ -9,7 +9,7 @@
 import type {
   Job, Project, CreateProjectRequest, CreateJobRequest,
   ApiError, Event, LoginRequest, RegisterRequest, AuthResponse, GitHubStatus,
-  GovernanceReport, GovernanceAnalytics
+  GovernanceReport, GovernanceAnalytics, ChatMessage, ChatMessagesResponse, ContainerOutputResponse
 } from "../types";
 
 /** Base URL is proxied via Vite config — no absolute URL needed. */
@@ -197,4 +197,42 @@ export async function fetchGovernanceAnalytics(
   const params = new URLSearchParams({ days: days.toString() });
   if (projectId) params.set("projectId", projectId);
   return request<GovernanceAnalytics>(`/api/governance/analytics?${params.toString()}`);
+}
+
+// --- Chat endpoints ---
+
+/** Fetch chat messages for a project — GET /api/projects/{id}/chat */
+export async function fetchChatMessages(
+  projectId: string,
+  limit?: number,
+  offset?: number
+): Promise<ChatMessagesResponse> {
+  const params = new URLSearchParams();
+  if (limit !== undefined) params.set("limit", limit.toString());
+  if (offset !== undefined) params.set("offset", offset.toString());
+  const qs = params.toString();
+  return request<ChatMessagesResponse>(
+    `/api/projects/${encodeURIComponent(projectId)}/chat${qs ? `?${qs}` : ""}`
+  );
+}
+
+/** Send a chat message to a project — POST /api/projects/{id}/chat */
+export async function sendChatMessage(
+  projectId: string,
+  content: string
+): Promise<ChatMessage> {
+  return request<ChatMessage>(
+    `/api/projects/${encodeURIComponent(projectId)}/chat`,
+    {
+      method: "POST",
+      body: JSON.stringify({ content }),
+    }
+  );
+}
+
+// --- Container output endpoints ---
+
+/** Fetch buffered container output for a task — GET /api/tasks/{taskId}/output (JOB-014) */
+export async function fetchContainerOutput(taskId: string): Promise<ContainerOutputResponse> {
+  return request<ContainerOutputResponse>(`/api/tasks/${encodeURIComponent(taskId)}/output`);
 }
