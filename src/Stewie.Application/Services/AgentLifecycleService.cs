@@ -252,4 +252,15 @@ public class AgentLifecycleService
     {
         return await _sessionRepo.GetByProjectIdAsync(projectId);
     }
+
+    /// <summary>
+    /// Gets the active Architect session for a project, if one exists.
+    /// REF: JOB-018 T-172
+    /// </summary>
+    /// <param name="projectId">Project ID to query.</param>
+    /// <returns>The active Architect session, or null if none exists.</returns>
+    public async Task<AgentSession?> GetActiveArchitectAsync(Guid projectId)
+    {
+        return await _sessionRepo.GetActiveByProjectAndRoleAsync(projectId, "architect");
+    }
 }
