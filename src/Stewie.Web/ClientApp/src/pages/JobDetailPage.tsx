@@ -2,22 +2,24 @@
  * JobDetailPage — Displays a single job with task chain timeline, governance reports,
  * git info, diff viewer, and events mini-timeline.
  *
- * T-076: Task chain as vertical timeline (dev → tester → dev retry → tester)
- * T-077: Inline GovernanceReportPanel for tester tasks
+ * T-128: SignalR real-time updates via job-specific group
  *
  * Fetches:
  * - GET /api/jobs/{id} (CON-002 §4.2)
  * - GET /api/events?entityType=Job&entityId={id} (CON-002 §4.5)
  * - GET /api/tasks/{taskId}/governance (CON-002 §4.6) — per tester task
  *
- * REF: CON-002 §5.2, §5.6, §4.6
+ * Real-time: Joins "job:{id}" group via SignalR for TaskUpdated/JobUpdated push.
+ *
+ * REF: CON-002 §5.2, §5.6, §4.6, JOB-012 T-128
  */
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchJob, fetchEventsByEntity, fetchTaskGovernance } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
 import { GovernanceReportPanel } from "../components/GovernanceReportPanel";
 import type { Job, Event, EventType, Artifact, DiffContent, GovernanceReport, WorkTask } from "../types";
+import { useSignalR } from "../hooks/useSignalR";
 
 /** Maps event types to display colors */
 const EVENT_COLORS: Record<EventType, string> = {
@@ -214,37 +216,70 @@ export function JobDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [diffExpanded, setDiffExpanded] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
+  // SignalR real-time updates (T-128)
+  const { state: signalRState, joinGroup, leaveGroup, on } = useSignalR();
+  const isLive = signalRState === "connected";
 
-    async function loadData() {
-      if (!id) return;
+  /** Re-fetch job + events data */
+  const loadData = useCallback(async () => {
+    if (!id) return;
+    try {
+      const jobData = await fetchJob(id);
+      setJob(jobData);
+      setError(null);
+
+      // Fetch events — soft dependency
       try {
-        const jobData = await fetchJob(id);
-        if (!cancelled) {
-          setJob(jobData);
-          setError(null);
-        }
-
-        // Fetch events — soft dependency
-        try {
-          const eventData = await fetchEventsByEntity("Job", id);
-          if (!cancelled) setEvents(eventData);
-        } catch {
-          // Events endpoint may not exist yet
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load job");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
+        const eventData = await fetchEventsByEntity("Job", id);
+        setEvents(eventData);
+      } catch {
+        // Events endpoint may not exist yet
       }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load job");
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  // Initial data load
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
+
+  // Join/leave job-specific SignalR group
+  const joinedRef = useRef(false);
+  useEffect(() => {
+    if (isLive && id && !joinedRef.current) {
+      void joinGroup("job", id);
+      joinedRef.current = true;
     }
 
-    void loadData();
-    return () => { cancelled = true; };
-  }, [id]);
+    return () => {
+      if (joinedRef.current && id) {
+        void leaveGroup("job", id);
+        joinedRef.current = false;
+      }
+    };
+  }, [isLive, id, joinGroup, leaveGroup]);
+
+  // Listen for TaskUpdated and JobUpdated events → re-fetch
+  useEffect(() => {
+    if (!isLive) return;
+
+    const cleanupTask = on("TaskUpdated", () => {
+      void loadData();
+    });
+
+    const cleanupJob = on("JobUpdated", () => {
+      void loadData();
+    });
+
+    return () => {
+      cleanupTask();
+      cleanupJob();
+    };
+  }, [isLive, on, loadData]);
 
   /** Format an ISO date string to a human-readable local string */
   function formatDate(dateStr: string | null): string {
