@@ -13,7 +13,7 @@ Stewie coordinates multiple AI agents to build software in parallel — creating
 ```
 ┌─────────────────────────────────────────────────────┐
 │  React Dashboard (Vite)           :5173             │
-│  Projects · Jobs · Governance · Settings             │
+│  Projects · Jobs · DAG View · Governance Analytics  │
 └────────────────────┬────────────────────────────────┘
                      │ HTTP/JSON
 ┌────────────────────▼────────────────────────────────┐
@@ -21,8 +21,11 @@ Stewie coordinates multiple AI agents to build software in parallel — creating
 │  JWT Auth · Project CRUD · Job Orchestration        │
 ├─────────────────────────────────────────────────────┤
 │  JobOrchestrationService                             │
-│  Clone → Branch → Launch Container → Diff →          │
-│  Commit → Push → Create PR → Governance Check        │
+│  ┌─── DAG Scheduler (TaskGraph) ───────────┐        │
+│  │ Build DAG → Validate Acyclic            │        │
+│  │ Poll Ready → Launch Parallel (≤5)       │        │
+│  │ Per-Task Governance → Cascade Failures  │        │
+│  └─────────────────────────────────────────┘        │
 ├─────────────────────────────────────────────────────┤
 │  SQL Server 2022     NHibernate     FluentMigrator  │
 └─────────────────────────────────────────────────────┘
@@ -102,26 +105,31 @@ Dashboard available at `http://localhost:5173`. API at `http://localhost:5275`.
 1. Open `http://localhost:5173` → Login with your admin credentials
 2. Navigate to **Settings** → Add your GitHub PAT (stored AES-256-CBC encrypted)
 3. Create a **Project** — link an existing repo or create a new one on GitHub
-4. Create a **Job** — define an objective, scope, and optional script commands
-5. Stewie clones the repo, creates a branch, executes the worker, captures diffs, commits, pushes, and opens a PR
+4. Create a **Job** — define tasks with objectives, dependencies, and optional scripts
+5. Stewie clones the repo, resolves the DAG, executes tasks in parallel, runs governance, and opens PRs
 
 ## How It Works
 
-### Job Execution Flow
+### Single-Task Job (Legacy)
 
-1. User creates a **Job** against a **Project** (with objective and optional script)
-2. Stewie creates a **Task** and prepares an isolated workspace:
-   - `workspaces/{taskId}/input/` — `task.json` with instructions
-   - `workspaces/{taskId}/output/` — worker writes `result.json` here
-   - `workspaces/{taskId}/repo/` — cloned repository
-3. Repository is cloned, a feature branch is created (`stewie/{jobId}`)
-4. A Docker container is launched with the workspace mounted (300s timeout enforced)
-5. Worker reads `task.json`, executes, writes `result.json`
-6. Stewie ingests the result, captures `git diff`, commits changes
-7. **Governance check**: a tester task runs 15 automated checks (build, tests, coding standards, secret scanning)
-8. If governance passes → branch is pushed, PR is created automatically
-9. If governance fails → worker retries with violation feedback (up to 2 attempts)
-10. Job/Task statuses updated, events logged for audit trail
+1. User creates a **Job** with one objective
+2. Stewie creates a Task, clones the repo, launches a container, captures results
+3. Governance check runs → if pass, push + PR; if fail, retry with feedback
+
+### Multi-Task Job (DAG)
+
+1. User creates a **Job** with multiple tasks and dependency edges
+2. Stewie validates the dependency graph is acyclic (Kahn's algorithm)
+3. The DAG scheduler loop runs:
+   - Tasks with no unmet dependencies are launched in parallel (max 5 concurrent containers)
+   - Each task gets its own isolated workspace and per-task governance cycle
+   - When a task completes, its downstream dependents become ready
+   - When a task fails, all transitive downstream tasks are cancelled
+4. Job status is computed from aggregate task states:
+   - All completed → `Completed`
+   - All failed → `Failed`
+   - Mix of completed/failed/cancelled → `PartiallyCompleted`
+5. Successful tasks are pushed and PR'd independently
 
 ### Governance Engine
 
@@ -138,21 +146,56 @@ Every worker's output is automatically validated against all 8 governance docume
 | GOV-008 Infrastructure | Dockerfile present |
 | SEC-001 Security | No secrets in git diff |
 
+### Governance Analytics
+
+Stewie tracks governance failures over time and provides:
+- **Trending violations** — which rules fail most, and whether they're getting better or worse
+- **GOV update suggestions** — recommendations to relax, strengthen, or review specific governance rules based on historical failure data
+- Filterable by project and time window (7d, 30d, 90d)
+
+### Project Configuration (`stewie.json`)
+
+Drop a `stewie.json` in your repo root to configure Stewie explicitly:
+
+```json
+{
+  "version": "1.0",
+  "stack": "dotnet",
+  "language": "csharp",
+  "buildCommand": "dotnet build",
+  "testCommand": "dotnet test",
+  "governance": {
+    "rules": "all",
+    "warningsBlockAcceptance": false,
+    "maxRetries": 2
+  },
+  "paths": {
+    "source": ["src/"],
+    "tests": ["tests/"],
+    "forbidden": ["secrets/", ".env"]
+  }
+}
+```
+
+If absent, the governance worker falls back to heuristic stack detection.
+Full contract: `CODEX/20_BLUEPRINTS/CON-003_ProjectConfig_Contract.md` (v1.0.0)
+
 ### Retry Logic
 
 - **Transient failures** (timeout, Docker errors) → automatic 1 retry
 - **Permanent failures** (worker crash, bad results) → no retry, failure reason recorded
+- **Governance failures** → retry with violation feedback (up to 2 attempts, configurable)
 
 ## Project Structure
 
 ```
 src/
   Stewie.Domain/           # Entities, enums, contracts (DTOs)
-  Stewie.Application/      # Service interfaces, orchestration logic
+  Stewie.Application/      # Service interfaces, orchestration logic, TaskGraph
   Stewie.Infrastructure/   # NHibernate, FluentMigrator, Docker, GitHub, filesystem
   Stewie.Api/              # ASP.NET Core API host + controllers
   Stewie.Web/ClientApp/    # React + Vite dashboard
-  Stewie.Tests/            # xUnit integration + unit tests (76 tests)
+  Stewie.Tests/            # xUnit integration + unit tests (110 tests)
 workers/
   dummy-worker/            # Test worker (proves container contract)
   script-worker/           # Real worker (Alpine + bash + git)
@@ -161,7 +204,7 @@ CODEX/                     # Project governance documentation
   00_INDEX/                # MANIFEST.yaml — document registry
   05_PROJECT/              # Sprints, backlog, roadmap
   10_GOVERNANCE/           # Standards (GOV-001 through GOV-008)
-  20_BLUEPRINTS/           # Design specs, API/runtime contracts
+  20_BLUEPRINTS/           # Design specs, API/runtime/config contracts
   40_VERIFICATION/         # Audit reports
   80_AGENTS/               # Agent role definitions
 ```
@@ -176,16 +219,17 @@ All endpoints require `Authorization: Bearer {jwt}` (except `/api/auth/login`).
 | `POST` | `/api/auth/register` | Register new user (requires invite code) |
 | `GET` | `/api/projects` | List all projects |
 | `POST` | `/api/projects` | Create project (link existing repo or create new) |
-| `GET` | `/api/jobs` | List jobs (optionally filter by `?projectId=`=`) |
-| `POST` | `/api/jobs` | Create and execute a job |
-| `GET` | `/api/jobs/{id}` | Get job details with nested tasks |
+| `GET` | `/api/jobs` | List jobs (optionally filter by `?projectId=`) |
+| `POST` | `/api/jobs` | Create job — single-task (objective) or multi-task (tasks array with deps) |
+| `GET` | `/api/jobs/{id}` | Get job details with nested tasks and aggregate counts |
 | `GET` | `/api/jobs/{id}/governance` | Get latest governance report for a job |
 | `GET` | `/api/tasks/{id}/governance` | Get governance report for a tester task |
+| `GET` | `/api/governance/analytics` | Governance violation trending and suggestions |
 | `POST` | `/jobs/test` | Trigger a test job (dummy worker) |
 | `POST` | `/api/users/github-token` | Store GitHub PAT (AES-256 encrypted) |
 | `GET` | `/api/users/github-token/status` | Check PAT configuration status |
 
-Full contract: `CODEX/20_BLUEPRINTS/CON-002_API_Contract.md` (v1.6.0)
+Full contract: `CODEX/20_BLUEPRINTS/CON-002_API_Contract.md` (v1.8.0)
 
 ## Configuration
 
@@ -198,11 +242,12 @@ Configuration via `src/Stewie.Api/appsettings.json` and environment variables:
 | `Stewie:DockerImageName` | — | `stewie-dummy-worker` | Default Docker image for test runs |
 | `Stewie:ScriptWorkerImage` | — | `stewie-script-worker` | Docker image for real task execution |
 | `Stewie:TaskTimeoutSeconds` | — | `300` | Hard timeout for container execution (seconds) |
+| `Stewie:MaxConcurrentTasks` | — | `5` | Max parallel containers per job |
 | `Stewie:JwtSecret` | `STEWIE_JWT_SECRET` | **required** | JWT signing key (min 32 chars) |
 | `Stewie:EncryptionKey` | `STEWIE_ENCRYPTION_KEY` | **required** | AES-256 key for credential encryption |
 | `Stewie:AdminPassword` | `STEWIE_ADMIN_PASSWORD` | **required** | Initial admin password (first startup only) |
 | `Stewie:AdminUsername` | `STEWIE_ADMIN_USERNAME` | `admin` | Initial admin username |
-| `Stewie:MaxGovernanceRetries` | — | `2` | Max governance retry attempts per job |
+| `Stewie:MaxGovernanceRetries` | — | `2` | Max governance retry attempts per task |
 | `Stewie:GovernanceWorkerImage` | — | `stewie-governance-worker` | Docker image for governance checks |
 | `Stewie:WarningsBlockAcceptance` | — | `false` | Whether warning-severity governance failures block acceptance |
 
@@ -222,7 +267,8 @@ Workers communicate with Stewie via JSON files mounted in the container.
   "repoUrl": "https://github.com/org/repo.git",
   "branch": "stewie/run-id",
   "script": ["npm install", "npm test"],
-  "acceptanceCriteria": ["All tests pass", "No lint errors"]
+  "acceptanceCriteria": ["All tests pass", "No lint errors"],
+  "projectConfig": { "stack": "node", "language": "typescript" }
 }
 ```
 
@@ -241,17 +287,25 @@ Workers communicate with Stewie via JSON files mounted in the container.
 }
 ```
 
-Full contract: `CODEX/20_BLUEPRINTS/CON-001_Runtime_Contract.md` (v1.4.0)
+Full contract: `CODEX/20_BLUEPRINTS/CON-001_Runtime_Contract.md` (v1.5.0)
 
 ## Testing
 
 ```bash
-# Run all tests (76 passing)
+# Run all tests (110 passing)
 dotnet test src/Stewie.Tests/Stewie.Tests.csproj
 
 # Frontend build verification
 cd src/Stewie.Web/ClientApp && npm run build
 ```
+
+## Contracts
+
+| Contract | Version | Description |
+|:---------|:--------|:------------|
+| CON-001 | v1.5.0 | Runtime Contract — task.json / result.json / projectConfig |
+| CON-002 | v1.8.0 | API Contract — HTTP endpoints, schemas, error codes |
+| CON-003 | v1.0.0 | Project Configuration — stewie.json file format |
 
 ## Roadmap
 
@@ -263,8 +317,8 @@ cd src/Stewie.Web/ClientApp && npm run build
 | 2.5 | GitHub Integration + Auth | ✅ Complete |
 | 2.75 | Repository Automation + Platform Abstraction | ✅ Complete |
 | 3 | Governance Engine | ✅ Complete |
-| **4** | **Multi-Task Jobs** | 🔜 Next |
-| 5 | Real-Time Interaction | Planned |
+| 4 | Multi-Task Jobs (DAG, Parallel, Analytics) | ✅ Complete |
+| **5** | **Real-Time Interaction** | 🔜 Next |
 
 Full roadmap: `CODEX/05_PROJECT/PRJ-001_Roadmap.md`
 

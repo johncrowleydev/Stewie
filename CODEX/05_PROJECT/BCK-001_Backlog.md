@@ -8,11 +8,11 @@ agents: [all]
 tags: [project-management, backlog, agentic-development]
 related: [PRJ-001, BCK-002, GOV-007]
 created: 2026-04-09
-updated: 2026-04-09
-version: 1.1.0
+updated: 2026-04-10
+version: 1.2.0
 ---
 
-> **BLUF:** Prioritized development backlog for Stewie. Items are pulled from here into sprint documents. Two developer agents will execute against this backlog. Items are ordered by dependency and priority.
+> **BLUF:** Prioritized development backlog for Stewie. Items are pulled from here into sprint documents. Two developer agents execute against this backlog. Items are ordered by dependency and priority. Phases 1–4 are complete (110 tests passing).
 
 # Development Backlog
 
@@ -29,7 +29,7 @@ version: 1.1.0
 
 ---
 
-## Phase 1: Core Orchestration (MVP)
+## Phase 1: Core Orchestration (MVP) ✅ COMPLETE
 
 ### P0 — Foundation
 
@@ -54,7 +54,7 @@ version: 1.1.0
 
 | ID | Task | Description | Contracts | Est. Complexity |
 |:---|:-----|:------------|:----------|:----------------|
-| B-020 | **Emit events on state changes** | `RunOrchestrationService` emits Events on Run/Task status transitions | BLU-001 §4 | Medium | → JOB-002 T-017/T-018 |
+| B-020 | ~~**Emit events on state changes**~~ | ✅ Done (JOB-002 T-017/T-018) | BLU-001 §4 | Medium |
 
 ### P2 — React Dashboard
 
@@ -72,27 +72,27 @@ version: 1.1.0
 | B-040 | ~~**Test project setup**~~ | ✅ Done (JOB-001 T-010) | GOV-002 | Small |
 | B-041 | ~~**Unit tests for RunOrchestrationService**~~ | ✅ Done (JOB-001 T-011) | GOV-002 | Medium |
 | B-042 | ~~**Unit tests for WorkspaceService**~~ | ✅ Done (JOB-001 T-012) | GOV-002 | Small |
-| B-043 | **Integration tests for API endpoints** | Test controllers with WebApplicationFactory | GOV-002 | Medium | → JOB-002 T-023/T-024 |
+| B-043 | ~~**Integration tests for API endpoints**~~ | ✅ Done (JOB-002 T-023/T-024) | GOV-002 | Medium |
 
 ---
 
-## Phase 2: Real Repo Interaction
+## Phase 2: Real Repo Interaction ✅ COMPLETE
 
 | ID | Task | Description | Priority | Status |
 |:---|:-----|:------------|:---------|:-------|
-| B-100 | ~~Git clone into workspace~~ | ✅ Done (JOB-002 T-021 plumbing, JOB-003 T-028 wiring) | P1 | → JOB-003 |
-| B-101 | ~~Branch creation for tasks~~ | ✅ Done (JOB-002 T-021 plumbing, JOB-003 T-028 wiring) | P1 | → JOB-003 |
-| B-102 | Diff ingestion from result | Capture git diff after worker exits | P2 | → JOB-003 T-030 |
-| B-103 | Commit worker changes | Auto-commit worker file mutations | P2 | → JOB-003 T-031 |
-| B-104 | Script worker container | Shell-based worker that executes bash commands | P1 | → JOB-003 T-029 |
-| B-105 | Extended Run creation API | POST /api/jobs with task definitions | P1 | → JOB-003 T-027 |
-| B-106 | Create Run form (frontend) | Dashboard form to create runs with objectives | P2 | → JOB-003 T-032 |
-| B-107 | Run detail git/diff viewer | Branch, commit SHA, diff display | P2 | → JOB-003 T-033 |
-| B-108 | Dashboard auto-refresh | Polling for live status updates | P2 | → JOB-003 T-034 |
+| B-100 | ~~Git clone into workspace~~ | ✅ Done (JOB-003 T-028) | P1 | Done |
+| B-101 | ~~Branch creation for tasks~~ | ✅ Done (JOB-003 T-028) | P1 | Done |
+| B-102 | ~~Diff ingestion from result~~ | ✅ Done (JOB-003 T-030) | P2 | Done |
+| B-103 | ~~Commit worker changes~~ | ✅ Done (JOB-003 T-031) | P2 | Done |
+| B-104 | ~~Script worker container~~ | ✅ Done (JOB-003 T-029) | P1 | Done |
+| B-105 | ~~Extended Run creation API~~ | ✅ Done (JOB-003 T-027) | P1 | Done |
+| B-106 | ~~Create Run form (frontend)~~ | ✅ Done (JOB-003 T-032) | P2 | Done |
+| B-107 | ~~Run detail git/diff viewer~~ | ✅ Done (JOB-003 T-033) | P2 | Done |
+| B-108 | ~~Dashboard auto-refresh~~ | ✅ Done (JOB-003 T-034) | P2 | Done |
 
 ---
 
-## Phase 2.5: GitHub Integration + User System (JOB-004) ✅ COMPLETE
+## Phase 2.5: GitHub Integration + User System ✅ COMPLETE
 
 | ID | Task | Description | Priority | Status |
 |:---|:-----|:------------|:---------|:-------|
@@ -106,56 +106,68 @@ version: 1.1.0
 
 ---
 
-## Phase 2.75: Repository Automation + Platform Abstraction (JOB-005)
+## Phase 2.75: Repository Automation + Platform Abstraction ✅ COMPLETE
 
 | ID | Task | Description | Priority | Status |
 |:---|:-----|:------------|:---------|:-------|
-| B-210 | **Platform abstraction** | Rename IGitHubService → IGitPlatformService for multi-provider support | P0 | → JOB-005 T-048 |
-| B-211 | **Project repo link-or-create** | POST /api/projects supports both linking existing and creating new repos | P1 | → JOB-005 T-049/T-050 |
-| B-212 | **Container timeout enforcement** | Enforce 300s hard limit per CON-001 §7 | P1 | → JOB-005 T-051 |
-| B-213 | **Retry logic + error taxonomy** | Retry transient container failures, categorize error types | P1 | → JOB-005 T-052 |
-| B-214 | **Project creation form (frontend)** | Link/create toggle with conditional fields | P2 | → JOB-005 T-053 |
-| B-215 | **Integration tests (projects)** | Test link and create flows, PAT validation | P2 | → JOB-005 T-054 |
-| B-216 | **Unit tests (timeout + retry)** | Test timeout behavior, retry logic | P2 | → JOB-005 T-055 |
+| B-210 | ~~Platform abstraction~~ | ✅ Done (JOB-005 T-048) | P0 | Done |
+| B-211 | ~~Project repo link-or-create~~ | ✅ Done (JOB-005 T-049/T-050) | P1 | Done |
+| B-212 | ~~Container timeout enforcement~~ | ✅ Done (JOB-005 T-051) | P1 | Done |
+| B-213 | ~~Retry logic + error taxonomy~~ | ✅ Done (JOB-005 T-052) | P1 | Done |
+| B-214 | ~~Project creation form (frontend)~~ | ✅ Done (JOB-005 T-053) | P2 | Done |
+| B-215 | ~~Integration tests (projects)~~ | ✅ Done (JOB-005 T-054) | P2 | Done |
+| B-216 | ~~Unit tests (timeout + retry)~~ | ✅ Done (JOB-005 T-055) | P2 | Done |
 
 ---
 
-## Phase 4: Multi-Task Jobs
-
-### JOB-009 — Task DAG Infrastructure (ACTIVE)
+## Phase 3: Governance Engine ✅ COMPLETE
 
 | ID | Task | Description | Priority | Status |
 |:---|:-----|:------------|:---------|:-------|
-| B-400 | TaskDependency entity + migration | Junction table for task→task edges | P0 | → JOB-009 T-081 |
-| B-401 | TaskDependency repository | CRUD for dependency edges | P0 | → JOB-009 T-082 |
-| B-402 | TaskGraph service | Topological sort, readiness, cycle detection | P0 | → JOB-009 T-084/T-085 |
-| B-403 | Blocked + Cancelled WorkTask states | New enum values for DAG support | P0 | → JOB-009 T-086 |
-| B-404 | PartiallyCompleted Job status | New enum value for mixed outcomes | P0 | → JOB-009 T-087 |
-| B-405 | TaskGraph unit tests | Full coverage of graph operations | P1 | → JOB-009 T-088/T-089 |
+| B-300 | ~~Sequential task chains~~ | ✅ Done (JOB-007 T-060–T-067) | P0 | Done |
+| B-301 | ~~Governance worker + reports~~ | ✅ Done (JOB-007 T-068–T-071) | P0 | Done |
+| B-302 | ~~Governance retry loop~~ | ✅ Done (JOB-007 T-072–T-073) | P1 | Done |
+| B-303 | ~~Governance dashboard UI~~ | ✅ Done (JOB-008 T-076–T-077) | P1 | Done |
+| B-304 | ~~Governance integration tests~~ | ✅ Done (JOB-008 T-078–T-079) | P1 | Done |
 
-### JOB-010 — Parallel Execution Engine + API (PLANNED)
+---
 
-| ID | Task | Description | Priority | Status |
-|:---|:-----|:------------|:---------|:-------|
-| B-410 | Multi-task execution loop | Replace single-task path with scheduler | P0 | Planned |
-| B-411 | Parallel container launcher | SemaphoreSlim-bounded concurrency | P0 | Planned |
-| B-412 | Per-task workspace isolation | Each task gets own workspace clone | P0 | Planned |
-| B-413 | Multi-task API (POST /api/jobs) | Accept tasks array with deps | P0 | Planned |
-| B-414 | CON-002 v1.7.0 | Multi-task API contract update | P0 | Planned |
-| B-415 | Per-task governance cycle | Each dev task gets own tester | P1 | Planned |
-| B-416 | Integration tests (multi-task) | Parallel, DAG, failure cascade | P1 | Planned |
+## Phase 4: Multi-Task Jobs ✅ COMPLETE
 
-### JOB-011 — Dashboard + Analytics + stewie.json (PLANNED)
+### JOB-009 — Task DAG Infrastructure ✅ CLOSED
 
 | ID | Task | Description | Priority | Status |
 |:---|:-----|:------------|:---------|:-------|
-| B-420 | Multi-task progress UI | Dashboard component for N-task jobs | P1 | Planned |
-| B-421 | Task DAG visualization | Graph/timeline view of task deps | P1 | Planned |
-| B-422 | Governance analytics API | Violation trending, top failing rules | P1 | Planned |
-| B-423 | Governance analytics UI | Dashboard panel for analytics | P2 | Planned |
-| B-424 | stewie.json parser | Project config service | P1 | Planned |
-| B-425 | CON-003 stewie.json contract | New contract for project config | P1 | Planned |
-| B-426 | GOV update suggestions | Suggest governance changes from failure data | P2 | Planned |
+| B-400 | ~~TaskDependency entity + migration~~ | ✅ Done (JOB-009 T-081) | P0 | Done |
+| B-401 | ~~TaskDependency repository~~ | ✅ Done (JOB-009 T-082) | P0 | Done |
+| B-402 | ~~TaskGraph service~~ | ✅ Done (JOB-009 T-084/T-085) | P0 | Done |
+| B-403 | ~~Blocked + Cancelled WorkTask states~~ | ✅ Done (JOB-009 T-086) | P0 | Done |
+| B-404 | ~~PartiallyCompleted Job status~~ | ✅ Done (JOB-009 T-087) | P0 | Done |
+| B-405 | ~~TaskGraph unit tests~~ | ✅ Done (JOB-009 T-088/T-089) | P1 | Done |
+
+### JOB-010 — Parallel Execution Engine + API ✅ CLOSED
+
+| ID | Task | Description | Priority | Status |
+|:---|:-----|:------------|:---------|:-------|
+| B-410 | ~~Multi-task execution loop~~ | ✅ Done (JOB-010 T-090) | P0 | Done |
+| B-411 | ~~Parallel container launcher~~ | ✅ Done (JOB-010 T-092) | P0 | Done |
+| B-412 | ~~Per-task workspace isolation~~ | ✅ Done (JOB-010 T-093) | P0 | Done |
+| B-413 | ~~Multi-task API (POST /api/jobs)~~ | ✅ Done (JOB-010 T-095) | P0 | Done |
+| B-414 | ~~CON-002 v1.7.0~~ | ✅ Done (JOB-010 T-096) | P0 | Done |
+| B-415 | ~~Per-task governance cycle~~ | ✅ Done (JOB-010 T-101) | P1 | Done |
+| B-416 | ~~Integration tests (multi-task)~~ | ✅ Done (JOB-010 T-098/T-099/T-100) | P1 | Done |
+
+### JOB-011 — Dashboard + Analytics + stewie.json ✅ CLOSED
+
+| ID | Task | Description | Priority | Status |
+|:---|:-----|:------------|:---------|:-------|
+| B-420 | ~~Multi-task progress UI~~ | ✅ Done (JOB-011 T-102) | P1 | Done |
+| B-421 | ~~Task DAG visualization~~ | ✅ Done (JOB-011 T-103) | P1 | Done |
+| B-422 | ~~Governance analytics API~~ | ✅ Done (JOB-011 T-105) | P1 | Done |
+| B-423 | ~~Governance analytics UI~~ | ✅ Done (JOB-011 T-106) | P2 | Done |
+| B-424 | ~~stewie.json parser~~ | ✅ Done (JOB-011 T-107) | P1 | Done |
+| B-425 | ~~CON-003 stewie.json contract~~ | ✅ Done (JOB-011 T-108) | P1 | Done |
+| B-426 | ~~GOV update suggestions~~ | ✅ Done (JOB-011 T-110) | P2 | Done |
 
 ---
 
@@ -163,13 +175,14 @@ version: 1.1.0
 
 | ID | Task | Description | Priority |
 |:---|:-----|:------------|:---------|
-| B-300 | Workspace TTL-based cleanup | Auto-delete old workspaces | P3 |
-| ~~B-301~~ | ~~Multi-task runs~~ | Pulled into Phase 4 (JOB-009/010) | — |
-| B-302 | AI agent worker | Container with LLM API for code generation | P2 |
-| B-303 | WebSocket/SSE live updates | Replace polling with real-time push | P3 |
-| ~~B-304~~ | ~~Task dependency graph~~ | Pulled into Phase 4 (JOB-009) | — |
-| B-305 | GitLab provider | IGitPlatformService implementation for GitLab | P3 |
-| B-306 | Bitbucket provider | IGitPlatformService implementation for Bitbucket | P3 |
+| B-500 | Workspace TTL-based cleanup | Auto-delete old workspaces | P3 |
+| B-501 | AI agent worker | Container with LLM API for code generation | P2 |
+| B-502 | WebSocket/SSE live updates | Replace polling with real-time push | P1 → Phase 5 |
+| B-503 | Human ↔ Architect chat | Interactive chat through dashboard | P1 → Phase 5 |
+| B-504 | Live container output streaming | Stream stdout from running containers | P1 → Phase 5 |
+| B-505 | RabbitMQ event distribution | Async event bus for multi-service architecture | P2 → Phase 5 |
+| B-506 | GitLab provider | IGitPlatformService implementation for GitLab | P3 |
+| B-507 | Bitbucket provider | IGitPlatformService implementation for Bitbucket | P3 |
 
 ---
 
@@ -182,4 +195,4 @@ version: 1.1.0
 | 2026-04-09 | Phase 2 items assigned to JOB-003. Added Phase 2.5 (GitHub/Users) and future backlog. |
 | 2026-04-09 | Phase 2.5 marked complete (JOB-004). Added Phase 2.75 (Repo Automation) for JOB-005. |
 | 2026-04-10 | Phase 4 backlog created. B-301, B-304 pulled from Future into JOB-009/010/011. |
-
+| 2026-04-10 | Phase 4 COMPLETE. All B-400 through B-426 marked done. Renumbered future items B-500+. |
