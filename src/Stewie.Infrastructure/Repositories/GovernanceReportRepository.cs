@@ -48,4 +48,13 @@ public class GovernanceReportRepository : IGovernanceReportRepository
             .OrderByDescending(r => r.CreatedAt)
             .FirstOrDefaultAsync();
     }
+
+    /// <inheritdoc/>
+    public async Task<IList<GovernanceReport>> GetAllSinceAsync(DateTime since)
+    {
+        return await _session.Query<GovernanceReport>()
+            .Where(r => r.CreatedAt >= since)
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync();
+    }
 }

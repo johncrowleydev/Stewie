@@ -9,7 +9,7 @@ tags: [standards, specification, project-management, governance]
 related: [BLU-001, CON-002, GOV-004]
 created: 2026-04-09
 updated: 2026-04-10
-version: 1.5.0
+version: 1.6.0
 ---
 
 > **BLUF:** This contract defines the binding interface between Stewie (orchestrator) and worker containers. All communication flows through two JSON files: `task.json` (input) and `result.json` (output). Workers MUST conform to this contract. No deviation without Human approval.
@@ -48,7 +48,7 @@ version: 1.5.0
 
 | Field | Value |
 |:------|:------|
-| Contract version | `1.5.0` |
+| Contract version | `1.6.0` |
 | Stability | `EXPERIMENTAL` |
 | Breaking change policy | MAJOR version bump required for any field removal or type change |
 | Backward compatibility | Workers must handle unknown fields gracefully (ignore, don't fail) |
@@ -124,6 +124,7 @@ The orchestrator writes this file before launching the container.
 | `governanceViolations[].ruleId` | `string` | ✅ | Rule identifier (e.g., "GOV-003-001") | |
 | `governanceViolations[].ruleName` | `string` | ✅ | Human-readable rule name | |
 | `governanceViolations[].details` | `string` | ✅ | Specific violation details | |
+| `projectConfig` | `object` | ❌ | Project configuration from `stewie.json` (see CON-003) | Null if file absent |
 
 ### 4.2 Example
 

@@ -9,7 +9,7 @@ tags: [standards, specification, project-management, governance]
 related: [BLU-001, CON-001, GOV-004]
 created: 2026-04-09
 updated: 2026-04-10
-version: 1.7.0
+version: 1.8.0
 ---
 
 > **BLUF:** This contract defines the HTTP API surface of Stewie.Api. All frontend and external consumers MUST conform to these routes, request/response shapes, and error formats. No deviation without Human approval.
@@ -46,7 +46,7 @@ version: 1.7.0
 
 | Field | Value |
 |:------|:------|
-| Contract version | `1.7.0` |
+| Contract version | `1.8.0` |
 | Stability | `EXPERIMENTAL` |
 | Base URL | `http://localhost:5275` |
 | Content-Type | `application/json` |
@@ -325,6 +325,55 @@ Alternatively, create a multi-task DAG job by providing a `tasks` array instead 
 |:-------|:---------|
 | 200 | Report exists |
 | 404 | No governance report found for this job/task |
+
+### 4.7 Governance Analytics (v1.8.0)
+
+| Method | Path | Description |
+|:-------|:-----|:------------|
+| `GET` | `/api/governance/analytics` | Governance violation trending and GOV update suggestions |
+
+**Query parameters:**
+
+| Param | Type | Required | Description |
+|:------|:-----|:--------:|:------------|
+| `days` | `int` | No | Time window in days (default 30, max 365) |
+| `projectId` | `uuid` | No | Filter analytics to a specific project |
+
+**Response (200 OK):**
+
+```json
+{
+  "totalJobs": 45,
+  "totalGovernanceRuns": 67,
+  "passRate": 0.82,
+  "topFailingRules": [
+    {
+      "ruleId": "GOV-003-001",
+      "ruleName": "No TypeScript any Types",
+      "failCount": 12,
+      "trend": "increasing"
+    }
+  ],
+  "suggestedGovUpdates": [
+    {
+      "govDoc": "GOV-003",
+      "reason": "GOV-003-001 fails 26% of runs — consider reviewing rule criteria"
+    }
+  ]
+}
+```
+
+| Field | Type | Description |
+|:------|:-----|:------------|
+| `totalJobs` | `int` | Unique tasks with governance reports in the period |
+| `totalGovernanceRuns` | `int` | Total governance runs |
+| `passRate` | `double` | Fraction passed (0.0 to 1.0) |
+| `topFailingRules[].ruleId` | `string` | Rule identifier |
+| `topFailingRules[].ruleName` | `string` | Human-readable rule name |
+| `topFailingRules[].failCount` | `int` | Number of failures in the period |
+| `topFailingRules[].trend` | `string` | `"increasing"`, `"decreasing"`, or `"stable"` |
+| `suggestedGovUpdates[].govDoc` | `string` | GOV document to review |
+| `suggestedGovUpdates[].reason` | `string` | Reason with specific failure data |
 
 ---
 

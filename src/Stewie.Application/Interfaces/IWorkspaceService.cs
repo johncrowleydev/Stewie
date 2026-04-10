@@ -30,7 +30,8 @@ public interface IWorkspaceService
     /// <param name="acceptanceCriteria">Optional acceptance criteria.</param>
     /// <returns>The absolute path to the workspace directory.</returns>
     string PrepareWorkspaceForRun(WorkTask task, Job job, string? repoUrl,
-        string? branch, List<string>? script, List<string>? acceptanceCriteria);
+        string? branch, List<string>? script, List<string>? acceptanceCriteria,
+        StewieProjectConfig? projectConfig = null);
 
     /// <summary>Reads and deserializes result.json from the task's workspace output directory.</summary>
     ResultPacket ReadResult(WorkTask task);

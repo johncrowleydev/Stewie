@@ -99,6 +99,8 @@ builder.Services.AddSingleton<IContainerService>(sp =>
     new DockerContainerService(dockerImageName, taskTimeoutSeconds, sp.GetRequiredService<ILogger<DockerContainerService>>()));
 builder.Services.AddSingleton<IEncryptionService>(new AesEncryptionService(encryptionKey));
 builder.Services.AddScoped<IGitPlatformService, GitHubService>();
+builder.Services.AddScoped<GovernanceAnalyticsService>();
+builder.Services.AddScoped<ProjectConfigService>();
 builder.Services.AddScoped<JobOrchestrationService>(sp =>
     new JobOrchestrationService(
         sp.GetRequiredService<IJobRepository>(),
