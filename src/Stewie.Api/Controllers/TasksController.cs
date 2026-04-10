@@ -1,14 +1,17 @@
 /// <summary>
 /// Tasks API controller — endpoints for querying WorkTask entities.
-/// REF: CON-002 §4.3, §5.3
+/// REF: CON-002 §4.3, §5.3, JOB-014 T-144
 ///
 /// READING GUIDE FOR INCIDENT RESPONDERS:
 /// 1. If task detail missing artifacts → check GetByTaskIdAsync in ArtifactRepository
 /// 2. If 404 on task lookup           → check GetByIdAsync return value
 /// 3. If tasks for job are empty      → check GetByJobIdAsync filter logic
+/// 4. If container output empty       → check ContainerOutputBuffer lifecycle (cleared on completion)
 /// </summary>
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stewie.Application.Interfaces;
+using Stewie.Application.Services;
 
 namespace Stewie.Api.Controllers;
 
@@ -21,16 +24,19 @@ public class TasksController : ControllerBase
 {
     private readonly IWorkTaskRepository _workTaskRepository;
     private readonly IArtifactRepository _artifactRepository;
+    private readonly ContainerOutputBuffer _containerOutputBuffer;
     private readonly ILogger<TasksController> _logger;
 
     /// <summary>Initializes the TasksController with required dependencies.</summary>
     public TasksController(
         IWorkTaskRepository workTaskRepository,
         IArtifactRepository artifactRepository,
+        ContainerOutputBuffer containerOutputBuffer,
         ILogger<TasksController> logger)
     {
         _workTaskRepository = workTaskRepository;
         _artifactRepository = artifactRepository;
+        _containerOutputBuffer = containerOutputBuffer;
         _logger = logger;
     }
 
@@ -102,4 +108,21 @@ public class TasksController : ControllerBase
 
         return Ok(response);
     }
+
+    /// <summary>
+    /// Gets buffered container output for a task. Used by late-joining dashboard clients
+    /// to fetch the backlog before switching to WebSocket streaming.
+    /// Returns empty array for completed, failed, or unknown tasks (buffer is cleared after completion).
+    /// REF: JOB-014 T-144, CON-002 §4
+    /// </summary>
+    /// <param name="taskId">The task's GUID.</param>
+    /// <returns>200 OK with buffered output lines.</returns>
+    [Authorize]
+    [HttpGet("api/tasks/{taskId:guid}/output")]
+    public IActionResult GetContainerOutput(Guid taskId)
+    {
+        var lines = _containerOutputBuffer.GetLines(taskId);
+        return Ok(new { taskId, lines, lineCount = lines.Count });
+    }
 }
+

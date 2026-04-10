@@ -132,6 +132,7 @@ builder.Services.AddScoped<IGitPlatformService, GitHubService>();
 builder.Services.AddScoped<GovernanceAnalyticsService>();
 builder.Services.AddScoped<ProjectConfigService>();
 builder.Services.AddSingleton<IRealTimeNotifier, SignalRNotifier>();
+builder.Services.AddSingleton<ContainerOutputBuffer>();
 builder.Services.AddScoped<JobOrchestrationService>(sp =>
     new JobOrchestrationService(
         sp.GetRequiredService<IJobRepository>(),
@@ -150,6 +151,7 @@ builder.Services.AddScoped<JobOrchestrationService>(sp =>
         sp.GetRequiredService<IGovernanceReportRepository>(),
         sp.GetRequiredService<ITaskDependencyRepository>(),
         sp.GetRequiredService<IRealTimeNotifier>(),
+        sp.GetRequiredService<ContainerOutputBuffer>(),
         scriptWorkerImage,
         governanceWorkerImage,
         maxGovernanceRetries,

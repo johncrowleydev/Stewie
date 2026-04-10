@@ -82,6 +82,7 @@ public class RetryLogicTests
             governanceReportRepository,
             taskDependencyRepository,
             new NullRealTimeNotifier(),
+            new ContainerOutputBuffer(),
             "stewie-script-worker");
     }
 

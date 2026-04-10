@@ -36,6 +36,7 @@ public partial class JobOrchestrationService
     private readonly IGovernanceReportRepository _governanceReportRepository;
     private readonly ITaskDependencyRepository _taskDependencyRepository;
     private readonly IRealTimeNotifier _realTimeNotifier;
+    private readonly ContainerOutputBuffer _containerOutputBuffer;
     private readonly string _governanceWorkerImage;
     private readonly int _maxGovernanceRetries;
     private readonly SemaphoreSlim _taskSemaphore;
@@ -58,6 +59,7 @@ public partial class JobOrchestrationService
         IGovernanceReportRepository governanceReportRepository,
         ITaskDependencyRepository taskDependencyRepository,
         IRealTimeNotifier realTimeNotifier,
+        ContainerOutputBuffer containerOutputBuffer,
         string scriptWorkerImage = "stewie-script-worker",
         string governanceWorkerImage = "stewie-governance-worker",
         int maxGovernanceRetries = 2,
@@ -79,6 +81,7 @@ public partial class JobOrchestrationService
         _governanceReportRepository = governanceReportRepository;
         _taskDependencyRepository = taskDependencyRepository;
         _realTimeNotifier = realTimeNotifier;
+        _containerOutputBuffer = containerOutputBuffer;
         _scriptWorkerImage = scriptWorkerImage;
         _governanceWorkerImage = governanceWorkerImage;
         _maxGovernanceRetries = maxGovernanceRetries;
@@ -685,6 +688,7 @@ public partial class JobOrchestrationService
             var isSuccess = string.Equals(result.Status, "success", StringComparison.OrdinalIgnoreCase);
             task.Status = isSuccess ? WorkTaskStatus.Completed : WorkTaskStatus.Failed;
             task.CompletedAt = DateTime.UtcNow;
+            _containerOutputBuffer.Clear(task.Id);
             if (!isSuccess)
             {
                 task.FailureReason = TaskFailureReason.WorkerReportedFailure.ToString();

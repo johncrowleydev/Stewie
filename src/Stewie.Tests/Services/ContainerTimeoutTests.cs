@@ -80,6 +80,7 @@ public class ContainerTimeoutTests
             governanceReportRepository,
             taskDependencyRepository,
             new NullRealTimeNotifier(),
+            new ContainerOutputBuffer(),
             "stewie-script-worker");
     }
 
