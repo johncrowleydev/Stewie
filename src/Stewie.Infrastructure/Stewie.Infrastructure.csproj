@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Stewie.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\Stewie.Application\Stewie.Application.csproj" />
     <ProjectReference Include="..\Stewie.Domain\Stewie.Domain.csproj" />
