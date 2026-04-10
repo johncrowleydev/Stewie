@@ -1,6 +1,6 @@
 ---
 id: SESSION_HANDOFF
-title: "Session Handoff — Phase 4 Complete"
+title: "Session Handoff — Phase 5b Complete"
 type: reference
 status: CURRENT
 updated: 2026-04-10
@@ -10,47 +10,41 @@ updated: 2026-04-10
 
 ## Current State
 
-**Phase 4 (Multi-Task Jobs) is COMPLETE.**
+**Phase 5a and Phase 5b are COMPLETE.**
 
 | Metric | Value |
 |:-------|:------|
-| Tests | 110 passed, 5 skipped, 0 failed |
-| Last migration | `Migration_015_CreateTaskDependencies` |
-| CON-001 | v1.5.0 — per-task workspace mount, ProjectConfig field |
-| CON-002 | v1.8.0 — multi-task POST /api/jobs, governance analytics endpoint |
-| CON-003 | v1.0.0 — stewie.json project configuration (NEW) |
-| Orchestration | DAG-based scheduler with SemaphoreSlim concurrency (max 5) |
+| Tests | 209 passed |
+| CON-002 | v2.2.0 — Added SignalR, Chat, Architect endpoints |
+| CON-004 | v1.0.0 — Agent Messaging Contract |
+| Infrastructure | RabbitMQ running, Architect stub container |
 
 ## Completed Phases
 
 | Phase | Status | Jobs |
 |:------|:-------|:-----|
-| Phase 0: Foundation | ✅ | JOB-001 |
-| Phase 1: Core Orchestration | ✅ | JOB-001, JOB-002 |
-| Phase 2: Real Repo Interaction | ✅ | JOB-003, JOB-004, JOB-005 |
-| Phase 3: Governance Engine | ✅ | JOB-006, JOB-007, JOB-008 |
-| Phase 4: Multi-Task Jobs | ✅ | JOB-009, JOB-010, JOB-011 |
+| Phase 0–4 | ✅ | JOB-001 through JOB-011 |
+| Phase 5a: Real-Time UI | ✅ | JOB-012, JOB-013, JOB-014, JOB-015 |
+| Phase 5b: Message Bus & Agent Bus | ✅ | JOB-016, JOB-017, JOB-018 |
 
-## What Phase 4 Delivered
+## What Phase 5 Delivered
 
-- **JOB-009:** TaskDependency entity, TaskGraph service (Kahn's topological sort + cycle detection), Blocked/Cancelled/PartiallyCompleted enums
-- **JOB-010:** Parallel execution engine (ExecuteMultiTaskJobAsync, DAG scheduler loop, SemaphoreSlim concurrency), multi-task POST /api/jobs with backward compat, per-task governance cycle, CON-002 v1.7.0, CON-001 v1.5.0
-- **JOB-011:** Governance analytics API (trending violations, GOV update suggestions), stewie.json parser (CON-003), JobProgressPanel, TaskDagView, GovernanceAnalyticsPanel, aggregated status badges
+- **SignalR (Phase 5a):** Live Websocket updates for job progress and console streaming, ChatPanel component, ChatMessage repository.
+- **RabbitMQ & Agent Runtime (Phase 5b):** RabbitMQ messaging backbone, `IAgentRuntime` abstraction, `StubAgentRuntime`, chat relay to Architect agent via RabbitMQ, parsing incoming events via `RabbitMqConsumerHostedService`.
+- **Architect Lifecycle UI (Phase 5b):** Full `ArchitectControls` component in `ProjectDetailPage` allowing the human to start/stop the Architect, and disabling user chat if offline.
 
 ## Next Phase
 
-**Phase 5: Real-Time Interaction** (from PRJ-001):
-- WebSocket or SSE for live Job/Task updates
-- Chat-like interface for Human ↔ Architect
-- Live container output streaming
-- RabbitMQ for async event distribution
+**Phase 6: AI Agent Intelligence** (from PRJ-001):
+- Connecting real LLMs to Architect and Dev Agent components
+- Transition from `StubAgentRuntime` to a real `LlmAgentRuntime`
+- Real repository context mounting and logic handling inside containers
+- Autonomous agent-directed workflows
 
-## Key Files Changed This Session
+## Key Files Changed This Session (Phase 5b Finalization)
 
-- `src/Stewie.Application/Services/JobOrchestrationService.cs` — major: DAG scheduler, multi-task execution
-- `src/Stewie.Application/Services/TaskGraph.cs` — new: graph evaluator
-- `src/Stewie.Application/Services/GovernanceAnalyticsService.cs` — new: analytics engine
-- `src/Stewie.Application/Services/ProjectConfigService.cs` — new: stewie.json parser
-- `src/Stewie.Api/Controllers/JobsController.cs` — major: multi-task POST /api/jobs
-- `src/Stewie.Api/Controllers/GovernanceAnalyticsController.cs` — new: analytics endpoint
-- `CODEX/20_BLUEPRINTS/CON-003_ProjectConfig_Contract.md` — new contract
+- `src/Stewie.Api/Program.cs` — Registered `IRabbitMqService` and updated dependencies.
+- `src/Stewie.Api/Controllers/ChatController.cs` — Integrated RabbitMQ relay logic.
+- `src/Stewie.Infrastructure/Services/RabbitMqConsumerHostedService.cs` — Added "chat.response" consumer mapping.
+- `src/Stewie.Tests/Integration/StewieWebApplicationFactory.cs` — DI injection mocks updated for local tests, preventing RabbitMQ connection crashes.
+- `src/Stewie.Web/src/index.css` & `ArchitectControls.tsx` — Front-end lifecycle and controls built and fully formatted.
