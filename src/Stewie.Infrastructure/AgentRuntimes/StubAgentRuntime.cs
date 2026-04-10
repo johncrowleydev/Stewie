@@ -65,7 +65,7 @@ public class StubAgentRuntime : IAgentRuntime
             volumeArgs = $"-v \"{workspacePath}:/workspace\"";
         }
 
-        var arguments = $"run -d --name \"{containerName}\" {envArgs} {volumeArgs} {_imageName}".Trim();
+        var arguments = $"run -d --network host --name \"{containerName}\" {envArgs} {volumeArgs} {_imageName}".Trim();
 
         _logger.LogInformation(
             "Launching stub agent container {ContainerName} for session {SessionId}, role={Role}",

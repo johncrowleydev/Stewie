@@ -33,7 +33,7 @@ public class AgentMessage
     /// JSON-serialized message body containing type-specific data.
     /// The schema of this payload is determined by <see cref="Type"/>.
     /// </summary>
-    public string Payload { get; set; } = string.Empty;
+    public System.Text.Json.JsonElement Payload { get; set; }
 
     /// <summary>UTC timestamp when the message was created.</summary>
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;

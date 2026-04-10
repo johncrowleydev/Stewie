@@ -312,6 +312,28 @@ def main() -> None:
         routing_key=f"agent.{AGENT_ID}",
     )
 
+    # If this is an architect agent, bind to the chat exchange per CON-004
+    if AGENT_ROLE == "architect":
+        channel.exchange_declare(
+            exchange=CHAT_EXCHANGE,
+            exchange_type="direct",
+            durable=True,
+        )
+        chat_queue = f"architect.{PROJECT_ID}"
+        channel.queue_declare(queue=chat_queue, durable=True)
+        channel.queue_bind(
+            queue=chat_queue,
+            exchange=CHAT_EXCHANGE,
+            routing_key=chat_queue,
+        )
+        # Consume from the chat queue too
+        channel.basic_consume(
+            queue=chat_queue,
+            on_message_callback=on_message,
+            auto_ack=False,
+        )
+        log(f"Architect agent bound to chat exchange on queue '{chat_queue}'")
+
     # Publish event.started
     started = make_message(
         "event.started",

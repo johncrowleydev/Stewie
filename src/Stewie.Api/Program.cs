@@ -167,6 +167,7 @@ builder.Services.AddSingleton<ContainerOutputBuffer>();
 // IAgentRuntime implementations are registered by Dev B (e.g. StubAgentRuntime).
 // AgentLifecycleService resolves all registered runtimes via IEnumerable<IAgentRuntime>.
 builder.Services.AddScoped<AgentLifecycleService>();
+builder.Services.AddSingleton<IAgentRuntime, Stewie.Infrastructure.AgentRuntimes.StubAgentRuntime>();
 
 // Health checks — T-157
 // Base health check services always registered (required by MapHealthChecks).

@@ -218,9 +218,9 @@ public class AgentsController : ControllerBase
     {
         var session = await _lifecycle.GetActiveArchitectAsync(projectId);
         if (session is null)
-            return NotFound(new { error = $"No active Architect session for project '{projectId}'." });
+            return Ok(new { active = false, session = (object?)null });
 
-        return Ok(MapSession(session));
+        return Ok(new { active = true, session = MapSession(session) });
     }
 }
 

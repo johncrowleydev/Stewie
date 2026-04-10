@@ -172,12 +172,29 @@ public class RabbitMqConsumerHostedService : BackgroundService
                 return;
             }
 
+            // Fix properties missing from Python stub-agent wire format
+            message.RoutingKey = ea.RoutingKey;
+            
+            if (string.IsNullOrWhiteSpace(message.AgentId))
+            {
+                if (message.Payload.ValueKind == JsonValueKind.Object && message.Payload.TryGetProperty("agentId", out var agentIdEl))
+                {
+                    message.AgentId = agentIdEl.GetString() ?? "";
+                }
+                else if (ea.RoutingKey.StartsWith("agent."))
+                {
+                    var parts = ea.RoutingKey.Split('.');
+                    if (parts.Length >= 2)
+                        message.AgentId = parts[1];
+                }
+            }
+
             _logger.LogDebug(
                 "Processing agent event: type={Type}, agentId={AgentId}, routingKey={RoutingKey}",
                 message.Type, message.AgentId, ea.RoutingKey);
 
             // Route chat.response messages to dedicated handler (T-171)
-            if (message.Type == "chat.response")
+            if (message.Type == "chat.architect_response")
             {
                 await HandleChatResponseAsync(message);
 
@@ -198,14 +215,7 @@ public class RabbitMqConsumerHostedService : BackgroundService
                 EntityType = "Agent",
                 EntityId = Guid.TryParse(message.AgentId, out var agentGuid) ? agentGuid : Guid.Empty,
                 EventType = MapMessageTypeToEventType(message.Type),
-                Payload = JsonSerializer.Serialize(new
-                {
-                    message.Type,
-                    message.AgentId,
-                    message.RoutingKey,
-                    message.Payload,
-                    message.CorrelationId
-                }),
+                Payload = JsonSerializer.Serialize(message, AgentMessageJsonContext.Default.AgentMessage),
                 Timestamp = message.Timestamp
             };
 
@@ -253,13 +263,13 @@ public class RabbitMqConsumerHostedService : BackgroundService
             "agent.completed" => EventType.TaskCompleted,
             "agent.failed" => EventType.TaskFailed,
             "agent.blocker" => EventType.TaskStarted,
-            "chat.response" => EventType.AgentChatResponse,
+            "chat.architect_response" => EventType.AgentChatResponse,
             _ => EventType.TaskCreated
         };
     }
 
     /// <summary>
-    /// Handles a chat.response event from an Architect agent.
+    /// Handles a chat.architect_response event from an Architect agent.
     /// Creates a ChatMessage entity with SenderRole="Architect", persists it,
     /// and pushes the message to connected clients via SignalR.
     /// REF: JOB-018 T-171
@@ -271,14 +281,28 @@ public class RabbitMqConsumerHostedService : BackgroundService
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
         var notifier = scope.ServiceProvider.GetRequiredService<IRealTimeNotifier>();
 
-        // Extract projectId from the routing key pattern "architect.{projectId}"
-        // or from the AgentId field (which maps to the session's project).
-        // Fall back to parsing from the message if needed.
+        // Extract projectId from payload since the routing key is agent.{id}.completed
         Guid projectId = Guid.Empty;
-        if (message.RoutingKey.StartsWith("architect."))
+        if (message.Payload.ValueKind == JsonValueKind.Object && message.Payload.TryGetProperty("projectId", out var projEl))
+        {
+            Guid.TryParse(projEl.GetString(), out projectId);
+        }
+
+        if (projectId == Guid.Empty && message.RoutingKey.StartsWith("architect."))
         {
             var projectIdStr = message.RoutingKey["architect.".Length..];
             Guid.TryParse(projectIdStr, out projectId);
+        }
+
+        var content = "";
+        if (message.Payload.ValueKind == JsonValueKind.Object && message.Payload.TryGetProperty("content", out var tempElement))
+        {
+            content = tempElement.GetString() ?? "";
+        }
+        else
+        {
+            // Fallback for backwards compatibility or unexpected format
+            content = message.Payload.ToString() ?? "";
         }
 
         var chatMessage = new ChatMessage
@@ -287,7 +311,7 @@ public class RabbitMqConsumerHostedService : BackgroundService
             ProjectId = projectId,
             SenderRole = "Architect",
             SenderName = "Architect",
-            Content = message.Payload,
+            Content = content,
             CreatedAt = message.Timestamp
         };
 

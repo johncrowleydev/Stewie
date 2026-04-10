@@ -56,7 +56,9 @@ public class AgentSessionRepository : IAgentSessionRepository
         };
 
         return await _session.Query<AgentSession>()
-            .Where(s => activeStatuses.Contains(s.Status))
+            .Where(s => s.Status == AgentSessionStatus.Pending 
+                     || s.Status == AgentSessionStatus.Starting 
+                     || s.Status == AgentSessionStatus.Active)
             .OrderByDescending(s => s.StartedAt)
             .ToListAsync();
     }
@@ -74,7 +76,9 @@ public class AgentSessionRepository : IAgentSessionRepository
         return await _session.Query<AgentSession>()
             .Where(s => s.ProjectId == projectId
                      && s.AgentRole == agentRole
-                     && activeStatuses.Contains(s.Status))
+                     && (s.Status == AgentSessionStatus.Pending 
+                      || s.Status == AgentSessionStatus.Starting 
+                      || s.Status == AgentSessionStatus.Active))
             .OrderByDescending(s => s.StartedAt)
             .FirstOrDefaultAsync();
     }

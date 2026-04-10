@@ -280,32 +280,32 @@ async function requestVoid(path: string, options?: RequestInit): Promise<void> {
   }
 }
 
-/** Start the Architect Agent — POST /api/agents/architect/{projectId}/start */
+/** Start the Architect Agent — POST /api/projects/{projectId}/architect/start */
 export async function startArchitect(projectId: string): Promise<AgentSession> {
   return request<AgentSession>(
-    `/api/agents/architect/${encodeURIComponent(projectId)}/start`,
-    { method: "POST" }
+    `/api/projects/${encodeURIComponent(projectId)}/architect/start`,
+    { method: "POST", body: "{}" }
   );
 }
 
-/** Stop the Architect Agent — POST /api/agents/architect/{projectId}/stop */
+/** Stop the Architect Agent — DELETE /api/projects/{projectId}/architect */
 export async function stopArchitect(projectId: string): Promise<void> {
   await requestVoid(
-    `/api/agents/architect/${encodeURIComponent(projectId)}/stop`,
-    { method: "POST" }
+    `/api/projects/${encodeURIComponent(projectId)}/architect`,
+    { method: "DELETE" }
   );
 }
 
-/** Get Architect Agent status — GET /api/agents/architect/{projectId}/status */
+/** Get Architect Agent status — GET /api/projects/{projectId}/architect/status */
 export async function getArchitectStatus(projectId: string): Promise<ArchitectStatus> {
   return request<ArchitectStatus>(
-    `/api/agents/architect/${encodeURIComponent(projectId)}/status`
+    `/api/projects/${encodeURIComponent(projectId)}/architect/status`
   );
 }
 
-/** List agent sessions for a project — GET /api/agents/sessions/{projectId} */
+/** List agent sessions for a project — GET /api/projects/{projectId}/agents */
 export async function getAgentSessions(projectId: string): Promise<AgentSession[]> {
   return request<AgentSession[]>(
-    `/api/agents/sessions/${encodeURIComponent(projectId)}`
+    `/api/projects/${encodeURIComponent(projectId)}/agents`
   );
 }

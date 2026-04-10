@@ -203,6 +203,7 @@ public class RabbitMqService : IRabbitMqService
 /// Source-generated JSON serialization context for <see cref="AgentMessage"/>.
 /// Avoids runtime reflection overhead for message serialization.
 /// </summary>
+[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(AgentMessage))]
 internal partial class AgentMessageJsonContext : JsonSerializerContext
 {

@@ -166,10 +166,16 @@ public class ChatController : ControllerBase
 
             var agentMessage = new AgentMessage
             {
-                Type = "chat.message",
+                Type = "chat.human_message",
                 AgentId = architectSession.Id.ToString(),
                 RoutingKey = $"architect.{projectId}",
-                Payload = message.Content,
+                Payload = System.Text.Json.JsonSerializer.SerializeToElement(new {
+                    projectId = projectId.ToString(),
+                    userId = Guid.Empty.ToString(),
+                    username = message.SenderName,
+                    content = message.Content,
+                    chatMessageId = message.Id.ToString()
+                }),
                 Timestamp = message.CreatedAt,
                 CorrelationId = message.Id.ToString()
             };
