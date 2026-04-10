@@ -12,6 +12,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Stewie.Api.Controllers;
+using Stewie.Application.Services;
+using Stewie.Application.Configuration;
+using Microsoft.Extensions.Options;
 using Stewie.Application.Interfaces;
 using Stewie.Domain.Entities;
 using Stewie.Domain.Enums;
@@ -60,9 +63,21 @@ public class ChatRelayTests
         _chatRepo.SaveAsync(Arg.Any<ChatMessage>())
             .Returns(ci => ci.Arg<ChatMessage>());
 
+        var lifecycleOptions = Options.Create(new RabbitMqOptions());
+        var lifecycle = new AgentLifecycleService(
+            _sessionRepo,
+            Substitute.For<IEventRepository>(),
+            _notifier,
+            _rabbitMq,
+            _unitOfWork,
+            Enumerable.Empty<IAgentRuntime>(),
+            lifecycleOptions,
+            NullLogger<AgentLifecycleService>.Instance);
+
         _controller = new ChatController(
             _chatRepo, _projectRepo, _notifier,
             _rabbitMq, _sessionRepo, _unitOfWork,
+            lifecycle,
             NullLogger<ChatController>.Instance);
 
         // Set up HttpContext with claims
@@ -111,9 +126,9 @@ public class ChatRelayTests
         Assert.Single(_rabbitMq.PublishedChats);
         var (routingKey, message) = _rabbitMq.PublishedChats[0];
         Assert.Equal($"architect.{_projectId}", routingKey);
-        Assert.Equal("chat.message", message.Type);
+        Assert.Equal("chat.human_message", message.Type);
         Assert.Equal(architectSession.Id.ToString(), message.AgentId);
-        Assert.Equal("Hello Architect!", message.Payload);
+        Assert.Equal("Hello Architect!", message.Payload.GetProperty("content").GetString());
     }
 
     // ========================================
@@ -135,9 +150,9 @@ public class ChatRelayTests
         var result = await _controller.SendMessage(
             _projectId, new SendChatMessageRequest { Content = "Hello into the void" });
 
-        // Assert — HTTP 201 still returned
+        // Assert — HTTP 409 returned
         var statusResult = Assert.IsType<ObjectResult>(result);
-        Assert.Equal(201, statusResult.StatusCode);
+        Assert.Equal(409, statusResult.StatusCode);
 
         // Assert — nothing published to RabbitMQ
         Assert.Empty(_rabbitMq.PublishedChats);
@@ -171,9 +186,21 @@ public class ChatRelayTests
         _sessionRepo.GetActiveByProjectAndRoleAsync(_projectId, "architect")
             .Returns(architectSession);
 
+        var lifecycleOptions = Options.Create(new RabbitMqOptions());
+        var lifecycle = new AgentLifecycleService(
+            _sessionRepo,
+            Substitute.For<IEventRepository>(),
+            _notifier,
+            throwingRabbitMq,
+            _unitOfWork,
+            Enumerable.Empty<IAgentRuntime>(),
+            lifecycleOptions,
+            NullLogger<AgentLifecycleService>.Instance);
+
         var controller = new ChatController(
             _chatRepo, _projectRepo, _notifier,
             throwingRabbitMq, _sessionRepo, _unitOfWork,
+            lifecycle,
             NullLogger<ChatController>.Instance);
 
         controller.ControllerContext = new ControllerContext

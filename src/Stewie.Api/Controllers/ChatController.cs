@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Stewie.Application.Interfaces;
 using Stewie.Domain.Entities;
 using Stewie.Domain.Messaging;
+using Stewie.Application.Services;
 
 namespace Stewie.Api.Controllers;
 
@@ -27,6 +28,7 @@ public class ChatController : ControllerBase
     private readonly IRabbitMqService _rabbitMq;
     private readonly IAgentSessionRepository _sessionRepo;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly AgentLifecycleService _lifecycle;
     private readonly ILogger<ChatController> _logger;
 
     /// <summary>Initializes the chat controller with required dependencies.</summary>
@@ -37,6 +39,7 @@ public class ChatController : ControllerBase
         IRabbitMqService rabbitMq,
         IAgentSessionRepository sessionRepo,
         IUnitOfWork unitOfWork,
+        AgentLifecycleService lifecycle,
         ILogger<ChatController> logger)
     {
         _chatRepo = chatRepo;
@@ -45,6 +48,7 @@ public class ChatController : ControllerBase
         _rabbitMq = rabbitMq;
         _sessionRepo = sessionRepo;
         _unitOfWork = unitOfWork;
+        _lifecycle = lifecycle;
         _logger = logger;
     }
 
@@ -107,6 +111,12 @@ public class ChatController : ControllerBase
         var project = await _projectRepo.GetByIdAsync(projectId);
         if (project is null)
             return NotFound(new { error = $"Project '{projectId}' not found." });
+
+        var architectSession = await _lifecycle.GetActiveArchitectAsync(projectId);
+        if (architectSession is null)
+        {
+            return StatusCode(409, new { error = "Architect is offline. Please start a new session." });
+        }
 
         // Extract sender from JWT claims
         var senderName = User.FindFirst("username")?.Value ?? "unknown";

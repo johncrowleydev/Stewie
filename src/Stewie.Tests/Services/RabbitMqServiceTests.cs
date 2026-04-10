@@ -30,7 +30,7 @@ public class RabbitMqServiceTests
             Type = "agent.started",
             AgentId = "agent-abc123",
             RoutingKey = "agent.abc123.started",
-            Payload = "{\"taskId\":\"550e8400-e29b-41d4-a716-446655440000\"}",
+            Payload = System.Text.Json.JsonDocument.Parse("{\"taskId\":\"550e8400-e29b-41d4-a716-446655440000\"}").RootElement,
             Timestamp = new DateTime(2026, 4, 10, 12, 0, 0, DateTimeKind.Utc),
             CorrelationId = "corr-001"
         };
@@ -44,7 +44,7 @@ public class RabbitMqServiceTests
         Assert.Equal(original.Type, deserialized.Type);
         Assert.Equal(original.AgentId, deserialized.AgentId);
         Assert.Equal(original.RoutingKey, deserialized.RoutingKey);
-        Assert.Equal(original.Payload, deserialized.Payload);
+        Assert.Equal(original.Payload.GetRawText(), deserialized.Payload.GetRawText());
         Assert.Equal(original.Timestamp, deserialized.Timestamp);
         Assert.Equal(original.CorrelationId, deserialized.CorrelationId);
     }
@@ -58,7 +58,7 @@ public class RabbitMqServiceTests
             Type = "agent.progress",
             AgentId = "agent-xyz",
             RoutingKey = "agent.xyz.progress",
-            Payload = "{}",
+            Payload = System.Text.Json.JsonDocument.Parse("{}").RootElement,
             CorrelationId = null
         };
 
@@ -81,7 +81,7 @@ public class RabbitMqServiceTests
         Assert.Equal(string.Empty, message.Type);
         Assert.Equal(string.Empty, message.AgentId);
         Assert.Equal(string.Empty, message.RoutingKey);
-        Assert.Equal(string.Empty, message.Payload);
+        Assert.Equal(System.Text.Json.JsonValueKind.Undefined, message.Payload.ValueKind);
         Assert.Null(message.CorrelationId);
         // Timestamp should be close to now (within 5 seconds)
         Assert.True((DateTime.UtcNow - message.Timestamp).TotalSeconds < 5);
@@ -96,7 +96,7 @@ public class RabbitMqServiceTests
             Type = "task.assign",
             AgentId = "dev-agent-001",
             RoutingKey = "dev-agent-001",
-            Payload = "{\"spec\":\"Build the login page\"}",
+            Payload = System.Text.Json.JsonDocument.Parse("{\"spec\":\"Build the login page\"}").RootElement,
             Timestamp = DateTime.UtcNow,
             CorrelationId = "job-42"
         };
@@ -109,7 +109,7 @@ public class RabbitMqServiceTests
         Assert.NotNull(deserialized);
         Assert.Equal(original.Type, deserialized.Type);
         Assert.Equal(original.AgentId, deserialized.AgentId);
-        Assert.Equal(original.Payload, deserialized.Payload);
+        Assert.Equal(original.Payload.GetRawText(), deserialized.Payload.GetRawText());
     }
 
     // ── RabbitMqSettings ───────────────────────────────────────────────
@@ -305,7 +305,7 @@ public class RabbitMqServiceTests
 
         // Act & Assert — null triggers ArgumentNullException (subclass of ArgumentException)
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            service.PublishCommandAsync(null!, new AgentMessage()));
+            service.PublishCommandAsync(null!, new AgentMessage(), TestContext.Current.CancellationToken));
 
         await service.DisposeAsync();
     }
@@ -320,7 +320,7 @@ public class RabbitMqServiceTests
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(() =>
-            service.PublishCommandAsync("", new AgentMessage()));
+            service.PublishCommandAsync("", new AgentMessage(), TestContext.Current.CancellationToken));
 
         await service.DisposeAsync();
     }
@@ -335,7 +335,7 @@ public class RabbitMqServiceTests
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            service.PublishCommandAsync("test-key", null!));
+            service.PublishCommandAsync("test-key", null!, TestContext.Current.CancellationToken));
 
         await service.DisposeAsync();
     }
@@ -350,7 +350,7 @@ public class RabbitMqServiceTests
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            service.PublishChatAsync("test-key", null!));
+            service.PublishChatAsync("test-key", null!, TestContext.Current.CancellationToken));
 
         await service.DisposeAsync();
     }
@@ -379,6 +379,6 @@ public class RabbitMqServiceTests
 
         // Act & Assert
         await Assert.ThrowsAsync<ObjectDisposedException>(() =>
-            service.PublishCommandAsync("key", new AgentMessage()));
+            service.PublishCommandAsync("key", new AgentMessage(), TestContext.Current.CancellationToken));
     }
 }

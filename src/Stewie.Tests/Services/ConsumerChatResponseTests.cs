@@ -78,10 +78,10 @@ public class ConsumerChatResponseTests
         var projectId = Guid.NewGuid();
         var message = new AgentMessage
         {
-            Type = "chat.response",
+            Type = "chat.architect_response",
             AgentId = Guid.NewGuid().ToString(),
             RoutingKey = $"architect.{projectId}",
-            Payload = "Hello Human, I'm the Architect!",
+            Payload = System.Text.Json.JsonSerializer.SerializeToElement("Hello Human, I'm the Architect!"),
             Timestamp = DateTime.UtcNow
         };
 
@@ -106,10 +106,10 @@ public class ConsumerChatResponseTests
         var projectId = Guid.NewGuid();
         var message = new AgentMessage
         {
-            Type = "chat.response",
+            Type = "chat.architect_response",
             AgentId = Guid.NewGuid().ToString(),
             RoutingKey = $"architect.{projectId}",
-            Payload = "SignalR test response",
+            Payload = System.Text.Json.JsonSerializer.SerializeToElement("SignalR test response"),
             Timestamp = DateTime.UtcNow
         };
 
@@ -135,10 +135,10 @@ public class ConsumerChatResponseTests
         // Arrange
         var message = new AgentMessage
         {
-            Type = "chat.response",
+            Type = "chat.architect_response",
             AgentId = Guid.NewGuid().ToString(),
             RoutingKey = $"architect.{Guid.NewGuid()}",
-            Payload = "Transaction test",
+            Payload = System.Text.Json.JsonSerializer.SerializeToElement("Transaction test"),
             Timestamp = DateTime.UtcNow
         };
 
@@ -160,10 +160,10 @@ public class ConsumerChatResponseTests
         var expectedProjectId = Guid.NewGuid();
         var message = new AgentMessage
         {
-            Type = "chat.response",
+            Type = "chat.architect_response",
             AgentId = Guid.NewGuid().ToString(),
             RoutingKey = $"architect.{expectedProjectId}",
-            Payload = "Routing key test",
+            Payload = System.Text.Json.JsonSerializer.SerializeToElement("Routing key test"),
             Timestamp = DateTime.UtcNow
         };
 
@@ -185,10 +185,10 @@ public class ConsumerChatResponseTests
         // Arrange
         var message = new AgentMessage
         {
-            Type = "chat.response",
+            Type = "chat.architect_response",
             AgentId = Guid.NewGuid().ToString(),
             RoutingKey = "unknown.routing.key",
-            Payload = "Fallback test",
+            Payload = System.Text.Json.JsonSerializer.SerializeToElement("Fallback test"),
             Timestamp = DateTime.UtcNow
         };
 
@@ -210,7 +210,7 @@ public class ConsumerChatResponseTests
     [Fact]
     public void MapMessageType_ChatResponse_ReturnsAgentChatResponse()
     {
-        var result = RabbitMqConsumerHostedService.MapMessageTypeToEventType("chat.response");
+        var result = RabbitMqConsumerHostedService.MapMessageTypeToEventType("chat.architect_response");
         Assert.Equal(EventType.AgentChatResponse, result);
     }
 
@@ -223,7 +223,7 @@ public class ConsumerChatResponseTests
     [InlineData("agent.completed", EventType.TaskCompleted)]
     [InlineData("agent.failed", EventType.TaskFailed)]
     [InlineData("agent.blocker", EventType.TaskStarted)]
-    [InlineData("chat.response", EventType.AgentChatResponse)]
+    [InlineData("chat.architect_response", EventType.AgentChatResponse)]
     [InlineData("unknown", EventType.TaskCreated)]
     public void MapMessageType_KnownTypes_MapCorrectly(string messageType, EventType expected)
     {
