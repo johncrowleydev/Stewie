@@ -62,12 +62,12 @@ Modern .NET tooling separates frontend and backend lifecycles using `.esproj` fi
 <Project Sdk="Microsoft.VisualStudio.JavaScript.Sdk/1.0.1738743">
   <PropertyGroup>
     <StartupCommand>npm run dev</StartupCommand>
-    <JavaScriptTestRoot>ClientApp\</JavaScriptTestRoot>
+    <JavaScriptTestRoot>.\</JavaScriptTestRoot>
     <JavaScriptTestFramework>Jest</JavaScriptTestFramework>
     <!-- Allows the build (or compile) script located on package.json to run on Build -->
     <ShouldRunBuildScript>false</ShouldRunBuildScript>
     <!-- Folder where production build objects will be placed -->
-    <BuildOutputFolder>$(MSBuildProjectDirectory)\ClientApp\dist</BuildOutputFolder>
+    <BuildOutputFolder>$(MSBuildProjectDirectory)\dist</BuildOutputFolder>
   </PropertyGroup>
   <ItemGroup>
     <Script Include="**" Exclude="*.esproj;**\node_modules\**" />
@@ -79,14 +79,13 @@ Modern .NET tooling separates frontend and backend lifecycles using `.esproj` fi
 
 ---
 
-#### T-153: Move Frontend Files Up One Level (Optional, but Recommended)
+#### T-153: Move Frontend Files Up One Level
 
 Currently, the React app lives in `src/Stewie.Web/ClientApp/`. 
 With `.esproj`, it's standard practice to put the `package.json` right next to the `.esproj` file.
 
-**Action:** Move all files from `src/Stewie.Web/ClientApp/*` up directly into `src/Stewie.Web/`.
+**Action:** Move all files and subdirectories from `src/Stewie.Web/ClientApp/*` up directly into `src/Stewie.Web/`.
 **Delete** the empty `ClientApp` directory.
-*(If you do this, adjust the `<BuildOutputFolder>` in the previous step to just `$(MSBuildProjectDirectory)\dist`)*.
 
 ---
 
