@@ -5,7 +5,7 @@ type: job
 status: ACTIVE
 owner: architect
 agents: [coder]
-tags: [project-management, sprint, architecture, health-check, phase-6]
+tags: [project-management, sprint, architecture, health-check, phase-5b]
 related: [BLU-001, CON-004, GOV-008]
 created: 2026-04-10
 updated: 2026-04-10

@@ -370,7 +370,7 @@ documents:
     title: "Job 020 — Self-Healing Architect Lifecycle"
     type: how-to
     status: ACTIVE
-    tags: [project-management, job, workflow, phase-6, architecture, health-check]
+    tags: [project-management, job, workflow, phase-5b, architecture, health-check]
     agents: [coder]
     summary: >
       Addresses systemic UI/Docker uncoupling by injecting live container state inspections 
