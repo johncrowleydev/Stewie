@@ -24,4 +24,7 @@ public class NullRealTimeNotifier : IRealTimeNotifier
 
     /// <inheritdoc/>
     public Task NotifyContainerOutputAsync(Guid jobId, Guid taskId, string line) => Task.CompletedTask;
+
+    /// <inheritdoc/>
+    public Task NotifyAgentStatusChangedAsync(Guid projectId, Guid sessionId, string status) => Task.CompletedTask;
 }

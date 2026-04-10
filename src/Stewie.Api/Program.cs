@@ -126,6 +126,7 @@ builder.Services.AddScoped<IUserCredentialRepository, UserCredentialRepository>(
 builder.Services.AddScoped<IGovernanceReportRepository, GovernanceReportRepository>();
 builder.Services.AddScoped<ITaskDependencyRepository, TaskDependencyRepository>();
 builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
+builder.Services.AddScoped<IAgentSessionRepository, AgentSessionRepository>();
 
 // Services
 builder.Services.AddSingleton<IWorkspaceService>(sp =>
@@ -138,6 +139,11 @@ builder.Services.AddScoped<GovernanceAnalyticsService>();
 builder.Services.AddScoped<ProjectConfigService>();
 builder.Services.AddSingleton<IRealTimeNotifier, SignalRNotifier>();
 builder.Services.AddSingleton<ContainerOutputBuffer>();
+
+// Agent lifecycle — JOB-017 T-165
+// IAgentRuntime implementations are registered by Dev B (e.g. StubAgentRuntime).
+// AgentLifecycleService resolves all registered runtimes via IEnumerable<IAgentRuntime>.
+builder.Services.AddScoped<AgentLifecycleService>();
 
 // Health checks — T-157
 // Base health check services always registered (required by MapHealthChecks).

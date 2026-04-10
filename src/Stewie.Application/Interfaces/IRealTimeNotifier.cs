@@ -22,4 +22,7 @@ public interface IRealTimeNotifier
 
     /// <summary>Pushes a container output line to the job group. (JOB-014)</summary>
     Task NotifyContainerOutputAsync(Guid jobId, Guid taskId, string line);
+
+    /// <summary>Pushes an agent session status change to the project group. (JOB-017)</summary>
+    Task NotifyAgentStatusChangedAsync(Guid projectId, Guid sessionId, string status);
 }
