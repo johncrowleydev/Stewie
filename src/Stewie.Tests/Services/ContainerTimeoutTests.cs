@@ -17,6 +17,7 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Stewie.Application.Interfaces;
 using Stewie.Application.Services;
+using System.Text.Json;
 using Stewie.Domain.Contracts;
 using Stewie.Domain.Entities;
 using Stewie.Domain.Enums;
@@ -39,6 +40,7 @@ public class ContainerTimeoutTests
     private readonly IProjectRepository _projectRepository;
     private readonly IUserCredentialRepository _credentialRepository;
     private readonly IWorkspaceService _workspaceService;
+    private readonly IArtifactWorkspaceStore _artifactStore;
     private readonly IContainerService _containerService;
     private readonly IGitPlatformService _gitHubService;
     private readonly IEncryptionService _encryptionService;
@@ -55,6 +57,7 @@ public class ContainerTimeoutTests
         _projectRepository = Substitute.For<IProjectRepository>();
         _credentialRepository = Substitute.For<IUserCredentialRepository>();
         _workspaceService = Substitute.For<IWorkspaceService>();
+        _artifactStore = Substitute.For<IArtifactWorkspaceStore>();
         _containerService = Substitute.For<IContainerService>();
         _gitHubService = Substitute.For<IGitPlatformService>();
         _encryptionService = Substitute.For<IEncryptionService>();
@@ -72,6 +75,7 @@ public class ContainerTimeoutTests
             _projectRepository,
             _credentialRepository,
             _workspaceService,
+            _artifactStore,
             _containerService,
             _gitHubService,
             _encryptionService,
@@ -107,7 +111,7 @@ public class ContainerTimeoutTests
         Assert.Contains("124", result.Summary);
 
         // No result reading should happen on non-zero exit
-        _workspaceService.DidNotReceive().ReadResult(Arg.Any<WorkTask>());
+        await _artifactStore.DidNotReceive().ReadTextArtifactAsync(Arg.Any<string>(), Arg.Any<string>());
 
         // No artifact should be created
         await _artifactRepository.DidNotReceive().SaveAsync(Arg.Any<Artifact>());
@@ -139,8 +143,8 @@ public class ContainerTimeoutTests
             NextAction = "review"
         };
 
-        _workspaceService.ReadResult(Arg.Any<WorkTask>())
-            .Returns(resultPacket);
+        _artifactStore.ReadTextArtifactAsync(Arg.Any<string>(), Arg.Any<string>())
+            .Returns(Task.FromResult(JsonSerializer.Serialize(resultPacket)));
 
         // Act
         var result = await _sut.ExecuteTestJobAsync();
@@ -151,7 +155,7 @@ public class ContainerTimeoutTests
         Assert.NotNull(result.ArtifactId);
 
         // Should have read the result
-        _workspaceService.Received(1).ReadResult(Arg.Any<WorkTask>());
+        await _artifactStore.Received(1).ReadTextArtifactAsync(Arg.Any<string>(), Arg.Any<string>());
     }
 
     /// <summary>

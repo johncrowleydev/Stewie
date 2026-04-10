@@ -27,6 +27,7 @@ public partial class JobOrchestrationService
     private readonly IProjectRepository _projectRepository;
     private readonly IUserCredentialRepository _credentialRepository;
     private readonly IWorkspaceService _workspaceService;
+    private readonly IArtifactWorkspaceStore _artifactStore;
     private readonly IContainerService _containerService;
     private readonly IGitPlatformService _gitPlatformService;
     private readonly IEncryptionService _encryptionService;
@@ -51,6 +52,7 @@ public partial class JobOrchestrationService
         IProjectRepository projectRepository,
         IUserCredentialRepository credentialRepository,
         IWorkspaceService workspaceService,
+        IArtifactWorkspaceStore artifactStore,
         IContainerService containerService,
         IGitPlatformService gitPlatformService,
         IEncryptionService encryptionService,
@@ -73,6 +75,7 @@ public partial class JobOrchestrationService
         _projectRepository = projectRepository;
         _credentialRepository = credentialRepository;
         _workspaceService = workspaceService;
+        _artifactStore = artifactStore;
         _containerService = containerService;
         _gitPlatformService = gitPlatformService;
         _encryptionService = encryptionService;
@@ -223,7 +226,9 @@ public partial class JobOrchestrationService
             Domain.Contracts.ResultPacket result;
             try
             {
-                result = _workspaceService.ReadResult(task);
+                var resultJson = await _artifactStore.ReadTextArtifactAsync(task.Id.ToString(), "output/result.json");
+                result = JsonSerializer.Deserialize<Domain.Contracts.ResultPacket>(resultJson)
+                    ?? throw new InvalidOperationException("Failed to deserialize result.json");
             }
             catch (FileNotFoundException)
             {
@@ -247,6 +252,7 @@ public partial class JobOrchestrationService
                     Summary = $"result.json deserialization failed (ResultInvalid): {ex.Message}"
                 };
             }
+
 
             _logger.LogInformation("Result: status={Status}, summary={Summary}",
                 result.Status, result.Summary);
@@ -632,7 +638,9 @@ public partial class JobOrchestrationService
             Domain.Contracts.ResultPacket result;
             try
             {
-                result = _workspaceService.ReadResult(task);
+                var resultJson = await _artifactStore.ReadTextArtifactAsync(task.Id.ToString(), "output/result.json");
+                result = JsonSerializer.Deserialize<Domain.Contracts.ResultPacket>(resultJson)
+                    ?? throw new InvalidOperationException("Failed to deserialize result.json");
             }
             catch (Exception ex)
             {
@@ -852,7 +860,9 @@ public partial class JobOrchestrationService
             }
 
             // 6. Read result
-            var result = _workspaceService.ReadResult(task);
+            var resultJson = await _artifactStore.ReadTextArtifactAsync(task.Id.ToString(), "output/result.json");
+            var result = JsonSerializer.Deserialize<Domain.Contracts.ResultPacket>(resultJson)
+                ?? throw new InvalidOperationException("Failed to deserialize result.json");
 
             // 7. Store artifact
             _unitOfWork.BeginTransaction();
@@ -1042,7 +1052,8 @@ public partial class JobOrchestrationService
             ForbiddenPaths = [],
             AcceptanceCriteria = []
         };
-        _workspaceService.WriteTaskJson(workspacePath, governanceTaskPacket);
+        var governancePacketJson = JsonSerializer.Serialize(governanceTaskPacket, new JsonSerializerOptions { WriteIndented = true });
+        await _artifactStore.WriteTextArtifactAsync(testerTask.Id.ToString(), "input/task.json", governancePacketJson);
 
         // 3. Transition tester task to Running
         testerTask.Status = WorkTaskStatus.Running;
@@ -1164,7 +1175,9 @@ public partial class JobOrchestrationService
     /// </summary>
     private async Task<GovernanceReport> IngestGovernanceReportAsync(WorkTask testerTask, string workspacePath)
     {
-        var reportPacket = _workspaceService.ReadGovernanceReport(workspacePath);
+        var reportJson = await _artifactStore.ReadTextArtifactAsync(testerTask.Id.ToString(), "output/governance-report.json");
+        var reportPacket = JsonSerializer.Deserialize<Domain.Contracts.GovernanceReportPacket>(reportJson)
+            ?? throw new InvalidOperationException("Failed to deserialize governance-report.json");
 
         var report = new GovernanceReport
         {
@@ -1271,7 +1284,8 @@ public partial class JobOrchestrationService
             ForbiddenPaths = [],
             AcceptanceCriteria = []
         };
-        _workspaceService.WriteTaskJson(workspacePath, retryPacket);
+        var retryPacketJson = JsonSerializer.Serialize(retryPacket, new JsonSerializerOptions { WriteIndented = true });
+        await _artifactStore.WriteTextArtifactAsync(retryTask.Id.ToString(), "input/task.json", retryPacketJson);
 
         await EmitEventAsync("Task", retryTask.Id, EventType.TaskCreated,
             new { taskId = retryTask.Id, jobId = job.Id, role = "developer",
@@ -1306,7 +1320,9 @@ public partial class JobOrchestrationService
             Domain.Contracts.ResultPacket result;
             try
             {
-                result = _workspaceService.ReadResult(retryTask);
+                var resultJson = await _artifactStore.ReadTextArtifactAsync(retryTask.Id.ToString(), "output/result.json");
+                result = JsonSerializer.Deserialize<Domain.Contracts.ResultPacket>(resultJson)
+                    ?? throw new InvalidOperationException("Failed to deserialize result.json");
             }
             catch (Exception ex)
             {

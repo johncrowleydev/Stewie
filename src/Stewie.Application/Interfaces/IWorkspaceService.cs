@@ -13,14 +13,14 @@ namespace Stewie.Application.Interfaces;
 /// </summary>
 public interface IWorkspaceService
 {
-    /// <summary>Prepares a workspace directory structure and writes task.json.</summary>
+    /// <summary>Prepares a workspace directory structure.</summary>
     /// <param name="task">The task entity.</param>
     /// <param name="job">The parent job entity.</param>
     /// <returns>The absolute path to the workspace directory.</returns>
     string PrepareWorkspace(WorkTask task, Job job);
 
     /// <summary>
-    /// Prepares a workspace and writes task.json with full fields for real jobs.
+    /// Prepares a workspace directory structure for a task.
     /// </summary>
     /// <param name="task">The task entity with Objective, Scope, etc.</param>
     /// <param name="job">The parent job entity.</param>
@@ -33,8 +33,7 @@ public interface IWorkspaceService
         string? branch, List<string>? script, List<string>? acceptanceCriteria,
         StewieProjectConfig? projectConfig = null);
 
-    /// <summary>Reads and deserializes result.json from the task's workspace output directory.</summary>
-    ResultPacket ReadResult(WorkTask task);
+
 
     /// <summary>Clones a git repository into the workspace's repo/ directory.</summary>
     Task CloneRepositoryAsync(string repoUrl, string workspacePath);
@@ -58,15 +57,7 @@ public interface IWorkspaceService
     /// <returns>The commit SHA string, or null if nothing to commit.</returns>
     Task<string?> CommitChangesAsync(string workspacePath, string message);
 
-    /// <summary>Reads and deserializes governance-report.json from the task's workspace output directory.</summary>
-    /// <param name="workspacePath">The workspace root directory.</param>
-    /// <returns>The deserialized governance report packet.</returns>
-    GovernanceReportPacket ReadGovernanceReport(string workspacePath);
 
-    /// <summary>Writes a task.json to the workspace input directory for a governance worker.</summary>
-    /// <param name="workspacePath">The workspace root directory.</param>
-    /// <param name="taskPacket">The task packet to serialize.</param>
-    void WriteTaskJson(string workspacePath, TaskPacket taskPacket);
 }
 
 /// <summary>Result of a git diff capture operation.</summary>

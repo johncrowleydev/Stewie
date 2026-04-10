@@ -152,6 +152,8 @@ builder.Services.AddScoped<IAgentSessionRepository, AgentSessionRepository>();
 // Services
 builder.Services.AddSingleton<IWorkspaceService>(sp =>
     new WorkspaceService(workspaceRoot, sp.GetRequiredService<ILogger<WorkspaceService>>()));
+builder.Services.AddScoped<IArtifactWorkspaceStore>(sp =>
+    new LocalDiskArtifactStore(workspaceRoot, sp.GetRequiredService<ILogger<LocalDiskArtifactStore>>()));
 builder.Services.AddSingleton<IContainerService>(sp =>
     new DockerContainerService(dockerImageName, taskTimeoutSeconds, sp.GetRequiredService<ILogger<DockerContainerService>>()));
 builder.Services.AddSingleton<IEncryptionService>(new AesEncryptionService(encryptionKey));
@@ -184,6 +186,7 @@ builder.Services.AddScoped<JobOrchestrationService>(sp =>
         sp.GetRequiredService<IProjectRepository>(),
         sp.GetRequiredService<IUserCredentialRepository>(),
         sp.GetRequiredService<IWorkspaceService>(),
+        sp.GetRequiredService<IArtifactWorkspaceStore>(),
         sp.GetRequiredService<IContainerService>(),
         sp.GetRequiredService<IGitPlatformService>(),
         sp.GetRequiredService<IEncryptionService>(),

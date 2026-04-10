@@ -43,24 +43,6 @@ public class WorkspaceService : IWorkspaceService
 
         _logger.LogInformation("Created workspace directories at {TaskDir}", taskDir);
 
-        var taskPacket = new TaskPacket
-        {
-            TaskId = task.Id,
-            JobId = job.Id,
-            Role = task.Role,
-            Objective = "Execute the first Stewie worker runtime contract",
-            Scope = "Read this task packet and produce a valid result packet",
-            AllowedPaths = [],
-            ForbiddenPaths = [],
-            AcceptanceCriteria =
-            [
-                "Worker reads task.json",
-                "Worker writes result.json",
-                "Result can be ingested by Stewie"
-            ]
-        };
-
-        WriteTaskJsonInternal(taskDir, taskPacket);
         return taskDir;
     }
 
@@ -80,42 +62,10 @@ public class WorkspaceService : IWorkspaceService
 
         _logger.LogInformation("Created workspace directories at {TaskDir}", taskDir);
 
-        var taskPacket = new TaskPacket
-        {
-            TaskId = task.Id,
-            JobId = job.Id,
-            Role = task.Role,
-            Objective = task.Objective ?? string.Empty,
-            Scope = task.Scope ?? string.Empty,
-            AllowedPaths = [],
-            ForbiddenPaths = [],
-            AcceptanceCriteria = acceptanceCriteria ?? [],
-            RepoUrl = repoUrl,
-            Branch = branch,
-            Script = script,
-            ProjectConfig = projectConfig
-        };
-
-        WriteTaskJsonInternal(taskDir, taskPacket);
         return taskDir;
     }
 
-    /// <inheritdoc/>
-    public ResultPacket ReadResult(WorkTask task)
-    {
-        var resultPath = Path.Combine(task.WorkspacePath, "output", "result.json");
 
-        if (!File.Exists(resultPath))
-        {
-            throw new FileNotFoundException($"result.json not found at {resultPath}");
-        }
-
-        var json = File.ReadAllText(resultPath);
-        _logger.LogInformation("Read result.json from {Path}", resultPath);
-
-        return JsonSerializer.Deserialize<ResultPacket>(json)
-            ?? throw new InvalidOperationException("Failed to deserialize result.json");
-    }
 
     /// <inheritdoc/>
     public async Task CloneRepositoryAsync(string repoUrl, string workspacePath)
@@ -249,38 +199,7 @@ public class WorkspaceService : IWorkspaceService
         return commitSha;
     }
 
-    /// <inheritdoc/>
-    public GovernanceReportPacket ReadGovernanceReport(string workspacePath)
-    {
-        var reportPath = Path.Combine(workspacePath, "output", "governance-report.json");
 
-        if (!File.Exists(reportPath))
-        {
-            throw new FileNotFoundException($"governance-report.json not found at {reportPath}");
-        }
-
-        var json = File.ReadAllText(reportPath);
-        _logger.LogInformation("Read governance-report.json from {Path}", reportPath);
-
-        return JsonSerializer.Deserialize<Domain.Contracts.GovernanceReportPacket>(json)
-            ?? throw new InvalidOperationException("Failed to deserialize governance-report.json");
-    }
-
-    /// <inheritdoc/>
-    public void WriteTaskJson(string workspacePath, TaskPacket taskPacket)
-    {
-        WriteTaskJsonInternal(workspacePath, taskPacket);
-    }
-
-    /// <summary>Writes task.json to the workspace input directory. Internal use.</summary>
-    private void WriteTaskJsonInternal(string taskDir, TaskPacket taskPacket)
-    {
-        var inputDir = Path.Combine(taskDir, "input");
-        var taskJsonPath = Path.Combine(inputDir, "task.json");
-        var json = JsonSerializer.Serialize(taskPacket, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(taskJsonPath, json);
-        _logger.LogInformation("Wrote task.json to {Path}", taskJsonPath);
-    }
 
     /// <summary>Runs a git command and returns the exit code.</summary>
     private async Task<int> RunGitCommandAsync(string arguments, string workingDirectory)

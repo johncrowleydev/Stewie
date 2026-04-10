@@ -3,6 +3,7 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Stewie.Application.Interfaces;
 using Stewie.Application.Services;
+using System.Text.Json;
 using Stewie.Domain.Contracts;
 using Stewie.Domain.Entities;
 using Stewie.Domain.Enums;
@@ -30,6 +31,7 @@ public class JobOrchestrationServiceTests
     private readonly IProjectRepository _projectRepository;
     private readonly IUserCredentialRepository _credentialRepository;
     private readonly IWorkspaceService _workspaceService;
+    private readonly IArtifactWorkspaceStore _artifactStore;
     private readonly IContainerService _containerService;
     private readonly IGitPlatformService _gitPlatformService;
     private readonly IEncryptionService _encryptionService;
@@ -48,6 +50,7 @@ public class JobOrchestrationServiceTests
         _projectRepository = Substitute.For<IProjectRepository>();
         _credentialRepository = Substitute.For<IUserCredentialRepository>();
         _workspaceService = Substitute.For<IWorkspaceService>();
+        _artifactStore = Substitute.For<IArtifactWorkspaceStore>();
         _containerService = Substitute.For<IContainerService>();
         _gitPlatformService = Substitute.For<IGitPlatformService>();
         _encryptionService = Substitute.For<IEncryptionService>();
@@ -64,6 +67,7 @@ public class JobOrchestrationServiceTests
             _projectRepository,
             _credentialRepository,
             _workspaceService,
+            _artifactStore,
             _containerService,
             _gitPlatformService,
             _encryptionService,
@@ -98,8 +102,8 @@ public class JobOrchestrationServiceTests
             NextAction = "review"
         };
 
-        _workspaceService.ReadResult(Arg.Any<WorkTask>())
-            .Returns(resultPacket);
+        _artifactStore.ReadTextArtifactAsync(Arg.Any<string>(), Arg.Any<string>())
+            .Returns(Task.FromResult(JsonSerializer.Serialize(resultPacket)));
 
         // Act
         var result = await _sut.ExecuteTestJobAsync();
@@ -138,7 +142,7 @@ public class JobOrchestrationServiceTests
         Assert.Null(result.ArtifactId);
 
         // Verify ReadResult was never called (short-circuited on exit code)
-        _workspaceService.DidNotReceive().ReadResult(Arg.Any<WorkTask>());
+        await _artifactStore.DidNotReceive().ReadTextArtifactAsync(Arg.Any<string>(), Arg.Any<string>());
 
         // Verify no artifact was created
         await _artifactRepository.DidNotReceive().SaveAsync(Arg.Any<Artifact>());
@@ -154,7 +158,7 @@ public class JobOrchestrationServiceTests
         _containerService.LaunchWorkerAsync(Arg.Any<WorkTask>())
             .Returns(0);
 
-        _workspaceService.ReadResult(Arg.Any<WorkTask>())
+        _artifactStore.ReadTextArtifactAsync(Arg.Any<string>(), Arg.Any<string>())
             .Throws(new FileNotFoundException("result.json not found at /tmp/workspaces/test-task/output/result.json"));
 
         // Act
