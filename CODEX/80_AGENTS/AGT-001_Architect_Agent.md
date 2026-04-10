@@ -75,7 +75,8 @@ This project uses CODEX as its Project Management Operating System. Read `10_GOV
 3. Break them into concrete tasks (specific, testable, scoped)
 4. Create `JOB-NNN.md` using the sprint template
 5. Assign tasks to Developer Agent(s) — point them at the relevant `BLU-` and `CON-` docs
-6. Notify Developer Agent(s) to start
+6. **CRITICAL:** When generating the sprint handoff prompt for the Developer Agent, you **MUST ALWAYS** explicitly command them to pull the latest from `main` before branching. E.g. `git checkout main && git pull origin main`. NO EXCEPTIONS.
+7. Notify Developer Agent(s) to start
 
 ### 4.2 Auditing Code Output
 1. Developer Agent completes a task and commits

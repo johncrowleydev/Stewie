@@ -71,12 +71,14 @@ This project uses CODEX as its Project Management Operating System. Read `10_GOV
 ## 4. Your Primary Workflows
 
 ### 4.1 Starting Your Sprint
-1. Read `10_GOVERNANCE/GOV-007` to understand the PM system (if new session)
-2. Read your assigned `JOB-NNN.md` fully
-3. Read all referenced `BLU-` and `CON-` documents
-4. Ask the Architect Agent to clarify anything ambiguous **before** starting, not after
-5. Execute tasks in order of priority listed in the sprint doc
-6. Commit code with references to the sprint ID: `feat(JOB-NNN): description`
+1. **SYNC YOUR WORKSPACE FIRST:** You MUST ALWAYS run `git checkout main && git pull origin main` to ensure your local history is completely aligned with the remote before starting any work. **DO NOT SKIP THIS**.
+2. Read `10_GOVERNANCE/GOV-007` to understand the PM system (if new session)
+3. Read your assigned `JOB-NNN.md` fully
+4. Read all referenced `BLU-` and `CON-` documents
+5. Ask the Architect Agent to clarify anything ambiguous **before** starting, not after
+6. Create your working branch (e.g., `git checkout -b feature/JOB-NNN-description`)
+7. Execute tasks in order of priority listed in the sprint doc
+8. Commit code with references to the sprint ID: `feat(JOB-NNN): description`
 
 ### 4.2 Finding a Contract Problem
 You are implementing a feature and the contract (`CON-`) is wrong, incomplete, or contradicts the blueprint:
