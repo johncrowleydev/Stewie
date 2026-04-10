@@ -120,6 +120,7 @@ builder.Services.AddScoped<IInviteCodeRepository, InviteCodeRepository>();
 builder.Services.AddScoped<IUserCredentialRepository, UserCredentialRepository>();
 builder.Services.AddScoped<IGovernanceReportRepository, GovernanceReportRepository>();
 builder.Services.AddScoped<ITaskDependencyRepository, TaskDependencyRepository>();
+builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
 
 // Services
 builder.Services.AddSingleton<IWorkspaceService>(sp =>

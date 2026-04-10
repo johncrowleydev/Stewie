@@ -1,0 +1,144 @@
+/// <summary>
+/// Chat API controller — project-scoped messaging for Human↔Architect communication.
+/// REF: JOB-013 T-133, CON-002 v2.0.0
+/// </summary>
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Stewie.Application.Interfaces;
+using Stewie.Domain.Entities;
+
+namespace Stewie.Api.Controllers;
+
+/// <summary>
+/// Exposes REST endpoints for project chat: retrieving message history
+/// and sending new messages with real-time SignalR push.
+/// </summary>
+[ApiController]
+[Route("api/projects/{projectId}/chat")]
+[Authorize]
+public class ChatController : ControllerBase
+{
+    private readonly IChatMessageRepository _chatRepo;
+    private readonly IProjectRepository _projectRepo;
+    private readonly IRealTimeNotifier _notifier;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<ChatController> _logger;
+
+    /// <summary>Initializes the chat controller with required dependencies.</summary>
+    public ChatController(
+        IChatMessageRepository chatRepo,
+        IProjectRepository projectRepo,
+        IRealTimeNotifier notifier,
+        IUnitOfWork unitOfWork,
+        ILogger<ChatController> logger)
+    {
+        _chatRepo = chatRepo;
+        _projectRepo = projectRepo;
+        _notifier = notifier;
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
+
+    /// <summary>Get chat history for a project (paginated, oldest-first).</summary>
+    /// <param name="projectId">The project to retrieve messages for.</param>
+    /// <param name="limit">Max messages to return (default 100).</param>
+    /// <param name="offset">Number of messages to skip (default 0).</param>
+    /// <returns>Paginated message list with total count.</returns>
+    [HttpGet]
+    public async Task<IActionResult> GetMessages(
+        Guid projectId,
+        [FromQuery] int limit = 100,
+        [FromQuery] int offset = 0)
+    {
+        // Clamp limit to prevent abuse
+        limit = Math.Clamp(limit, 1, 500);
+        offset = Math.Max(offset, 0);
+
+        var project = await _projectRepo.GetByIdAsync(projectId);
+        if (project is null)
+            return NotFound(new { error = $"Project '{projectId}' not found." });
+
+        var messages = await _chatRepo.GetByProjectIdAsync(projectId, limit, offset);
+        var total = await _chatRepo.GetCountByProjectIdAsync(projectId);
+
+        return Ok(new
+        {
+            messages = messages.Select(m => new
+            {
+                id = m.Id,
+                projectId = m.ProjectId,
+                senderRole = m.SenderRole,
+                senderName = m.SenderName,
+                content = m.Content,
+                createdAt = m.CreatedAt.ToString("O")
+            }),
+            total,
+            limit,
+            offset
+        });
+    }
+
+    /// <summary>Send a new chat message to a project.</summary>
+    /// <param name="projectId">The project to send the message to.</param>
+    /// <param name="request">Message content.</param>
+    /// <returns>201 Created with the persisted message.</returns>
+    [HttpPost]
+    public async Task<IActionResult> SendMessage(
+        Guid projectId,
+        [FromBody] SendChatMessageRequest request)
+    {
+        // Validate content
+        if (request is null || string.IsNullOrWhiteSpace(request.Content))
+            return BadRequest(new { error = "Message content is required." });
+
+        if (request.Content.Length > 10000)
+            return BadRequest(new { error = "Message content must not exceed 10000 characters." });
+
+        // Validate project exists
+        var project = await _projectRepo.GetByIdAsync(projectId);
+        if (project is null)
+            return NotFound(new { error = $"Project '{projectId}' not found." });
+
+        // Extract sender from JWT claims
+        var senderName = User.FindFirst("username")?.Value ?? "unknown";
+
+        var message = new ChatMessage
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = projectId,
+            SenderRole = "Human",
+            SenderName = senderName,
+            Content = request.Content.Trim(),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _unitOfWork.BeginTransaction();
+        await _chatRepo.SaveAsync(message);
+        await _unitOfWork.CommitAsync();
+
+        _logger.LogInformation("Chat message {MessageId} sent to project {ProjectId} by {Sender}",
+            message.Id, projectId, senderName);
+
+        // Push real-time notification — fire-and-forget safe (notifier swallows exceptions)
+        await _notifier.NotifyChatMessageAsync(
+            projectId, message.Id, message.SenderRole,
+            message.SenderName, message.Content, message.CreatedAt);
+
+        return StatusCode(201, new
+        {
+            id = message.Id,
+            projectId = message.ProjectId,
+            senderRole = message.SenderRole,
+            senderName = message.SenderName,
+            content = message.Content,
+            createdAt = message.CreatedAt.ToString("O")
+        });
+    }
+}
+
+/// <summary>Request body for sending a chat message.</summary>
+public class SendChatMessageRequest
+{
+    /// <summary>Message text content. Required. Max 10000 characters.</summary>
+    public string Content { get; set; } = string.Empty;
+}
