@@ -50,5 +50,8 @@ public enum EventType
     AgentStarted = 12,
 
     /// <summary>An agent container session has been terminated. (JOB-017)</summary>
-    AgentTerminated = 13
+    AgentTerminated = 13,
+
+    /// <summary>An Architect agent sent a chat response to be persisted. (JOB-018)</summary>
+    AgentChatResponse = 14
 }

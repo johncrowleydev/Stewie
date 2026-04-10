@@ -1,17 +1,20 @@
 /// <summary>
 /// Chat API controller — project-scoped messaging for Human↔Architect communication.
-/// REF: JOB-013 T-133, CON-002 v2.0.0
+/// REF: JOB-013 T-133, JOB-018 T-170, CON-002 v2.0.0
 /// </summary>
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stewie.Application.Interfaces;
 using Stewie.Domain.Entities;
+using Stewie.Domain.Messaging;
 
 namespace Stewie.Api.Controllers;
 
 /// <summary>
 /// Exposes REST endpoints for project chat: retrieving message history
 /// and sending new messages with real-time SignalR push.
+/// When the project has an active Architect agent, Human messages are also
+/// relayed to the Architect's RabbitMQ queue (best-effort — failures logged, never fail the HTTP request).
 /// </summary>
 [ApiController]
 [Route("api/projects/{projectId}/chat")]
@@ -21,6 +24,8 @@ public class ChatController : ControllerBase
     private readonly IChatMessageRepository _chatRepo;
     private readonly IProjectRepository _projectRepo;
     private readonly IRealTimeNotifier _notifier;
+    private readonly IRabbitMqService _rabbitMq;
+    private readonly IAgentSessionRepository _sessionRepo;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<ChatController> _logger;
 
@@ -29,12 +34,16 @@ public class ChatController : ControllerBase
         IChatMessageRepository chatRepo,
         IProjectRepository projectRepo,
         IRealTimeNotifier notifier,
+        IRabbitMqService rabbitMq,
+        IAgentSessionRepository sessionRepo,
         IUnitOfWork unitOfWork,
         ILogger<ChatController> logger)
     {
         _chatRepo = chatRepo;
         _projectRepo = projectRepo;
         _notifier = notifier;
+        _rabbitMq = rabbitMq;
+        _sessionRepo = sessionRepo;
         _unitOfWork = unitOfWork;
         _logger = logger;
     }
@@ -124,6 +133,11 @@ public class ChatController : ControllerBase
             projectId, message.Id, message.SenderRole,
             message.SenderName, message.Content, message.CreatedAt);
 
+        // Best-effort relay to Architect Agent via RabbitMQ (T-170)
+        // If there's no active Architect session, this is a no-op.
+        // If RabbitMQ publish fails, log at Warning and continue — the HTTP request never fails.
+        await RelayChatToArchitectAsync(projectId, message);
+
         return StatusCode(201, new
         {
             id = message.Id,
@@ -133,6 +147,45 @@ public class ChatController : ControllerBase
             content = message.Content,
             createdAt = message.CreatedAt.ToString("O")
         });
+    }
+
+    /// <summary>
+    /// Relays a Human chat message to the active Architect agent via RabbitMQ.
+    /// This is best-effort: RabbitMQ failures are logged and swallowed.
+    /// </summary>
+    internal async Task RelayChatToArchitectAsync(Guid projectId, ChatMessage message)
+    {
+        try
+        {
+            var architectSession = await _sessionRepo.GetActiveByProjectAndRoleAsync(projectId, "architect");
+            if (architectSession is null)
+            {
+                _logger.LogDebug("No active Architect session for project {ProjectId} — skipping chat relay", projectId);
+                return;
+            }
+
+            var agentMessage = new AgentMessage
+            {
+                Type = "chat.message",
+                AgentId = architectSession.Id.ToString(),
+                RoutingKey = $"architect.{projectId}",
+                Payload = message.Content,
+                Timestamp = message.CreatedAt,
+                CorrelationId = message.Id.ToString()
+            };
+
+            await _rabbitMq.PublishChatAsync($"architect.{projectId}", agentMessage);
+
+            _logger.LogInformation(
+                "Chat message {MessageId} relayed to Architect session {SessionId} via RabbitMQ",
+                message.Id, architectSession.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "Failed to relay chat message {MessageId} to Architect for project {ProjectId} — best-effort, continuing",
+                message.Id, projectId);
+        }
     }
 }
 

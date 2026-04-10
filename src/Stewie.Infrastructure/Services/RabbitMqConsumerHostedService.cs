@@ -1,7 +1,9 @@
 /// <summary>
 /// Background service that consumes agent events from the stewie.events topic exchange.
 /// Deserializes AgentMessage DTOs, persists Event entities, and pushes real-time notifications.
-/// REF: JOB-016 T-160, CON-004 §5
+/// Also handles chat.response events from Architect agents — persisting them as ChatMessage
+/// entities and broadcasting via SignalR.
+/// REF: JOB-016 T-160, JOB-018 T-171, CON-004 §5
 /// </summary>
 using System.Text;
 using System.Text.Json;
@@ -165,6 +167,16 @@ public class RabbitMqConsumerHostedService : BackgroundService
                 "Processing agent event: type={Type}, agentId={AgentId}, routingKey={RoutingKey}",
                 message.Type, message.AgentId, ea.RoutingKey);
 
+            // Route chat.response messages to dedicated handler (T-171)
+            if (message.Type == "chat.response")
+            {
+                await HandleChatResponseAsync(message);
+
+                if (_channel is not null)
+                    await _channel.BasicAckAsync(ea.DeliveryTag, multiple: false, ct);
+                return;
+            }
+
             // Persist as audit trail Event using a scoped DI container
             await using var scope = _scopeFactory.CreateAsyncScope();
             var eventRepository = scope.ServiceProvider.GetRequiredService<IEventRepository>();
@@ -232,8 +244,55 @@ public class RabbitMqConsumerHostedService : BackgroundService
             "agent.completed" => EventType.TaskCompleted,
             "agent.failed" => EventType.TaskFailed,
             "agent.blocker" => EventType.TaskStarted,
+            "chat.response" => EventType.AgentChatResponse,
             _ => EventType.TaskCreated
         };
+    }
+
+    /// <summary>
+    /// Handles a chat.response event from an Architect agent.
+    /// Creates a ChatMessage entity with SenderRole="Architect", persists it,
+    /// and pushes the message to connected clients via SignalR.
+    /// REF: JOB-018 T-171
+    /// </summary>
+    internal async Task HandleChatResponseAsync(AgentMessage message)
+    {
+        await using var scope = _scopeFactory.CreateAsyncScope();
+        var chatRepo = scope.ServiceProvider.GetRequiredService<IChatMessageRepository>();
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var notifier = scope.ServiceProvider.GetRequiredService<IRealTimeNotifier>();
+
+        // Extract projectId from the routing key pattern "architect.{projectId}"
+        // or from the AgentId field (which maps to the session's project).
+        // Fall back to parsing from the message if needed.
+        Guid projectId = Guid.Empty;
+        if (message.RoutingKey.StartsWith("architect."))
+        {
+            var projectIdStr = message.RoutingKey["architect.".Length..];
+            Guid.TryParse(projectIdStr, out projectId);
+        }
+
+        var chatMessage = new ChatMessage
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = projectId,
+            SenderRole = "Architect",
+            SenderName = "Architect",
+            Content = message.Payload,
+            CreatedAt = message.Timestamp
+        };
+
+        unitOfWork.BeginTransaction();
+        await chatRepo.SaveAsync(chatMessage);
+        await unitOfWork.CommitAsync();
+
+        await notifier.NotifyChatMessageAsync(
+            projectId, chatMessage.Id, chatMessage.SenderRole,
+            chatMessage.SenderName, chatMessage.Content, chatMessage.CreatedAt);
+
+        _logger.LogInformation(
+            "Architect chat response persisted as ChatMessage {MessageId} for project {ProjectId}",
+            chatMessage.Id, projectId);
     }
 
     /// <summary>Safely disposes the consumer channel.</summary>
