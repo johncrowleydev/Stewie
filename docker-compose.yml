@@ -10,5 +10,26 @@ services:
     volumes:
       - stewie-sqldata:/var/opt/mssql
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: stewie-rabbitmq
+    hostname: stewie-rabbit
+    environment:
+      RABBITMQ_DEFAULT_USER: "stewie"
+      RABBITMQ_DEFAULT_PASS: "Stewie_Dev_R@bbit1"
+      RABBITMQ_DEFAULT_VHOST: "stewie"
+    ports:
+      - "5672:5672"     # AMQP
+      - "15672:15672"   # Management UI
+    volumes:
+      - stewie-rabbitdata:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
 volumes:
   stewie-sqldata:
+  stewie-rabbitdata:

@@ -21,6 +21,7 @@
     <PackageReference Include="FluentMigrator.Runner.SqlServer" Version="6.2.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0-preview.3.25171.5" />
     <PackageReference Include="Octokit" Version="14.0.0" />
+    <PackageReference Include="RabbitMQ.Client" Version="7.2.1" />
   </ItemGroup>
 
 </Project>
