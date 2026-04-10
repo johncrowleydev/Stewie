@@ -226,3 +226,22 @@ export interface ContainerOutputResponse {
   lines: string[];
   lineCount: number;
 }
+
+/** Agent session entity — CON-002 v2.2.0 (JOB-017/JOB-018) */
+export interface AgentSession {
+  id: string;
+  projectId: string;
+  taskId: string | null;
+  containerId: string;
+  runtimeName: string;
+  role: string;
+  status: string;
+  startedAt: string;
+  stoppedAt: string | null;
+}
+
+/** Architect agent status response — CON-002 v2.2.0 (JOB-018) */
+export interface ArchitectStatus {
+  active: boolean;
+  session: AgentSession | null;
+}

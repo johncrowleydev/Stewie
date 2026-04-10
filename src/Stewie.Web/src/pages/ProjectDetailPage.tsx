@@ -1,25 +1,28 @@
 /**
- * ProjectDetailPage — Project overview with embedded chat panel.
+ * ProjectDetailPage — Project overview with Architect controls and chat panel.
  *
- * Displays project metadata (name, repo, provider) and an inline ChatPanel
- * for the Human↔Architect conversation. This is the primary project interaction page.
+ * Displays project metadata (name, repo, provider), the Architect Agent
+ * lifecycle controls, and an inline ChatPanel for the Human↔Architect
+ * conversation. This is the primary project interaction page.
  *
  * Route: /projects/:id
  *
- * REF: JOB-013 T-138
+ * REF: JOB-013 T-138, JOB-018 T-178
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchProject } from "../api/client";
+import { ArchitectControls } from "../components/ArchitectControls";
 import { ChatPanel } from "../components/ChatPanel";
 import type { Project } from "../types";
 
-/** ProjectDetailPage — project info + integrated chat */
+/** ProjectDetailPage — project info + architect controls + chat */
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [architectActive, setArchitectActive] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -39,6 +42,11 @@ export function ProjectDetailPage() {
     void loadProject();
   }, [id]);
 
+  /** Called by ArchitectControls when status changes */
+  const handleArchitectStatusChange = useCallback((active: boolean) => {
+    setArchitectActive(active);
+  }, []);
+
   if (loading) {
     return (
       <div id="project-detail-page">
@@ -46,6 +54,7 @@ export function ProjectDetailPage() {
           <Link to="/projects" className="btn btn-ghost">← Projects</Link>
         </div>
         <div className="skeleton skeleton-card" style={{ height: 80 }} />
+        <div className="skeleton skeleton-card" style={{ height: 120, marginTop: 16 }} />
         <div className="skeleton skeleton-card" style={{ height: 400, marginTop: 16 }} />
       </div>
     );
@@ -113,8 +122,14 @@ export function ProjectDetailPage() {
         </div>
       </div>
 
+      {/* Architect controls */}
+      <ArchitectControls
+        projectId={project.id}
+        onStatusChange={handleArchitectStatusChange}
+      />
+
       {/* Chat panel */}
-      <ChatPanel projectId={project.id} />
+      <ChatPanel projectId={project.id} architectActive={architectActive} />
     </div>
   );
 }

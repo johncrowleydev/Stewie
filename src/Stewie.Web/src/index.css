@@ -3038,3 +3038,256 @@ textarea.form-input {
     max-width: 92%;
   }
 }
+
+
+/* ===================================================================
+   Architect Controls (T-174, T-177)
+   =================================================================== */
+
+.architect-controls {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  transition: border-color var(--transition-fast);
+}
+
+.architect-controls:hover {
+  border-color: var(--color-border-hover);
+}
+
+/* Header */
+.architect-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.architect-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.architect-icon {
+  font-size: 1.25rem;
+}
+
+.architect-label {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Status badge */
+.architect-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.architect-status-badge--online {
+  background: rgba(111, 172, 80, 0.15);
+  color: var(--color-completed);
+}
+
+.architect-status-badge--offline {
+  background: rgba(139, 141, 147, 0.12);
+  color: var(--color-pending);
+}
+
+.architect-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.architect-status-badge--online .architect-status-dot {
+  animation: architect-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes architect-pulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(111, 172, 80, 0.4);
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow: 0 0 0 4px rgba(111, 172, 80, 0);
+  }
+}
+
+/* Error */
+.architect-error {
+  font-size: var(--font-size-sm);
+  color: var(--color-failed);
+  background: rgba(229, 72, 77, 0.08);
+  border: 1px solid rgba(229, 72, 77, 0.2);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+/* Actions */
+.architect-actions {
+  margin-bottom: var(--space-md);
+}
+
+.architect-start-btn {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  padding: var(--space-sm) var(--space-lg);
+  font-weight: 600;
+}
+
+.architect-start-btn:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.architect-start-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.architect-stop-btn {
+  background: rgba(229, 72, 77, 0.12);
+  color: var(--color-failed);
+  border: 1px solid rgba(229, 72, 77, 0.25);
+  padding: var(--space-sm) var(--space-lg);
+  font-weight: 600;
+}
+
+.architect-stop-btn:hover:not(:disabled) {
+  background: rgba(229, 72, 77, 0.2);
+  border-color: rgba(229, 72, 77, 0.4);
+}
+
+.architect-stop-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Stop confirmation */
+.architect-confirm-stop {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.architect-confirm-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-right: var(--space-xs);
+}
+
+/* Spinner */
+.architect-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: architect-spin 0.6s linear infinite;
+}
+
+@keyframes architect-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Metadata */
+.architect-meta {
+  display: flex;
+  gap: var(--space-xl);
+  flex-wrap: wrap;
+}
+
+.architect-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.architect-meta-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.architect-meta-value {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+.architect-meta-value.mono {
+  font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+
+/* ===================================================================
+   Chat Panel — Architect Integration (T-176)
+   =================================================================== */
+
+/* Green dot next to chat title when architect is online */
+.chat-architect-indicator {
+  display: inline-flex;
+  align-items: center;
+  margin-left: var(--space-sm);
+}
+
+.chat-architect-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-completed);
+  animation: architect-pulse 1.5s ease-in-out infinite;
+}
+
+/* Disabled input state */
+.chat-input--disabled {
+  opacity: 0.6;
+}
+
+.chat-input--disabled .chat-textarea {
+  cursor: not-allowed;
+  background: var(--color-surface-elevated);
+}
+
+.chat-offline-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: var(--space-xs) 0;
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .architect-controls {
+    padding: var(--space-md);
+  }
+
+  .architect-meta {
+    gap: var(--space-md);
+  }
+
+  .architect-confirm-stop {
+    flex-wrap: wrap;
+  }
+}
