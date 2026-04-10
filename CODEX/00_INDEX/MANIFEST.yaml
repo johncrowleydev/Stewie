@@ -305,6 +305,18 @@ documents:
       line-by-line via callback, in-memory ContainerOutputBuffer (ring buffer),
       SignalR push to job subscribers, terminal-style ContainerOutputPanel with
       scroll lock, stderr highlighting, and backlog REST endpoint.
+
+  - id: JOB-015
+    path: 05_PROJECT/JOB-015_ESProj_Migration.md
+    title: "Job 015 — Migrate Stewie.Web from csproj to esproj"
+    type: how-to
+    status: OPEN
+    tags: [project-management, job, workflow, phase-5a, tooling, infrastructure]
+    agents: [coder]
+    summary: >
+      Modernize the frontend project file by converting Stewie.Web.csproj
+      (legacy SpaProxy middleware) into a native Stewie.Web.esproj
+      (JavaScript Project System). Includes flattening the ClientApp folder structure.
   # ── 10_GOVERNANCE ───────────────────────────────────────────────────────────
   - id: GOV-001
     path: 10_GOVERNANCE/GOV-001_DocumentationStandard.md
