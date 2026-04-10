@@ -34,6 +34,7 @@ public class JobOrchestrationServiceTests
     private readonly IEncryptionService _encryptionService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IGovernanceReportRepository _governanceReportRepository;
+    private readonly ITaskDependencyRepository _taskDependencyRepository;
     private readonly JobOrchestrationService _sut;
 
     public JobOrchestrationServiceTests()
@@ -51,6 +52,7 @@ public class JobOrchestrationServiceTests
         _encryptionService = Substitute.For<IEncryptionService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _governanceReportRepository = Substitute.For<IGovernanceReportRepository>();
+        _taskDependencyRepository = Substitute.For<ITaskDependencyRepository>();
 
         _sut = new JobOrchestrationService(
             _jobRepository,
@@ -67,6 +69,7 @@ public class JobOrchestrationServiceTests
             _unitOfWork,
             NullLogger<JobOrchestrationService>.Instance,
             _governanceReportRepository,
+            _taskDependencyRepository,
             "stewie-script-worker");
     }
 

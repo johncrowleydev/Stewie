@@ -8,8 +8,8 @@ agents: [all]
 tags: [standards, specification, project-management, governance]
 related: [BLU-001, CON-002, GOV-004]
 created: 2026-04-09
-updated: 2026-04-09
-version: 1.4.0
+updated: 2026-04-10
+version: 1.5.0
 ---
 
 > **BLUF:** This contract defines the binding interface between Stewie (orchestrator) and worker containers. All communication flows through two JSON files: `task.json` (input) and `result.json` (output). Workers MUST conform to this contract. No deviation without Human approval.
@@ -48,7 +48,7 @@ version: 1.4.0
 
 | Field | Value |
 |:------|:------|
-| Contract version | `1.4.0` |
+| Contract version | `1.5.0` |
 | Stability | `EXPERIMENTAL` |
 | Breaking change policy | MAJOR version bump required for any field removal or type change |
 | Backward compatibility | Workers must handle unknown fields gracefully (ignore, don't fail) |
@@ -74,6 +74,28 @@ Workers receive three mounted directories:
 | Input | `/workspace/input/` | `workspaces/{taskId}/input/` | Read-only |
 | Output | `/workspace/output/` | `workspaces/{taskId}/output/` | Read-write |
 | Repo | `/workspace/repo/` | `workspaces/{taskId}/repo/` | Read-only |
+
+### 3.1 Multi-Task Workspace Isolation (v1.5.0)
+
+For multi-task jobs, each task gets its own isolated workspace keyed by `taskId`. The `PrepareWorkspaceForRun` method creates a per-task directory under the shared workspace root. Parallel tasks do NOT share filesystem state — each independently clones the repository.
+
+```
+workspaces/
+├── {taskId-A}/        # Task A workspace
+│   ├── input/
+│   ├── output/
+│   └── repo/          # Independent clone
+├── {taskId-B}/        # Task B workspace (parallel)
+│   ├── input/
+│   ├── output/
+│   └── repo/          # Independent clone
+└── {taskId-C}/        # Task C workspace
+    ├── input/
+    ├── output/
+    └── repo/
+```
+
+> **Backward compatibility:** Single-task jobs continue to use the existing `workspaces/{taskId}/` layout. The workspace per-task isolation is transparent to the worker — the container always sees the same `/workspace/` mount points regardless of whether it is part of a multi-task job.
 
 ---
 

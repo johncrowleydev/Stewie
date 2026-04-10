@@ -1,6 +1,6 @@
 /// <summary>
 /// Jobs API controller — CRUD endpoints, test-job trigger, and real job execution.
-/// REF: CON-002 §4.2, §5.2
+/// REF: CON-002 §4.2, §5.2, JOB-010 T-095
 /// </summary>
 using System.Security.Claims;
 using System.Text.Json;
@@ -25,6 +25,7 @@ public class JobsController : ControllerBase
     private readonly IJobRepository _jobRepository;
     private readonly IWorkTaskRepository _workTaskRepository;
     private readonly IProjectRepository _projectRepository;
+    private readonly ITaskDependencyRepository _taskDependencyRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<JobsController> _logger;
 
@@ -34,6 +35,7 @@ public class JobsController : ControllerBase
         IJobRepository jobRepository,
         IWorkTaskRepository workTaskRepository,
         IProjectRepository projectRepository,
+        ITaskDependencyRepository taskDependencyRepository,
         IUnitOfWork unitOfWork,
         ILogger<JobsController> logger)
     {
@@ -41,6 +43,7 @@ public class JobsController : ControllerBase
         _jobRepository = jobRepository;
         _workTaskRepository = workTaskRepository;
         _projectRepository = projectRepository;
+        _taskDependencyRepository = taskDependencyRepository;
         _unitOfWork = unitOfWork;
         _logger = logger;
     }
@@ -97,8 +100,9 @@ public class JobsController : ControllerBase
     }
 
     /// <summary>
-    /// Creates a new job with task definition, validates project, and triggers execution.
-    /// Per CON-002 v1.5.0: projectId and objective are required.
+    /// Creates a new job with task definition(s), validates project, and triggers execution.
+    /// Supports both legacy single-task and multi-task DAG requests.
+    /// REF: CON-002 v1.7.0, JOB-010 T-095
     /// </summary>
     /// <param name="request">The job creation request.</param>
     /// <returns>201 Created with the job, then execution proceeds asynchronously.</returns>
@@ -111,13 +115,25 @@ public class JobsController : ControllerBase
             throw new ArgumentException("projectId is required.");
         }
 
-        if (string.IsNullOrWhiteSpace(request.Objective))
+        // Route: multi-task or single-task
+        if (request.Tasks is { Count: > 0 })
         {
-            throw new ArgumentException("objective is required.");
+            return await CreateMultiTaskJob(request);
         }
 
+        if (!string.IsNullOrWhiteSpace(request.Objective))
+        {
+            return await CreateSingleTaskJob(request);
+        }
+
+        throw new ArgumentException("Either 'objective' (single-task) or 'tasks' (multi-task) is required.");
+    }
+
+    /// <summary>Creates a single-task job (legacy backward-compatible path).</summary>
+    private async Task<IActionResult> CreateSingleTaskJob(CreateJobRequest request)
+    {
         // Validate project exists
-        var project = await _projectRepository.GetByIdAsync(request.ProjectId.Value);
+        var project = await _projectRepository.GetByIdAsync(request.ProjectId!.Value);
         if (project is null)
         {
             throw new KeyNotFoundException($"Project with ID '{request.ProjectId.Value}' was not found.");
@@ -154,7 +170,7 @@ public class JobsController : ControllerBase
             Job = job,
             Role = "developer",
             Status = WorkTaskStatus.Pending,
-            Objective = request.Objective.Trim(),
+            Objective = request.Objective!.Trim(),
             Scope = request.Scope?.Trim(),
             ScriptJson = scriptJson,
             AcceptanceCriteriaJson = criteriaJson,
@@ -201,6 +217,145 @@ public class JobsController : ControllerBase
     }
 
     /// <summary>
+    /// Creates a multi-task DAG job. Maps client-side dependency references to
+    /// server-side TaskDependency entities and validates the graph is acyclic.
+    /// REF: JOB-010 T-095
+    /// </summary>
+    private async Task<IActionResult> CreateMultiTaskJob(CreateJobRequest request)
+    {
+        // Validate project exists
+        var project = await _projectRepository.GetByIdAsync(request.ProjectId!.Value);
+        if (project is null)
+        {
+            throw new KeyNotFoundException($"Project with ID '{request.ProjectId.Value}' was not found.");
+        }
+
+        // Get current user ID from JWT claims
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? User.FindFirst("sub")?.Value;
+        Guid? createdByUserId = userIdClaim is not null ? Guid.Parse(userIdClaim) : null;
+
+        // Create Job
+        var job = new Job
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = request.ProjectId,
+            Status = JobStatus.Pending,
+            CreatedByUserId = createdByUserId,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Map clientId → server-side Guid for dependency resolution
+        var clientIdToTaskId = new Dictionary<string, Guid>();
+        var createdTasks = new List<WorkTask>();
+
+        foreach (var taskDef in request.Tasks!)
+        {
+            var taskId = Guid.NewGuid();
+            var clientId = taskDef.ClientId ?? taskId.ToString();
+            clientIdToTaskId[clientId] = taskId;
+
+            string? scriptJson = taskDef.Script is { Count: > 0 }
+                ? JsonSerializer.Serialize(taskDef.Script)
+                : null;
+            string? criteriaJson = taskDef.AcceptanceCriteria is { Count: > 0 }
+                ? JsonSerializer.Serialize(taskDef.AcceptanceCriteria)
+                : null;
+
+            var task = new WorkTask
+            {
+                Id = taskId,
+                JobId = job.Id,
+                Job = job,
+                Role = "developer",
+                Status = WorkTaskStatus.Pending,
+                Objective = taskDef.Objective.Trim(),
+                Scope = taskDef.Scope?.Trim(),
+                ScriptJson = scriptJson,
+                AcceptanceCriteriaJson = criteriaJson,
+                WorkspacePath = string.Empty,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            createdTasks.Add(task);
+        }
+
+        // Resolve dependency edges
+        var dependencies = new List<TaskDependency>();
+        for (int i = 0; i < request.Tasks!.Count; i++)
+        {
+            var taskDef = request.Tasks[i];
+            if (taskDef.DependsOn is not { Count: > 0 }) continue;
+
+            var taskId = createdTasks[i].Id;
+            foreach (var depClientId in taskDef.DependsOn)
+            {
+                if (!clientIdToTaskId.TryGetValue(depClientId, out var depTaskId))
+                {
+                    throw new ArgumentException(
+                        $"Invalid dependency reference '{depClientId}' in task '{taskDef.ClientId ?? taskId.ToString()}'.");
+                }
+
+                dependencies.Add(new TaskDependency
+                {
+                    Id = Guid.NewGuid(),
+                    TaskId = taskId,
+                    DependsOnTaskId = depTaskId,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+        }
+
+        // Validate DAG before persisting
+        var graph = TaskGraph.Build(createdTasks, dependencies);
+        try
+        {
+            graph.ValidateAcyclic();
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new ArgumentException($"Dependency cycle detected: {ex.Message}");
+        }
+
+        // Persist
+        _unitOfWork.BeginTransaction();
+        await _jobRepository.SaveAsync(job);
+        foreach (var task in createdTasks)
+        {
+            await _workTaskRepository.SaveAsync(task);
+        }
+        foreach (var dep in dependencies)
+        {
+            await _taskDependencyRepository.SaveAsync(dep);
+        }
+        await _unitOfWork.CommitAsync();
+
+        _logger.LogInformation(
+            "Created multi-task job {JobId} with {TaskCount} tasks and {DepCount} dependencies",
+            job.Id, createdTasks.Count, dependencies.Count);
+
+        return CreatedAtAction(nameof(GetById), new { id = job.Id }, new
+        {
+            id = job.Id,
+            projectId = job.ProjectId,
+            status = job.Status.ToString(),
+            createdAt = job.CreatedAt.ToString("o"),
+            completedAt = (string?)null,
+            taskCount = createdTasks.Count,
+            tasks = createdTasks.Select(t => new
+            {
+                id = t.Id,
+                jobId = t.JobId,
+                role = t.Role,
+                status = t.Status.ToString(),
+                objective = t.Objective,
+                scope = t.Scope,
+                createdAt = t.CreatedAt.ToString("o")
+            })
+        });
+    }
+
+    /// <summary>
     /// Gets a single job by ID, including its nested tasks.
     /// </summary>
     /// <param name="id">The job's GUID.</param>
@@ -230,6 +385,9 @@ public class JobsController : ControllerBase
             pullRequestUrl = job.PullRequestUrl,
             createdAt = job.CreatedAt.ToString("o"),
             completedAt = job.CompletedAt?.ToString("o"),
+            taskCount = tasks.Count(t => t.Role == "developer"),
+            completedTaskCount = tasks.Count(t => t.Role == "developer" && t.Status == WorkTaskStatus.Completed),
+            failedTaskCount = tasks.Count(t => t.Role == "developer" && t.Status == WorkTaskStatus.Failed),
             tasks = tasks.OrderBy(t => t.CreatedAt).Select(t => new
             {
                 id = t.Id,
@@ -241,6 +399,7 @@ public class JobsController : ControllerBase
                 objective = t.Objective,
                 scope = t.Scope,
                 workspacePath = t.WorkspacePath,
+                failureReason = t.FailureReason,
                 createdAt = t.CreatedAt.ToString("o"),
                 startedAt = t.StartedAt?.ToString("o"),
                 completedAt = t.CompletedAt?.ToString("o")
@@ -249,14 +408,42 @@ public class JobsController : ControllerBase
     }
 }
 
-/// <summary>Request body for creating a new job per CON-002 §4.2.</summary>
+/// <summary>
+/// Request body for creating a new job. Supports both single-task (legacy) and multi-task (DAG) modes.
+/// REF: CON-002 v1.7.0, JOB-010 T-095
+/// </summary>
 public class CreateJobRequest
 {
     /// <summary>Project ID to associate this job with. Required.</summary>
     public Guid? ProjectId { get; set; }
 
-    /// <summary>What the worker should accomplish. Required.</summary>
+    /// <summary>What the worker should accomplish. Required for single-task jobs.</summary>
     public string? Objective { get; set; }
+
+    /// <summary>Boundaries of the work. Optional (single-task only).</summary>
+    public string? Scope { get; set; }
+
+    /// <summary>Bash commands for script worker. Optional (single-task only).</summary>
+    public List<string>? Script { get; set; }
+
+    /// <summary>Conditions that must be met for success. Optional (single-task only).</summary>
+    public List<string>? AcceptanceCriteria { get; set; }
+
+    /// <summary>Task definitions for multi-task DAG jobs. Mutually exclusive with Objective.</summary>
+    public List<TaskDefinition>? Tasks { get; set; }
+}
+
+/// <summary>
+/// Defines a single task within a multi-task job creation request.
+/// REF: JOB-010 T-095
+/// </summary>
+public class TaskDefinition
+{
+    /// <summary>Client-generated identifier for cross-referencing in DependsOn arrays.</summary>
+    public string? ClientId { get; set; }
+
+    /// <summary>What the worker should accomplish. Required.</summary>
+    public string Objective { get; set; } = string.Empty;
 
     /// <summary>Boundaries of the work. Optional.</summary>
     public string? Scope { get; set; }
@@ -266,4 +453,7 @@ public class CreateJobRequest
 
     /// <summary>Conditions that must be met for success. Optional.</summary>
     public List<string>? AcceptanceCriteria { get; set; }
+
+    /// <summary>ClientIds of upstream tasks that must complete before this task can execute.</summary>
+    public List<string>? DependsOn { get; set; }
 }

@@ -34,8 +34,10 @@ public partial class JobOrchestrationService
     private readonly ILogger<JobOrchestrationService> _logger;
     private readonly string _scriptWorkerImage;
     private readonly IGovernanceReportRepository _governanceReportRepository;
+    private readonly ITaskDependencyRepository _taskDependencyRepository;
     private readonly string _governanceWorkerImage;
     private readonly int _maxGovernanceRetries;
+    private readonly SemaphoreSlim _taskSemaphore;
 
     /// <summary>Initializes the orchestration service with all required dependencies.</summary>
     public JobOrchestrationService(
@@ -53,9 +55,11 @@ public partial class JobOrchestrationService
         IUnitOfWork unitOfWork,
         ILogger<JobOrchestrationService> logger,
         IGovernanceReportRepository governanceReportRepository,
+        ITaskDependencyRepository taskDependencyRepository,
         string scriptWorkerImage = "stewie-script-worker",
         string governanceWorkerImage = "stewie-governance-worker",
-        int maxGovernanceRetries = 2)
+        int maxGovernanceRetries = 2,
+        int maxConcurrentTasks = 5)
     {
         _jobRepository = jobRepository;
         _workTaskRepository = workTaskRepository;
@@ -71,9 +75,11 @@ public partial class JobOrchestrationService
         _unitOfWork = unitOfWork;
         _logger = logger;
         _governanceReportRepository = governanceReportRepository;
+        _taskDependencyRepository = taskDependencyRepository;
         _scriptWorkerImage = scriptWorkerImage;
         _governanceWorkerImage = governanceWorkerImage;
         _maxGovernanceRetries = maxGovernanceRetries;
+        _taskSemaphore = new SemaphoreSlim(maxConcurrentTasks);
     }
 
     /// <summary>
@@ -93,7 +99,14 @@ public partial class JobOrchestrationService
             throw new InvalidOperationException($"Job '{jobId}' has no tasks.");
         }
 
-        var task = tasks[0]; // 1 Job = 1 Task for now
+        // Delegate to multi-task path if >1 developer task
+        var devTasks = tasks.Where(t => t.Role == "developer").ToList();
+        if (devTasks.Count > 1)
+        {
+            return await ExecuteMultiTaskJobAsync(jobId);
+        }
+
+        var task = tasks[0]; // Single-task legacy path
 
         // Load project for repoUrl
         Project? project = null;
@@ -354,6 +367,397 @@ public partial class JobOrchestrationService
                 Summary = $"Error: {ex.Message}"
             };
         }
+    }
+
+    /// <summary>
+    /// Executes a multi-task job using the DAG scheduler.
+    /// Each task gets its own workspace, container launch, and governance cycle.
+    /// REF: JOB-010 T-090
+    /// </summary>
+    /// <param name="jobId">The ID of a pre-created Job with multiple tasks.</param>
+    /// <returns>A <see cref="TestJobResult"/> describing the aggregate outcome.</returns>
+    public async Task<TestJobResult> ExecuteMultiTaskJobAsync(Guid jobId)
+    {
+        var job = await _jobRepository.GetByIdAsync(jobId)
+            ?? throw new KeyNotFoundException($"Job '{jobId}' not found.");
+
+        var tasks = await _workTaskRepository.GetByJobIdAsync(jobId);
+        if (tasks.Count == 0)
+        {
+            throw new InvalidOperationException($"Job '{jobId}' has no tasks.");
+        }
+
+        // Load dependencies
+        var deps = await _taskDependencyRepository.GetByJobIdAsync(jobId);
+
+        // Build and validate graph
+        var graph = TaskGraph.Build(tasks, deps);
+        graph.ValidateAcyclic();
+
+        // Load project
+        Project? project = null;
+        if (job.ProjectId.HasValue)
+        {
+            project = await _projectRepository.GetByIdAsync(job.ProjectId.Value);
+        }
+
+        // Set tasks with unmet dependencies to Blocked
+        _unitOfWork.BeginTransaction();
+        foreach (var task in tasks.Where(t => t.Role == "developer"))
+        {
+            var readyTasks = graph.GetReadyTasks();
+            if (!readyTasks.Any(r => r.Id == task.Id) && task.Status == WorkTaskStatus.Pending)
+            {
+                task.Status = WorkTaskStatus.Blocked;
+                await _workTaskRepository.SaveAsync(task);
+            }
+        }
+
+        // Transition job to Running
+        job.Status = JobStatus.Running;
+        await _jobRepository.SaveAsync(job);
+        await EmitEventAsync("Job", job.Id, EventType.JobStarted,
+            new { jobId = job.Id, taskCount = tasks.Count(t => t.Role == "developer") });
+        await _unitOfWork.CommitAsync();
+
+        _logger.LogInformation(
+            "Starting multi-task execution for job {JobId} with {TaskCount} developer tasks",
+            job.Id, tasks.Count(t => t.Role == "developer"));
+
+        // Enter scheduler loop
+        await ScheduleTasksAsync(job, tasks, deps, project);
+
+        // Re-load tasks to get final states
+        tasks = await _workTaskRepository.GetByJobIdAsync(jobId);
+        deps = await _taskDependencyRepository.GetByJobIdAsync(jobId);
+        var finalGraph = TaskGraph.Build(tasks, deps);
+        var aggregateStatus = finalGraph.GetAggregateStatus();
+
+        // Update final job status
+        _unitOfWork.BeginTransaction();
+        job.Status = aggregateStatus;
+        job.CompletedAt = DateTime.UtcNow;
+        await _jobRepository.SaveAsync(job);
+
+        var statusEvent = aggregateStatus == JobStatus.Completed
+            ? EventType.JobCompleted
+            : EventType.JobFailed;
+        await EmitEventAsync("Job", job.Id, statusEvent,
+            new { jobId = job.Id, status = aggregateStatus.ToString() });
+        await _unitOfWork.CommitAsync();
+
+        _logger.LogInformation("Multi-task job {JobId} completed with status {Status}",
+            job.Id, aggregateStatus);
+
+        var completedCount = tasks.Count(t => t.Status == WorkTaskStatus.Completed);
+        var failedCount = tasks.Count(t => t.Status == WorkTaskStatus.Failed);
+
+        return new TestJobResult
+        {
+            JobId = job.Id,
+            TaskId = tasks.First(t => t.Role == "developer").Id,
+            Status = aggregateStatus.ToString(),
+            Summary = $"Multi-task job: {completedCount} completed, {failedCount} failed, " +
+                      $"{tasks.Count(t => t.Status == WorkTaskStatus.Cancelled)} cancelled"
+        };
+    }
+
+    /// <summary>
+    /// Scheduler loop: poll ready tasks, launch in parallel, process completions, repeat.
+    /// Exits when all tasks are in terminal state (Completed/Failed/Cancelled).
+    /// REF: JOB-010 T-091
+    /// </summary>
+    private async Task ScheduleTasksAsync(Job job, IList<WorkTask> tasks,
+        IList<TaskDependency> deps, Project? project)
+    {
+        while (true)
+        {
+            // Rebuild graph with current task states
+            var graph = TaskGraph.Build(tasks, deps);
+
+            if (graph.IsComplete)
+            {
+                _logger.LogInformation("All tasks for job {JobId} are in terminal state", job.Id);
+                break;
+            }
+
+            var ready = graph.GetReadyTasks()
+                .Where(t => t.Role == "developer")
+                .ToList();
+
+            if (ready.Count == 0)
+            {
+                // Check if any tasks are still running
+                var hasRunning = tasks.Any(t => t.Status == WorkTaskStatus.Running);
+                if (!hasRunning)
+                {
+                    // Deadlock: blocked tasks but nothing running — cancel remaining
+                    _logger.LogWarning(
+                        "Deadlock detected in job {JobId}: blocked tasks with no running tasks", job.Id);
+
+                    _unitOfWork.BeginTransaction();
+                    foreach (var blocked in tasks.Where(t =>
+                        t.Status == WorkTaskStatus.Blocked || t.Status == WorkTaskStatus.Pending))
+                    {
+                        blocked.Status = WorkTaskStatus.Cancelled;
+                        blocked.CompletedAt = DateTime.UtcNow;
+                        await _workTaskRepository.SaveAsync(blocked);
+                    }
+                    await _unitOfWork.CommitAsync();
+                    break;
+                }
+
+                // Tasks are running, wait briefly before re-checking
+                await Task.Delay(100);
+                // Re-read tasks to get updated states
+                tasks = await _workTaskRepository.GetByJobIdAsync(job.Id);
+                continue;
+            }
+
+            _logger.LogInformation(
+                "Launching {ReadyCount} ready tasks for job {JobId}", ready.Count, job.Id);
+
+            // Launch all ready tasks in parallel, bounded by semaphore
+            var launchTasks = ready.Select(t =>
+                ExecuteSingleTaskWithGovernanceAsync(job, t, project, tasks, deps));
+            await Task.WhenAll(launchTasks);
+
+            // Re-read tasks to get updated states after batch completes
+            tasks = await _workTaskRepository.GetByJobIdAsync(job.Id);
+            deps = await _taskDependencyRepository.GetByJobIdAsync(job.Id);
+        }
+    }
+
+    /// <summary>
+    /// Executes a single developer task within a multi-task job: workspace setup,
+    /// container launch, result ingestion, governance cycle. Bounded by SemaphoreSlim.
+    /// REF: JOB-010 T-090, T-092, T-101
+    /// </summary>
+    private async Task ExecuteSingleTaskWithGovernanceAsync(Job job, WorkTask task,
+        Project? project, IList<WorkTask> allTasks, IList<TaskDependency> allDeps)
+    {
+        await _taskSemaphore.WaitAsync();
+        try
+        {
+            _logger.LogInformation("Executing task {TaskId} for job {JobId}", task.Id, job.Id);
+
+            // Deserialize JSON fields
+            List<string>? script = null;
+            if (!string.IsNullOrWhiteSpace(task.ScriptJson))
+            {
+                script = JsonSerializer.Deserialize<List<string>>(task.ScriptJson);
+            }
+
+            List<string>? criteria = null;
+            if (!string.IsNullOrWhiteSpace(task.AcceptanceCriteriaJson))
+            {
+                criteria = JsonSerializer.Deserialize<List<string>>(task.AcceptanceCriteriaJson);
+            }
+
+            // Generate branch name — use job-level branch, per-task suffix for multi-task
+            string? branchName = null;
+            if (project?.RepoUrl is not null)
+            {
+                var shortId = job.Id.ToString()[..8];
+                var sanitized = SanitizeBranchName(task.Objective ?? "task");
+                branchName = $"stewie/{shortId}/{sanitized}";
+            }
+
+            // Prepare per-task workspace
+            var workspacePath = _workspaceService.PrepareWorkspaceForRun(
+                task, job, project?.RepoUrl, branchName, script, criteria);
+            task.WorkspacePath = workspacePath;
+
+            _unitOfWork.BeginTransaction();
+            await _workTaskRepository.SaveAsync(task);
+
+            var workspace = new Workspace
+            {
+                Id = Guid.NewGuid(),
+                TaskId = task.Id,
+                Path = workspacePath,
+                Status = WorkspaceStatus.Created,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _workspaceRepository.SaveAsync(workspace);
+
+            await EmitEventAsync("Task", task.Id, EventType.TaskCreated,
+                new { taskId = task.Id, jobId = job.Id, role = task.Role });
+
+            // Clone repo if project has repoUrl
+            if (!string.IsNullOrWhiteSpace(project?.RepoUrl))
+            {
+                await _workspaceService.CloneRepositoryAsync(project.RepoUrl, workspacePath);
+                if (branchName is not null)
+                {
+                    await _workspaceService.CreateBranchAsync(workspacePath, branchName);
+                }
+            }
+
+            // Transition to Running
+            task.Status = WorkTaskStatus.Running;
+            task.StartedAt = DateTime.UtcNow;
+            await _workTaskRepository.SaveAsync(task);
+
+            workspace.Status = WorkspaceStatus.Mounted;
+            workspace.MountedAt = DateTime.UtcNow;
+            await _workspaceRepository.SaveAsync(workspace);
+
+            await EmitEventAsync("Task", task.Id, EventType.TaskStarted,
+                new { taskId = task.Id, role = task.Role, workspacePath });
+            await _unitOfWork.CommitAsync();
+
+            // Launch container
+            var (exitCode, failureReason) = await LaunchWithRetryAsync(task, job.Id);
+
+            if (exitCode != 0)
+            {
+                task.FailureReason = failureReason?.ToString();
+                await MarkTaskFailedAsync(task,
+                    $"Script worker exited with code {exitCode} ({failureReason})");
+
+                // Cancel downstream tasks
+                var graph = TaskGraph.Build(allTasks, allDeps);
+                await CancelDownstreamTasksAsync(graph, task);
+                return;
+            }
+
+            // Read result
+            Domain.Contracts.ResultPacket result;
+            try
+            {
+                result = _workspaceService.ReadResult(task);
+            }
+            catch (Exception ex)
+            {
+                task.FailureReason = TaskFailureReason.ResultMissing.ToString();
+                await MarkTaskFailedAsync(task, $"result.json error: {ex.Message}");
+
+                var graph = TaskGraph.Build(allTasks, allDeps);
+                await CancelDownstreamTasksAsync(graph, task);
+                return;
+            }
+
+            _unitOfWork.BeginTransaction();
+
+            // Store result artifact
+            var resultArtifact = new Artifact
+            {
+                Id = Guid.NewGuid(),
+                TaskId = task.Id,
+                WorkTask = task,
+                Type = "result",
+                ContentJson = JsonSerializer.Serialize(result),
+                CreatedAt = DateTime.UtcNow
+            };
+            await _artifactRepository.SaveAsync(resultArtifact);
+
+            // Capture diff
+            var diff = await _workspaceService.CaptureDiffAsync(workspacePath);
+            if (!string.IsNullOrWhiteSpace(diff.DiffStat))
+            {
+                var diffArtifact = new Artifact
+                {
+                    Id = Guid.NewGuid(),
+                    TaskId = task.Id,
+                    WorkTask = task,
+                    Type = "diff",
+                    ContentJson = JsonSerializer.Serialize(new
+                    {
+                        diffStat = diff.DiffStat,
+                        diffPatch = diff.DiffPatch
+                    }),
+                    CreatedAt = DateTime.UtcNow
+                };
+                await _artifactRepository.SaveAsync(diffArtifact);
+            }
+
+            // Auto-commit
+            var objective = task.Objective ?? "stewie task";
+            var shortJobId = job.Id.ToString()[..8];
+            var commitMessage = $"feat(stewie): {objective} [Job {shortJobId}]";
+            await _workspaceService.CommitChangesAsync(workspacePath, commitMessage);
+
+            // Update dev task final status
+            var isSuccess = string.Equals(result.Status, "success", StringComparison.OrdinalIgnoreCase);
+            task.Status = isSuccess ? WorkTaskStatus.Completed : WorkTaskStatus.Failed;
+            task.CompletedAt = DateTime.UtcNow;
+            if (!isSuccess)
+            {
+                task.FailureReason = TaskFailureReason.WorkerReportedFailure.ToString();
+            }
+            await _workTaskRepository.SaveAsync(task);
+
+            if (isSuccess)
+            {
+                await EmitEventAsync("Task", task.Id, EventType.TaskCompleted,
+                    new { taskId = task.Id, summary = result.Summary });
+                await _unitOfWork.CommitAsync();
+
+                // Per-task governance cycle (T-101)
+                await RunGovernanceCycleAsync(job, task, workspacePath, project, task.AttemptNumber);
+            }
+            else
+            {
+                await EmitEventAsync("Task", task.Id, EventType.TaskFailed,
+                    new { taskId = task.Id, reason = result.Summary });
+                await _unitOfWork.CommitAsync();
+
+                // Cancel downstream tasks on failure
+                var graph = TaskGraph.Build(allTasks, allDeps);
+                await CancelDownstreamTasksAsync(graph, task);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing task {TaskId} for job {JobId}", task.Id, job.Id);
+            task.FailureReason ??= TaskFailureReason.ContainerError.ToString();
+            await MarkTaskFailedAsync(task, ex.Message);
+
+            try
+            {
+                var graph = TaskGraph.Build(allTasks, allDeps);
+                await CancelDownstreamTasksAsync(graph, task);
+            }
+            catch (Exception cascadeEx)
+            {
+                _logger.LogError(cascadeEx, "Failed to cascade cancellation for task {TaskId}", task.Id);
+            }
+        }
+        finally
+        {
+            _taskSemaphore.Release();
+        }
+    }
+
+    /// <summary>
+    /// Cancels all transitive downstream tasks of a failed task.
+    /// REF: JOB-010 T-094
+    /// </summary>
+    private async Task CancelDownstreamTasksAsync(TaskGraph graph, WorkTask failedTask)
+    {
+        var downstream = graph.GetAllDownstream(failedTask.Id);
+        if (downstream.Count == 0) return;
+
+        _logger.LogInformation(
+            "Cancelling {Count} downstream tasks after failure of task {TaskId}",
+            downstream.Count, failedTask.Id);
+
+        _unitOfWork.BeginTransaction();
+        foreach (var task in downstream)
+        {
+            if (task.Status is WorkTaskStatus.Pending or WorkTaskStatus.Blocked)
+            {
+                task.Status = WorkTaskStatus.Cancelled;
+                task.CompletedAt = DateTime.UtcNow;
+                task.FailureReason = $"Upstream task {failedTask.Id} failed";
+                await _workTaskRepository.SaveAsync(task);
+
+                await EmitEventAsync("Task", task.Id, EventType.TaskFailed,
+                    new { taskId = task.Id, reason = $"Cancelled: upstream task {failedTask.Id} failed" });
+            }
+        }
+        await _unitOfWork.CommitAsync();
     }
 
     /// <summary>
