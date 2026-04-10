@@ -77,8 +77,7 @@ export function Layout() {
     <div className="app-layout">
       <aside className="sidebar" id="main-sidebar">
         <div className="sidebar-brand">
-          <img src="/stewie-logo.png" alt="Stewie logo" />
-          <h1>stewie</h1>
+          <img src="/stewie-logo.png" alt="Stewie" />
         </div>
 
         <nav className="sidebar-nav" id="main-nav">

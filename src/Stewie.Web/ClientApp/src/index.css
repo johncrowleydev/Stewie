@@ -217,22 +217,14 @@ a:hover {
 .sidebar-brand {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
+  justify-content: center;
   padding: var(--space-lg);
   border-bottom: 1px solid var(--color-border);
 }
 
 .sidebar-brand img {
-  width: 40px;
-  height: 40px;
+  height: 52px;
   border-radius: var(--radius-sm);
-}
-
-.sidebar-brand h1 {
-  font-size: var(--font-size-xl);
-  font-weight: 700;
-  color: var(--color-text-secondary);
-  letter-spacing: -0.02em;
 }
 
 .sidebar-nav {
@@ -1126,8 +1118,8 @@ textarea.form-input {
 }
 
 .auth-logo {
-  width: 48px;
-  height: 48px;
+  width: 72px;
+  height: 72px;
 }
 
 .auth-title {

@@ -9,6 +9,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../hooks/useTheme";
 
 /** Minimum password length */
 const MIN_PASSWORD_LENGTH = 8;
@@ -17,6 +18,7 @@ const MIN_PASSWORD_LENGTH = 8;
 export function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  useTheme(); // Sets data-theme on <html> so CSS variables respect light/dark
   const [inviteCode, setInviteCode] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -64,8 +66,7 @@ export function RegisterPage() {
     <div className="auth-page" id="register-page">
       <div className="auth-card">
         <div className="auth-brand">
-          <img src="/stewie-logo.png" alt="Stewie logo" className="auth-logo" />
-          <h1 className="auth-title">stewie</h1>
+          <img src="/stewie-logo.png" alt="Stewie" className="auth-logo" />
         </div>
 
         <h2 className="auth-heading">Create account</h2>

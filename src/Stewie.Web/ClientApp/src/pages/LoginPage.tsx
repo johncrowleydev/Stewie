@@ -9,11 +9,13 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../hooks/useTheme";
 
 /** Login page with branded centered form */
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  useTheme(); // Sets data-theme on <html> so CSS variables respect light/dark
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -43,8 +45,7 @@ export function LoginPage() {
     <div className="auth-page" id="login-page">
       <div className="auth-card">
         <div className="auth-brand">
-          <img src="/stewie-logo.png" alt="Stewie logo" className="auth-logo" />
-          <h1 className="auth-title">stewie</h1>
+          <img src="/stewie-logo.png" alt="Stewie" className="auth-logo" />
         </div>
 
         <h2 className="auth-heading">Sign in</h2>
