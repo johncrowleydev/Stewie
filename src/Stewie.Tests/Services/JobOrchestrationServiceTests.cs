@@ -6,6 +6,7 @@ using Stewie.Application.Services;
 using Stewie.Domain.Contracts;
 using Stewie.Domain.Entities;
 using Stewie.Domain.Enums;
+using Stewie.Tests.Mocks;
 using Xunit;
 
 namespace Stewie.Tests.Services;
@@ -70,6 +71,7 @@ public class JobOrchestrationServiceTests
             NullLogger<JobOrchestrationService>.Instance,
             _governanceReportRepository,
             _taskDependencyRepository,
+            new NullRealTimeNotifier(),
             "stewie-script-worker");
     }
 
