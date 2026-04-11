@@ -25,5 +25,6 @@ public class ChatMessageMap : ClassMap<ChatMessage>
         Map(x => x.SenderName).Length(100);
         Map(x => x.Content).Length(10001);
         Map(x => x.CreatedAt);
+        Map(x => x.MessageType).Length(50).Nullable();
     }
 }

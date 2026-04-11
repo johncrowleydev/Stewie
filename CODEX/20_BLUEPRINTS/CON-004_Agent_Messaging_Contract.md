@@ -3,7 +3,7 @@ id: CON-004
 title: "Agent Messaging Contract"
 type: contract
 status: APPROVED
-version: "1.0.0"
+version: "1.1.0"
 created: 2026-04-10
 updated: 2026-04-10
 owner: Architect
@@ -373,3 +373,45 @@ Breaking changes require a new major version and an EVO- proposal.
 | Version | Date | Changes |
 |:--------|:-----|:--------|
 | 1.0.0 | 2026-04-10 | Initial release — 3 exchanges, 8 message types |
+| 1.1.0 | 2026-04-11 | Added chat.plan_proposed, command.plan_decision (JOB-022) |
+
+---
+
+## 10. Plan Approval Protocol (v1.1.0)
+
+Added in JOB-022 to support the Architect Agent's plan-first workflow.
+
+### 10.1 `chat.plan_proposed` (Architect → API → Human)
+
+Published by the Architect when it has a plan ready for review.
+Routed through the `stewie.events` exchange.
+
+```json
+{
+  "type": "chat.plan_proposed",
+  "payload": {
+    "agentId": "uuid",
+    "projectId": "uuid",
+    "planId": "uuid",
+    "summary": "I propose creating 2 jobs with 5 tasks...",
+    "planMarkdown": "# Plan\n\n## Job 1: ...",
+    "planJson": { "jobs": [] }
+  }
+}
+```
+
+### 10.2 `command.plan_decision` (API → Architect)
+
+Sent when the Human approves or rejects a plan.
+Routed through the `stewie.commands` exchange.
+
+```json
+{
+  "type": "command.plan_decision",
+  "payload": {
+    "planId": "uuid",
+    "decision": "approved | rejected",
+    "feedback": "optional human feedback text"
+  }
+}
+```

@@ -203,6 +203,93 @@ public class ChatController : ControllerBase
                 message.Id, projectId);
         }
     }
+
+    /// <summary>
+    /// Submit a plan decision (approve/reject) — relayed to the Architect via RabbitMQ.
+    /// REF: JOB-022 T-194, CON-004 command.plan_decision
+    /// </summary>
+    /// <param name="projectId">The project whose Architect will receive the decision.</param>
+    /// <param name="request">Plan decision details.</param>
+    /// <returns>200 OK on success, 404 if no active Architect.</returns>
+    [HttpPost("plan-decision")]
+    public async Task<IActionResult> PlanDecision(
+        Guid projectId,
+        [FromBody] PlanDecisionRequest request)
+    {
+        if (request is null || string.IsNullOrWhiteSpace(request.PlanId))
+            return BadRequest(new { error = "PlanId is required." });
+
+        var validDecisions = new[] { "approved", "rejected" };
+        if (!validDecisions.Contains(request.Decision?.ToLowerInvariant()))
+            return BadRequest(new { error = "Decision must be 'approved' or 'rejected'." });
+
+        var architectSession = await _lifecycle.GetActiveArchitectAsync(projectId);
+        if (architectSession is null)
+            return NotFound(new { error = "No active Architect session for this project." });
+
+        // Persist decision as a chat message for audit trail
+        var senderName = User.FindFirst("username")?.Value ?? "unknown";
+        var decisionLabel = request.Decision!.ToLowerInvariant() == "approved" ? "approved" : "rejected";
+        var messageType = decisionLabel == "approved" ? "plan_approved" : "plan_rejected";
+
+        var chatMsg = new ChatMessage
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = projectId,
+            SenderRole = "Human",
+            SenderName = senderName,
+            Content = $"Plan {request.PlanId} {decisionLabel}." + (string.IsNullOrEmpty(request.Feedback) ? "" : $" Feedback: {request.Feedback}"),
+            MessageType = messageType,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _unitOfWork.BeginTransaction();
+        await _chatRepo.SaveAsync(chatMsg);
+        await _unitOfWork.CommitAsync();
+
+        // Push to dashboard
+        await _notifier.NotifyChatMessageAsync(
+            projectId, chatMsg.Id, chatMsg.SenderRole,
+            chatMsg.SenderName, chatMsg.Content, chatMsg.CreatedAt);
+
+        // Publish command.plan_decision to the Architect's command queue via RabbitMQ
+        try
+        {
+            var agentMessage = new AgentMessage
+            {
+                Type = "command.plan_decision",
+                AgentId = architectSession.Id.ToString(),
+                RoutingKey = $"agent.{architectSession.Id}",
+                Payload = System.Text.Json.JsonSerializer.SerializeToElement(new
+                {
+                    planId = request.PlanId,
+                    decision = decisionLabel,
+                    feedback = request.Feedback ?? ""
+                }),
+                Timestamp = DateTime.UtcNow,
+                CorrelationId = chatMsg.Id.ToString()
+            };
+
+            await _rabbitMq.PublishCommandAsync($"agent.{architectSession.Id}", agentMessage);
+
+            _logger.LogInformation(
+                "Plan decision '{Decision}' for plan {PlanId} sent to Architect {SessionId}",
+                decisionLabel, request.PlanId, architectSession.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "Failed to relay plan decision to Architect for project {ProjectId}",
+                projectId);
+        }
+
+        return Ok(new
+        {
+            planId = request.PlanId,
+            decision = decisionLabel,
+            chatMessageId = chatMsg.Id
+        });
+    }
 }
 
 /// <summary>Request body for sending a chat message.</summary>
@@ -210,4 +297,17 @@ public class SendChatMessageRequest
 {
     /// <summary>Message text content. Required. Max 10000 characters.</summary>
     public string Content { get; set; } = string.Empty;
+}
+
+/// <summary>Request body for plan approval/rejection decisions. REF: JOB-022 T-194.</summary>
+public class PlanDecisionRequest
+{
+    /// <summary>ID of the plan being decided on. Required.</summary>
+    public string PlanId { get; set; } = string.Empty;
+
+    /// <summary>Decision: "approved" or "rejected". Required.</summary>
+    public string Decision { get; set; } = string.Empty;
+
+    /// <summary>Optional human feedback text.</summary>
+    public string? Feedback { get; set; }
 }

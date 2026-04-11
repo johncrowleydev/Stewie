@@ -203,6 +203,16 @@ public class RabbitMqConsumerHostedService : BackgroundService
                 return;
             }
 
+            // Route chat.plan_proposed messages to plan proposal handler (T-194)
+            if (message.Type == "chat.plan_proposed")
+            {
+                await HandlePlanProposalAsync(message);
+
+                if (_channel is not null)
+                    await _channel.BasicAckAsync(ea.DeliveryTag, multiple: false, ct);
+                return;
+            }
+
             // Persist as audit trail Event using a scoped DI container
             await using var scope = _scopeFactory.CreateAsyncScope();
             var eventRepository = scope.ServiceProvider.GetRequiredService<IEventRepository>();
@@ -264,6 +274,7 @@ public class RabbitMqConsumerHostedService : BackgroundService
             "agent.failed" => EventType.TaskFailed,
             "agent.blocker" => EventType.TaskStarted,
             "chat.architect_response" => EventType.AgentChatResponse,
+            "chat.plan_proposed" => EventType.AgentChatResponse,
             _ => EventType.TaskCreated
         };
     }
@@ -325,6 +336,65 @@ public class RabbitMqConsumerHostedService : BackgroundService
 
         _logger.LogInformation(
             "Architect chat response persisted as ChatMessage {MessageId} for project {ProjectId}",
+            chatMessage.Id, projectId);
+    }
+
+    /// <summary>
+    /// Handles a chat.plan_proposed event from an Architect agent.
+    /// Creates a ChatMessage entity with SenderRole="Architect" and MessageType="plan_proposal",
+    /// persists it, and pushes the message to connected clients via SignalR.
+    /// REF: JOB-022 T-194
+    /// </summary>
+    internal async Task HandlePlanProposalAsync(AgentMessage message)
+    {
+        await using var scope = _scopeFactory.CreateAsyncScope();
+        var chatRepo = scope.ServiceProvider.GetRequiredService<IChatMessageRepository>();
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var notifier = scope.ServiceProvider.GetRequiredService<IRealTimeNotifier>();
+
+        Guid projectId = Guid.Empty;
+        if (message.Payload.ValueKind == System.Text.Json.JsonValueKind.Object && message.Payload.TryGetProperty("projectId", out var projEl))
+        {
+            Guid.TryParse(projEl.GetString(), out projectId);
+        }
+
+        var content = "";
+        if (message.Payload.ValueKind == System.Text.Json.JsonValueKind.Object && message.Payload.TryGetProperty("summary", out var summaryEl))
+        {
+            content = summaryEl.GetString() ?? "";
+        }
+
+        // Include plan markdown if present
+        if (message.Payload.ValueKind == System.Text.Json.JsonValueKind.Object && message.Payload.TryGetProperty("planMarkdown", out var mdEl))
+        {
+            var planMd = mdEl.GetString() ?? "";
+            if (!string.IsNullOrEmpty(planMd))
+            {
+                content = planMd;
+            }
+        }
+
+        var chatMessage = new ChatMessage
+        {
+            Id = Guid.NewGuid(),
+            ProjectId = projectId,
+            SenderRole = "Architect",
+            SenderName = "Architect",
+            Content = content,
+            MessageType = "plan_proposal",
+            CreatedAt = message.Timestamp
+        };
+
+        unitOfWork.BeginTransaction();
+        await chatRepo.SaveAsync(chatMessage);
+        await unitOfWork.CommitAsync();
+
+        await notifier.NotifyChatMessageAsync(
+            projectId, chatMessage.Id, chatMessage.SenderRole,
+            chatMessage.SenderName, chatMessage.Content, chatMessage.CreatedAt);
+
+        _logger.LogInformation(
+            "Architect plan proposal persisted as ChatMessage {MessageId} for project {ProjectId}",
             chatMessage.Id, projectId);
     }
 

@@ -81,7 +81,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = "stewie",
+            // Accept both user tokens ("stewie") and agent tokens ("stewie-agent")
+            ValidIssuers = new[] { "stewie", Stewie.Application.Services.AgentTokenService.AgentIssuer },
             ValidateAudience = true,
             ValidAudience = "stewie",
             ValidateLifetime = true,
@@ -167,6 +168,7 @@ builder.Services.AddSingleton<ContainerOutputBuffer>();
 // IAgentRuntime implementations are registered by Dev B (e.g. StubAgentRuntime).
 // AgentLifecycleService resolves all registered runtimes via IEnumerable<IAgentRuntime>.
 builder.Services.AddScoped<AgentLifecycleService>();
+builder.Services.AddScoped<AgentTokenService>();
 builder.Services.AddSingleton<IAgentRuntime, Stewie.Infrastructure.AgentRuntimes.StubAgentRuntime>();
 builder.Services.AddSingleton<IAgentRuntime, Stewie.Infrastructure.AgentRuntimes.OpenCodeAgentRuntime>();
 

@@ -9,7 +9,7 @@ tags: [standards, specification, project-management, governance]
 related: [CON-001, CON-002, GOV-003]
 created: 2026-04-10
 updated: 2026-04-10
-version: 1.0.0
+version: 1.1.0
 ---
 
 > **BLUF:** This contract defines the `stewie.json` project configuration file format. When present in a repository root, it replaces file-based heuristic stack detection and provides explicit build/test commands, governance settings, and path constraints to worker containers.
@@ -76,7 +76,10 @@ version: 1.0.0
     "source": ["src/"],
     "tests": ["tests/"],
     "forbidden": ["CODEX/", "docs/"]
-  }
+  },
+  "architectMode": "plan_first",
+  "defaultRuntime": "opencode",
+  "defaultModel": "google/gemini-2.0-flash"
 }
 ```
 
@@ -91,6 +94,9 @@ version: 1.0.0
 | `testCommand` | `string` | ❌ | `null` | Shell command to run tests | Valid shell command |
 | `governance` | `object` | ❌ | `null` | Governance configuration | See §3.4 |
 | `paths` | `object` | ❌ | `null` | Path restrictions | See §3.5 |
+| `architectMode` | `string` | ❌ | `"plan_first"` | Architect operating mode | `"plan_first"` or `"auto_execute"` |
+| `defaultRuntime` | `string` | ❌ | `"opencode"` | Default agent runtime | `"opencode"`, `"stub"`, or custom |
+| `defaultModel` | `string` | ❌ | `"google/gemini-2.0-flash"` | Default LLM model | Provider/model identifier |
 
 ### 3.4 Governance Configuration
 

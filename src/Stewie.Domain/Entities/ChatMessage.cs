@@ -27,4 +27,11 @@ public class ChatMessage
 
     /// <summary>UTC timestamp when the message was created.</summary>
     public virtual DateTime CreatedAt { get; set; }
+
+    /// <summary>
+    /// Optional message type discriminator for special messages.
+    /// null = plain chat, "plan_proposal", "plan_approved", "plan_rejected".
+    /// REF: JOB-022 T-194
+    /// </summary>
+    public virtual string? MessageType { get; set; }
 }

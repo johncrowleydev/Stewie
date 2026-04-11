@@ -30,6 +30,7 @@ public class AgentLifecycleService
     private readonly ILogger<AgentLifecycleService> _logger;
     private readonly IUserCredentialRepository? _credentialRepo;
     private readonly IEncryptionService? _encryptionService;
+    private readonly AgentTokenService? _tokenService;
 
     /// <summary>Creates a new AgentLifecycleService instance.</summary>
     /// <param name="sessionRepo">Agent session repository.</param>
@@ -42,6 +43,7 @@ public class AgentLifecycleService
     /// <param name="logger">Logger instance.</param>
     /// <param name="credentialRepo">Optional credential repository for LLM API key resolution. REF: JOB-021 T-184.</param>
     /// <param name="encryptionService">Optional encryption service for credential decryption. REF: JOB-021 T-184.</param>
+    /// <param name="tokenService">Optional agent token service for session JWT generation. REF: JOB-022 T-192.</param>
     public AgentLifecycleService(
         IAgentSessionRepository sessionRepo,
         IEventRepository eventRepo,
@@ -52,7 +54,8 @@ public class AgentLifecycleService
         IOptions<RabbitMqOptions> mqOptions,
         ILogger<AgentLifecycleService> logger,
         IUserCredentialRepository? credentialRepo = null,
-        IEncryptionService? encryptionService = null)
+        IEncryptionService? encryptionService = null,
+        AgentTokenService? tokenService = null)
     {
         _sessionRepo = sessionRepo;
         _eventRepo = eventRepo;
@@ -64,6 +67,7 @@ public class AgentLifecycleService
         _logger = logger;
         _credentialRepo = credentialRepo;
         _encryptionService = encryptionService;
+        _tokenService = tokenService;
     }
 
     /// <summary>
@@ -149,6 +153,22 @@ public class AgentLifecycleService
                     userId.Value, llmProvider, session.Id);
             }
 
+            // Generate agent token and ensure secrets directory exists (T-192)
+            var finalSecretsMountPath = secretsMountPath ?? string.Empty;
+            if (_tokenService is not null)
+            {
+                var agentToken = _tokenService.GenerateAgentToken(session.Id, projectId, agentRole);
+                var tokenDir = secretsMountPath;
+                if (string.IsNullOrEmpty(tokenDir))
+                {
+                    tokenDir = Path.Combine(Path.GetTempPath(), $"stewie-secrets-{session.Id:N}");
+                    Directory.CreateDirectory(tokenDir);
+                }
+                await File.WriteAllTextAsync(Path.Combine(tokenDir, "agent_token"), agentToken);
+                finalSecretsMountPath = tokenDir;
+                _logger.LogInformation("Agent token written to secrets directory for session {SessionId}", session.Id);
+            }
+
             // Build launch request
             var request = new AgentLaunchRequest
             {
@@ -165,7 +185,7 @@ public class AgentLifecycleService
                 CommandQueueName = $"agent.{session.Id}.commands",
                 LlmProvider = llmProvider ?? string.Empty,
                 ModelName = modelName ?? string.Empty,
-                SecretsMountPath = secretsMountPath ?? string.Empty
+                SecretsMountPath = finalSecretsMountPath
             };
 
             // Delegate to runtime

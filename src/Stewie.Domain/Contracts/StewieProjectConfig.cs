@@ -38,6 +38,27 @@ public class StewieProjectConfig
     /// <summary>Path restrictions for workers. Optional.</summary>
     [JsonPropertyName("paths")]
     public PathConfig? Paths { get; set; }
+
+    /// <summary>
+    /// Architect operating mode: "plan_first" (default) or "auto_execute".
+    /// REF: JOB-022 T-197
+    /// </summary>
+    [JsonPropertyName("architectMode")]
+    public string ArchitectMode { get; set; } = "plan_first";
+
+    /// <summary>
+    /// Default agent runtime to use for Dev/Tester agents: "opencode", "stub", etc.
+    /// REF: JOB-022 T-197
+    /// </summary>
+    [JsonPropertyName("defaultRuntime")]
+    public string DefaultRuntime { get; set; } = "opencode";
+
+    /// <summary>
+    /// Default LLM model identifier: "google/gemini-2.0-flash", etc.
+    /// REF: JOB-022 T-197
+    /// </summary>
+    [JsonPropertyName("defaultModel")]
+    public string DefaultModel { get; set; } = "google/gemini-2.0-flash";
 }
 
 /// <summary>
