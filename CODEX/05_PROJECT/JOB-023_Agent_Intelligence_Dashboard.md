@@ -2,7 +2,7 @@
 id: JOB-023
 title: "Job 023 — Agent Intelligence Dashboard + End-to-End"
 type: how-to
-status: OPEN
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, job, workflow, phase-6, dashboard, frontend, e2e]

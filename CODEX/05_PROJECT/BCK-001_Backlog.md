@@ -273,18 +273,18 @@ version: 1.3.0
 | B-718 | Architect Dockerfile | Extends opencode-agent with Architect scripts | P1 | ✅ Done |
 | B-719 | Integration tests | Mock LLM end-to-end Architect loop | P1 | ✅ Done |
 
-### JOB-023 — Agent Intelligence Dashboard + E2E ⬜ OPEN
+### JOB-023 — Agent Intelligence Dashboard + E2E ✅ CLOSED
 
 | ID | Task | Description | Priority | Status |
 |:---|:-----|:------------|:---------|:-------|
-| B-720 | ~~Model/provider selector~~ | ✅ Done (JOB-023 T-200) — Dropdown on ArchitectControls for runtime + model | P1 | Done |
-| B-721 | ~~Provider key management UI~~ | ✅ Done (JOB-023 T-201) — Settings page section for LLM API keys | P1 | Done |
-| B-722 | Provider key API endpoints | CRUD for LLM provider credentials | P1 | Open |
-| B-723 | Plan approval UI | Approve/reject buttons on plan proposals in ChatPanel | P1 | Open |
-| B-724 | ~~Conversation context panel~~ | ✅ Done (JOB-023 T-204) — Shows Architect context window state | P2 | Done |
-| B-725 | CON-002 v1.9.0 | Document new endpoints | P1 | Open |
-| B-726 | End-to-end smoke test | Full autonomous loop validation + RUN-003 runbook | P1 | Open |
-| B-727 | ~~Update PRJ-001 roadmap~~ | ✅ Done (JOB-023 T-207) — Mark Phase 6 complete | P2 | Done |
+| B-720 | Model/provider selector | Dropdown on ArchitectControls for runtime + model | P1 | ✅ Done |
+| B-721 | Provider key management UI | Settings page section for LLM API keys | P1 | ✅ Done |
+| B-722 | Provider key API endpoints | CRUD for LLM provider credentials | P1 | ✅ Done |
+| B-723 | Plan approval UI | Approve/reject buttons on plan proposals in ChatPanel | P1 | ✅ Done |
+| B-724 | Conversation context panel | Shows Architect context window state | P2 | ✅ Done |
+| B-725 | CON-002 v1.9.0 | Document new endpoints | P1 | ✅ Done |
+| B-726 | End-to-end smoke test | Full autonomous loop validation + RUN-003 runbook | P1 | ✅ Done |
+| B-727 | Update PRJ-001 roadmap | Mark Phase 6 complete | P2 | ✅ Done |
 
 ---
 

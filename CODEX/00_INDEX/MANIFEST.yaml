@@ -406,7 +406,7 @@ documents:
     path: 05_PROJECT/JOB-023_Agent_Intelligence_Dashboard.md
     title: "Job 023 — Agent Intelligence Dashboard + E2E"
     type: how-to
-    status: OPEN
+    status: CLOSED
     tags: [project-management, job, workflow, phase-6, dashboard, frontend, e2e]
     agents: [coder]
     summary: >
@@ -995,6 +995,18 @@ documents:
       Audit report for JOB-022 (Architect Agent Loop). 239 tests pass
       (10 new). Architect main loop, API client, context builder, job
       parser, agent tokens, CON-004 v1.1.0. Verdict: PASS.
+
+  - id: VER-023
+    path: 40_VERIFICATION/VER-023_JOB-023_Audit.md
+    title: "JOB-023 Audit — Agent Intelligence Dashboard + E2E"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, phase-6, dashboard, frontend, e2e]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-023 (Dashboard + E2E). 247 tests pass (8 new).
+      Model/provider selector, key management, context panel, credential
+      CRUD, CON-002 v1.9.0, RUN-003 runbook. Verdict: PASS.
 
   # ---- 60_EVOLUTION ----
   - id: EVO-001
