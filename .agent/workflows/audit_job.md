@@ -139,34 +139,22 @@ For each failure found:
 
 ---
 
-## Step 10: Housekeeping (PASS only)
-
-If the audit **passed**, update all project-level documents before committing:
-
-### README.md
-- [ ] Test count matches actual (`dotnet test` / `npm test` output)
-- [ ] Architecture diagram reflects current capabilities
-- [ ] API table includes any new/changed endpoints
-- [ ] Configuration table includes any new settings
-- [ ] Contract versions match current (`CON-NNN` frontmatter)
-- [ ] Roadmap table reflects current phase status
-
-### BCK-001 Backlog
-- [ ] All tasks delivered in this job are marked `✅ Done`
-- [ ] Phase section header marked `✅ COMPLETE` if all items in phase are done
-- [ ] Future backlog updated if any items were pulled forward or new items emerged
-
-### PRJ-001 Roadmap
-- [ ] Current phase exit criteria checked off
-- [ ] Phase marked `✅ COMPLETE` with completion date if all criteria met
-
-### MANIFEST.yaml — Full Sync Check (MANDATORY)
+## Step 10: Housekeeping (PASS only) — BLOCKING
 
 > [!CAUTION]
-> Do NOT skip this. Run all three checks. Drift accumulates silently.
+> This step is **BLOCKING**. Every sub-section must pass before you commit.
+> Each sub-section has automated checks that MUST be run. The manual items
+> are listed alongside them. Do NOT skip to the commit without running every
+> script and verifying every checkbox.
+>
+> **If any check fails, FIX IT before committing. No exceptions.**
+
+---
+
+### 10.1 MANIFEST.yaml — Full Sync (automated)
 
 // turbo
-**1. Orphan detection** — docs on disk but NOT registered in MANIFEST:
+**Orphan detection** — docs on disk but NOT registered in MANIFEST:
 ```bash
 echo "=== Orphan Check (on-disk but not in MANIFEST) ==="
 ORPHANS=0
@@ -181,7 +169,7 @@ done
 ```
 
 // turbo
-**2. Phantom detection** — entries in MANIFEST pointing to files that don't exist:
+**Phantom detection** — entries in MANIFEST pointing to files that don't exist:
 ```bash
 echo "=== Phantom Check (in MANIFEST but not on disk) ==="
 PHANTOMS=0
@@ -195,7 +183,7 @@ done
 ```
 
 // turbo
-**3. ID collision detection** — duplicate document IDs in MANIFEST:
+**ID collision detection** — duplicate document IDs in MANIFEST:
 ```bash
 echo "=== ID Collision Check ==="
 DUPES=$(grep '^\s*- id:' CODEX/00_INDEX/MANIFEST.yaml | sed 's/.*id: //' | sort | uniq -d)
@@ -207,33 +195,127 @@ else
 fi
 ```
 
-// turbo
-**4. Frontmatter ID vs filename consistency** — the `id:` in each file's frontmatter should match the filename prefix:
-```bash
-echo "=== Frontmatter ID vs Filename Check ==="
-MISMATCHES=0
-for f in $(find CODEX -name '*.md' -not -path '*_templates*' -not -path '*/README.md' -not -path '*90_ARCHIVE*' -not -name 'SESSION_HANDOFF*' | sort); do
-  FILE_PREFIX=$(basename "$f" .md | sed 's/_.*//')
-  FRONTMATTER_ID=$(head -20 "$f" | grep '^id:' | sed 's/id: *//' | tr -d '"' | head -1)
-  if [ -n "$FRONTMATTER_ID" ] && [ "$FILE_PREFIX" != "$FRONTMATTER_ID" ]; then
-    echo "  ❌ MISMATCH: $f (file=$FILE_PREFIX, frontmatter=$FRONTMATTER_ID)"
-    MISMATCHES=$((MISMATCHES + 1))
-  fi
-done
-[ "$MISMATCHES" -eq 0 ] && echo "  ✅ All IDs match" || echo "  ⚠️  $MISMATCHES mismatch(es) — fix frontmatter or rename files"
-```
-
-**Manual checks:**
-- [ ] Job status updated (ACTIVE → CLOSED) in MANIFEST entry
+**Manual MANIFEST checks:**
+- [ ] Audited job status updated (ACTIVE → CLOSED) in MANIFEST entry
 - [ ] VER-NNN audit report entry added to MANIFEST
 - [ ] Any new CON-NNN, BLU-NNN, DEF-NNN, or EVO-NNN documents registered
-- [ ] MANIFEST summaries for PRJ-001 and BCK-001 still accurate (not stale)
-- [ ] GOV-003 summary updated if new sections were added (e.g., §8.10)
+- [ ] MANIFEST summaries still accurate
 
-### SESSION_HANDOFF.md
-- [ ] Updated with current state, completed phases, and next phase context
+---
+
+### 10.2 Contract Versions — Cross-Check (automated)
+
+// turbo
+**Verify PRJ-001 contract table matches actual contract frontmatter:**
+```bash
+echo "=== Contract Version Cross-Check ==="
+ERRORS=0
+for con in CODEX/20_BLUEPRINTS/CON-*.md; do
+  CON_ID=$(head -20 "$con" | grep '^id:' | sed 's/id: *//' | tr -d '"')
+  CON_VER=$(head -20 "$con" | grep '^version:' | sed 's/version: *//' | tr -d '"')
+  if [ -n "$CON_ID" ] && [ -n "$CON_VER" ]; then
+    # Only check the Key Contracts table (lines starting with "| `CON-")
+    PRJ_VER=$(grep "^| \`$CON_ID\`" CODEX/05_PROJECT/PRJ-001_Roadmap.md | grep -o 'v[0-9.]*' | head -1)
+    README_VER=$(grep "$CON_ID" CODEX/00_INDEX/README.md | grep -o 'v[0-9.]*' | head -1)
+    if [ -n "$PRJ_VER" ] && [ "$PRJ_VER" != "v$CON_VER" ]; then
+      echo "  ❌ $CON_ID: Roadmap says $PRJ_VER, actual is v$CON_VER"
+      ERRORS=$((ERRORS + 1))
+    fi
+    if [ -n "$README_VER" ] && [ "$README_VER" != "v$CON_VER" ]; then
+      echo "  ❌ $CON_ID: README says $README_VER, actual is v$CON_VER"
+      ERRORS=$((ERRORS + 1))
+    fi
+  fi
+done
+[ "$ERRORS" -eq 0 ] && echo "  ✅ All contract versions consistent" || echo "  ⚠️  $ERRORS version mismatch(es) — fix PRJ-001 and/or README"
+```
+
+---
+
+### 10.3 Test Count Accuracy (automated)
+
+// turbo
+**Verify test counts in SESSION_HANDOFF match actual:**
+```bash
+echo "=== Test Count Accuracy ==="
+ACTUAL_TESTS=$(dotnet test src/Stewie.Tests/Stewie.Tests.csproj --verbosity quiet 2>&1 | grep -oP 'Passed:\s+\K\d+')
+HANDOFF_TESTS=$(grep -oP 'Passed.*?(\d+)' CODEX/05_PROJECT/SESSION_HANDOFF.md 2>/dev/null | grep -oP '\d+' | tail -1)
+echo "  Actual: $ACTUAL_TESTS passed"
+echo "  SESSION_HANDOFF reports: $HANDOFF_TESTS"
+if [ "$ACTUAL_TESTS" = "$HANDOFF_TESTS" ]; then
+  echo "  ✅ Match"
+else
+  echo "  ⚠️  Mismatch — update SESSION_HANDOFF"
+fi
+```
+
+---
+
+### 10.4 Roadmap Phase State (manual but MANDATORY)
+
+> [!IMPORTANT]
+> Read PRJ-001_Roadmap.md and verify EACH of these. If any is wrong, fix it NOW.
+
+- [ ] Current phase exit criteria checked off (all `[x]` or `[ ]` accurate)
+- [ ] Phase marked `✅ COMPLETE` with completion date if all criteria met
+- [ ] Next phase labeled correctly (Future/Active)
+- [ ] Changelog updated with a new version entry describing what changed
+
+---
+
+### 10.5 README (manual but MANDATORY)
+
+> [!IMPORTANT]
+> Open CODEX/00_INDEX/README.md and verify EACH of these. If any is stale, fix it NOW.
+
+- [ ] All document sections populated (no empty "add docs when project grows" placeholders)
+- [ ] All CON-NNN listed with correct versions
+- [ ] All GOV-NNN listed
+- [ ] All RUN-NNN listed
+- [ ] DEFECTS, EVOLUTION, RESEARCH sections current
+- [ ] Job count accurate
+- [ ] No emoji in titles or content
+
+---
+
+### 10.6 BCK-001 Backlog
+
+- [ ] All tasks delivered in this job marked `✅ Done`
+- [ ] Phase section header marked `✅ COMPLETE` if all items in phase are done
+- [ ] Future backlog updated if any items were pulled forward or new items emerged
+
+---
+
+### 10.7 SESSION_HANDOFF.md
+
+- [ ] Updated with current commit hash
+- [ ] Current phase status accurate
+- [ ] Test baseline updated
+- [ ] Next steps reflect actual state
+
+---
+
+### 10.8 BLOCKING GATE — Final Confirmation
+
+> [!CAUTION]
+> Before committing, explicitly confirm each section passed.
+> Copy this checklist into your response and mark each one.
+
+```
+HOUSEKEEPING GATE:
+- [ ] 10.1 MANIFEST sync — PASS
+- [ ] 10.2 Contract versions — PASS
+- [ ] 10.3 Test count — PASS
+- [ ] 10.4 Roadmap phase state — PASS
+- [ ] 10.5 README accuracy — PASS
+- [ ] 10.6 Backlog updated — PASS
+- [ ] 10.7 SESSION_HANDOFF updated — PASS
+```
+
+**Only proceed to commit after ALL items above are checked.**
 
 ### Commit
+
 Commit all housekeeping changes in a single commit:
 ```
 docs: housekeeping — update manifest and JOB-NNN closure
@@ -249,4 +331,6 @@ docs: housekeeping — update manifest and JOB-NNN closure
 | Build checks only | Run Step 3 |
 | Governance checks only | Run Step 4 |
 | Housekeeping only | Run Step 10 |
+| CODEX full lint | `/manage_documents` |
+
 

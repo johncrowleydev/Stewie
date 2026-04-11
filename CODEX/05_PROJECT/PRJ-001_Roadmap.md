@@ -269,9 +269,24 @@ Phases are **scope-bounded**, not time-bounded.
 
 ---
 
-### Phase 7: Production Hardening (Future)
+### Phase 7: UI/UX Refinements ✅ COMPLETE
+**Goal:** Polish the dashboard: remove unprofessional elements, modernize layout, add admin controls.
+**Completed:** 2026-04-11 (JOB-024, JOB-025, JOB-026)
+**Exit criteria:**
+- [x] Replace all emoji with flat SVG icons (JOB-024)
+- [x] Delete deprecated ConversationContextPanel (JOB-024)
+- [x] Chat slideover with pin-to-sidebar and localStorage persistence (JOB-025)
+- [x] GitHub repo combobox with feature gating (JOB-025)
+- [x] Admin invite code generation/revocation UI (JOB-026)
+- [x] Admin user list/deletion UI (JOB-026)
+- [x] Dark mode outline buttons, anchor hover fix (hotfix)
+
+---
+
+### Phase 8: Production Hardening (Future)
 **Goal:** Harden the platform for real-world usage.
 **Exit criteria:**
+- [ ] Reusable UI component library (Button, Card, Input, Badge)
 - [ ] Multi-repo orchestration
 - [ ] Aider + Claude Code agent runtimes
 - [ ] GitLab and Bitbucket providers
@@ -296,10 +311,10 @@ Phases are **scope-bounded**, not time-bounded.
 
 | Contract | Description | Status |
 |:---------|:------------|:-------|
-| `CON-001` | Runtime Contract (task.json / result.json) | `DRAFT` — v1.5.0 |
-| `CON-002` | API Contract (HTTP endpoints) | `DRAFT` — v1.9.0 |
+| `CON-001` | Runtime Contract (task.json / result.json) | `DRAFT` — v1.6.0 |
+| `CON-002` | API Contract (HTTP endpoints) | `DRAFT` — v2.0.0 |
 | `CON-003` | Project Configuration (stewie.json) | `DRAFT` — v1.1.0 |
-| `CON-004` | Agent Messaging Contract (RabbitMQ) | `DRAFT` — v1.0.0 |
+| `CON-004` | Agent Messaging Contract (RabbitMQ) | `DRAFT` — v1.1.0 |
 
 ---
 
@@ -339,3 +354,4 @@ This project is complete when:
 | 2026-04-09 | 1.0.0 | Initial roadmap from constitution v0.1 | Architect (drafted), Human (approved) |
 | 2026-04-10 | 2.0.0 | Major rewrite — clarified end-state vision (chat-driven, LLM-powered agents, RabbitMQ message bus, IAgentRuntime). Split Phase 5 into 5a/5b/6. Updated agent team, contracts, system shape, success criteria. | Human + Architect |
 | 2026-04-11 | 3.0.0 | Phase 6 marked COMPLETE. Added Phase 7 placeholder. Updated contracts to current versions. | Architect |
+| 2026-04-11 | 4.0.0 | Phase 7 (UI/UX Refinements) marked COMPLETE. Production Hardening renamed to Phase 8. CON-002 updated to v2.0.0. Component library added to Phase 8 exit criteria. Full CODEX housekeeping pass. | Architect |
