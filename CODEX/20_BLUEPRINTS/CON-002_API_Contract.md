@@ -9,7 +9,7 @@ tags: [standards, specification, project-management, governance]
 related: [BLU-001, CON-001, GOV-004]
 created: 2026-04-09
 updated: 2026-04-11
-version: 1.9.0
+version: 1.10.0
 ---
 
 > **BLUF:** This contract defines the HTTP API surface of Stewie.Api. All frontend and external consumers MUST conform to these routes, request/response shapes, and error formats. No deviation without Human approval.
@@ -46,7 +46,7 @@ version: 1.9.0
 
 | Field | Value |
 |:------|:------|
-| Contract version | `1.9.0` |
+| Contract version | `1.10.0` |
 | Stability | `EXPERIMENTAL` |
 | Base URL | `http://localhost:5275` |
 | Content-Type | `application/json` |
@@ -454,6 +454,7 @@ Alternatively, create a multi-task DAG job by providing a `tasks` array instead 
 
 ### 4.10 Architect Context (v1.9.0)
 
+
 | Method | Path | Description |
 |:-------|:-----|:------------|
 | `GET` | `/api/agents/project/{projectId}/context` | Get Architect context summary for a project |
@@ -476,6 +477,48 @@ Alternatively, create a multi-task DAG job by providing a `tasks` array instead 
 |:-------|:---------|
 | 200 | Context summary returned (empty/zeroed if no active Architect) |
 | 404 | Project not found |
+
+---
+
+### 4.11 GitHub Repos (v1.10.0)
+
+| Method | Path | Description |
+|:-------|:-----|:------------|
+| `GET` | `/api/github/repos?q={searchTerm}` | Search the authenticated user's GitHub repositories |
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|:----------|:-----|:---------|:------------|
+| `q` | `string` | No | Search term. When omitted, returns 30 most recently updated repos. |
+
+**Response (200 OK):**
+
+```json
+[
+  {
+    "name": "my-repo",
+    "fullName": "octocat/my-repo",
+    "htmlUrl": "https://github.com/octocat/my-repo",
+    "isPrivate": false
+  }
+]
+```
+
+| Field | Type | Description |
+|:------|:-----|:------------|
+| `name` | `string` | Repository short name |
+| `fullName` | `string` | Full name including owner (e.g., `"octocat/my-repo"`) |
+| `htmlUrl` | `string` | Browser URL for the repository |
+| `isPrivate` | `boolean` | Whether the repository is private |
+
+| Status | Condition |
+|:-------|:---------|
+| 200 | Repos returned |
+| 401 | Not authenticated, or no GitHub PAT configured |
+| 502 | GitHub API unavailable or returned error |
+
+> **Business rules:** When `q` is provided, proxies to GitHub's Search API: `GET /search/repositories?q={q}+user:{username}&per_page=30&sort=updated`. When `q` is omitted, falls back to `GET /user/repos?per_page=30&sort=updated` for a fast initial list. The authenticated user's login is resolved via `GET /user` and used as the `user:` search qualifier. GitHub rate-limits search to 30 requests/min per authenticated PAT — the frontend debounces at 400ms to stay well within this limit. Returns `NO_GITHUB_PAT` error code when no PAT is configured.
 
 ---
 

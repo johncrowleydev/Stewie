@@ -10,7 +10,7 @@ import type {
   Job, Project, CreateProjectRequest, CreateJobRequest,
   ApiError, Event, LoginRequest, RegisterRequest, AuthResponse, GitHubStatus,
   GovernanceReport, GovernanceAnalytics, ChatMessage, ChatMessagesResponse, ContainerOutputResponse,
-  AgentSession, ArchitectStatus, Credential
+  AgentSession, ArchitectStatus, Credential, GitHubRepo
 } from "../types";
 
 /** Base URL is proxied via Vite config — no absolute URL needed. */
@@ -340,5 +340,13 @@ export async function deleteCredential(id: string): Promise<void> {
   await requestVoid(`/api/settings/credentials/${encodeURIComponent(id)}`, {
     method: "DELETE",
   });
+}
+
+// --- GitHub Repos endpoint (JOB-025 T-304) ---
+
+/** Search user's GitHub repos — GET /api/github/repos?q={query} */
+export async function fetchGitHubRepos(query?: string): Promise<GitHubRepo[]> {
+  const params = query ? `?q=${encodeURIComponent(query)}` : "";
+  return request<GitHubRepo[]>(`/api/github/repos${params}`);
 }
 

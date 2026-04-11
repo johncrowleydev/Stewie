@@ -3770,3 +3770,327 @@ textarea.form-input {
     gap: var(--space-sm);
   }
 }
+
+
+/* ===================================================================
+   Chat Slideover — JOB-025 T-300
+   Right-side panel with slideover/pinned modes.
+   =================================================================== */
+
+/* Slideover backdrop */
+.chat-slideover-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 299;
+  animation: overlay-fade-in 200ms ease;
+}
+
+/* Panel base — shared between modes */
+.chat-slideover {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Slideover mode — overlay, fixed width, slide-in animation */
+.chat-slideover--slideover {
+  width: 440px;
+  max-width: 100vw;
+  animation: chat-slide-in 200ms ease-out;
+}
+
+@keyframes chat-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Pinned mode — no animation, just present */
+.chat-slideover--pinned {
+  box-shadow: none;
+  border-left: 1px solid var(--color-border);
+}
+
+/* Prevent text selection during resize */
+.chat-slideover--resizing {
+  user-select: none;
+}
+
+/* Resize drag handle (pinned mode) */
+.chat-slideover-resize {
+  position: absolute;
+  top: 0;
+  left: -3px;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 301;
+  transition: background var(--transition-fast);
+}
+
+.chat-slideover-resize:hover,
+.chat-slideover--resizing .chat-slideover-resize {
+  background: var(--color-primary);
+  opacity: 0.5;
+}
+
+/* Header */
+.chat-slideover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+  min-height: 52px;
+}
+
+.chat-slideover-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-weight: 600;
+  font-size: var(--font-size-md);
+}
+
+.chat-slideover-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.chat-slideover-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.chat-slideover-btn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+  border-color: var(--color-border-hover);
+}
+
+.chat-slideover-btn.active {
+  background: var(--color-primary-muted);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* Body — fills remaining space, wraps ChatPanel */
+.chat-slideover-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Override ChatPanel styles when inside slideover */
+.chat-slideover-body .chat-panel {
+  height: 100%;
+  max-height: none;
+  border: none;
+  border-radius: 0;
+}
+
+/* Mobile: fullscreen slideover */
+@media (max-width: 768px) {
+  .chat-slideover--slideover {
+    width: 100vw;
+  }
+}
+
+
+/* ===================================================================
+   Floating Chat Trigger FAB — JOB-025 T-301
+   Bottom-right floating button to open the chat slideover.
+   =================================================================== */
+
+.chat-trigger-fab {
+  position: fixed;
+  bottom: var(--space-xl);
+  right: var(--space-xl);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  transition: all var(--transition-fast);
+  animation: fab-appear 200ms ease-out;
+}
+
+.chat-trigger-fab:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(111, 172, 80, 0.3);
+}
+
+@keyframes fab-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.chat-trigger-label {
+  font-size: var(--font-size-sm);
+}
+
+/* Green dot when architect is online */
+.chat-trigger-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  animation: architect-pulse 1.5s ease-in-out infinite;
+}
+
+
+/* ===================================================================
+   Repo Combobox — JOB-025 T-303
+   Searchable GitHub repository dropdown picker.
+   =================================================================== */
+
+.repo-combobox {
+  position: relative;
+}
+
+.repo-combobox-input-wrapper {
+  position: relative;
+}
+
+.repo-combobox-spinner {
+  position: absolute;
+  right: var(--space-sm);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: architect-spin 0.6s linear infinite;
+}
+
+.repo-combobox-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  list-style: none;
+  z-index: 50;
+  animation: dropdown-appear 150ms ease;
+}
+
+.repo-combobox-item {
+  padding: var(--space-sm) var(--space-md);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.repo-combobox-item:last-child {
+  border-bottom: none;
+}
+
+.repo-combobox-item:hover {
+  background: var(--color-surface-hover);
+}
+
+.repo-combobox-item.selected {
+  background: var(--color-primary-muted);
+}
+
+.repo-combobox-item-name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.repo-combobox-name {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.repo-combobox-private-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(245, 166, 35, 0.12);
+  color: var(--color-warning);
+}
+
+.repo-combobox-fullname {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.repo-combobox-empty {
+  padding: var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.repo-combobox-error {
+  margin-bottom: var(--space-sm);
+}
+
+/* Mode toggle hint — shown when GitHub is not connected */
+.mode-toggle-hint {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-warning);
+  margin-left: var(--space-xs);
+}
+
+.mode-toggle-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+

@@ -36,6 +36,7 @@ var encryptionKey = builder.Configuration["Stewie:EncryptionKey"]
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
+builder.Services.AddHttpClient();
 
 // RabbitMQ configuration — JOB-016 T-155
 builder.Services.Configure<RabbitMqOptions>(

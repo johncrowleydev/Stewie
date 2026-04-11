@@ -260,4 +260,12 @@ export interface AddCredentialRequest {
   value: string;
 }
 
+/** GitHub repository from GET /api/github/repos — CON-002 v1.10.0 (JOB-025 T-304) */
+export interface GitHubRepo {
+  name: string;
+  fullName: string;
+  htmlUrl: string;
+  isPrivate: boolean;
+}
+
 

@@ -5,11 +5,18 @@
  * Two creation modes:
  *   - "Link Existing Repository" (default): requires name + repoUrl
  *   - "Create New Repository": requires name + repoName, optionally description + isPrivate
+ *     (disabled when no GitHub token is configured — T-302)
+ *
+ * When GitHub is connected, "Link Existing" mode shows a RepoCombobox for
+ * searchable repo selection (T-303).
+ *
+ * REF: JOB-025 T-302, T-303
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchProjects, createProject } from "../api/client";
-import type { Project, CreateProjectRequest } from "../types";
+import { fetchProjects, createProject, getGitHubStatus } from "../api/client";
+import { RepoCombobox } from "../components/RepoCombobox";
+import type { Project, CreateProjectRequest, GitHubStatus } from "../types";
 
 /** Possible creation modes */
 type CreationMode = "link" | "create";
@@ -45,6 +52,9 @@ export function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // GitHub connection status for feature gating
+  const [gitHubStatus, setGitHubStatus] = useState<GitHubStatus | null>(null);
+
   // Form state
   const [showForm, setShowForm] = useState(false);
   const [creationMode, setCreationMode] = useState<CreationMode>("link");
@@ -70,9 +80,23 @@ export function ProjectsPage() {
     }
   }
 
+  /** Load GitHub connection status for feature gating */
+  const loadGitHubStatus = useCallback(async () => {
+    try {
+      const status = await getGitHubStatus();
+      setGitHubStatus(status);
+    } catch {
+      // Non-critical — treat as disconnected
+      setGitHubStatus({ connected: false, username: null });
+    }
+  }, []);
+
   useEffect(() => {
     void loadProjects();
-  }, []);
+    void loadGitHubStatus();
+  }, [loadGitHubStatus]);
+
+  const isGitHubConnected = gitHubStatus?.connected ?? false;
 
   /** Reset form fields when toggling modes or closing */
   function resetForm() {
@@ -140,6 +164,11 @@ export function ProjectsPage() {
       setSubmitting(false);
     }
   }
+
+  /** Called when RepoCombobox selects a repo */
+  const handleRepoSelect = useCallback((repoUrl: string) => {
+    setFormRepoUrl(repoUrl);
+  }, []);
 
   /** Format an ISO date string to a readable date */
   function formatDate(dateStr: string): string {
@@ -215,12 +244,21 @@ export function ProjectsPage() {
             </button>
             <button
               type="button"
-              className={`mode-toggle-btn ${creationMode === "create" ? "active" : ""}`}
-              onClick={() => { setCreationMode("create"); setFormError(null); }}
+              className={`mode-toggle-btn ${creationMode === "create" ? "active" : ""} ${!isGitHubConnected ? "disabled" : ""}`}
+              onClick={() => {
+                if (!isGitHubConnected) return;
+                setCreationMode("create");
+                setFormError(null);
+              }}
+              disabled={!isGitHubConnected}
               id="mode-create"
+              title={!isGitHubConnected ? "Connect GitHub in Settings to create repos" : ""}
             >
               
               Create New Repository
+              {!isGitHubConnected && (
+                <span className="mode-toggle-hint">No GitHub</span>
+              )}
             </button>
           </div>
 
@@ -242,16 +280,45 @@ export function ProjectsPage() {
           {creationMode === "link" && (
             <div className="form-group">
               <label className="form-label" htmlFor="project-repo-url">Repository URL</label>
-              <input
-                className="form-input"
-                id="project-repo-url"
-                type="text"
-                placeholder="https://github.com/org/repo"
-                value={formRepoUrl}
-                onChange={(e) => setFormRepoUrl(e.target.value)}
-                disabled={submitting}
-              />
-              <div className="form-hint">Paste the full URL of an existing repository.</div>
+              {isGitHubConnected ? (
+                <>
+                  <RepoCombobox
+                    onSelect={handleRepoSelect}
+                    disabled={submitting}
+                  />
+                  {formRepoUrl && (
+                    <div className="form-hint" style={{ color: "var(--color-completed)" }}>
+                      Selected: {formRepoUrl}
+                    </div>
+                  )}
+                  <div className="form-hint">
+                    Select from your repos or paste a URL below.
+                  </div>
+                  <input
+                    className="form-input"
+                    id="project-repo-url"
+                    type="text"
+                    placeholder="Or paste URL manually…"
+                    value={formRepoUrl}
+                    onChange={(e) => setFormRepoUrl(e.target.value)}
+                    disabled={submitting}
+                    style={{ marginTop: "var(--space-sm)" }}
+                  />
+                </>
+              ) : (
+                <>
+                  <input
+                    className="form-input"
+                    id="project-repo-url"
+                    type="text"
+                    placeholder="https://github.com/org/repo"
+                    value={formRepoUrl}
+                    onChange={(e) => setFormRepoUrl(e.target.value)}
+                    disabled={submitting}
+                  />
+                  <div className="form-hint">Paste the full URL of an existing repository.</div>
+                </>
+              )}
             </div>
           )}
 
