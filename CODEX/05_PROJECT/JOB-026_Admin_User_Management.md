@@ -2,7 +2,7 @@
 id: JOB-026
 title: "Job 026 — Admin User Management + Invite UI"
 type: how-to
-status: OPEN
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, job, workflow, phase-7, admin, users, invites, frontend, backend]

@@ -418,7 +418,7 @@ documents:
     path: 05_PROJECT/JOB-025_Chat_Slideover_GitHub.md
     title: "Job 025 — Chat Slideover + GitHub Repo Picker"
     type: how-to
-    status: OPEN
+    status: CLOSED
     tags: [project-management, job, workflow, phase-7, chat, github, frontend, backend]
     agents: [coder]
     summary: >
@@ -430,7 +430,7 @@ documents:
     path: 05_PROJECT/JOB-026_Admin_User_Management.md
     title: "Job 026 — Admin User Management + Invite UI"
     type: how-to
-    status: OPEN
+    status: CLOSED
     tags: [project-management, job, workflow, phase-7, admin, users, invites, frontend, backend]
     agents: [coder]
     summary: >
@@ -1031,6 +1031,18 @@ documents:
       Audit report for JOB-023 (Dashboard + E2E). 247 tests pass (8 new).
       Model/provider selector, key management, context panel, credential
       CRUD, CON-002 v1.9.0, RUN-003 runbook. Verdict: PASS.
+
+  - id: VER-025-026
+    path: 40_VERIFICATION/VER-025-026_JOB-025_026_Audit.md
+    title: "JOB-025 + JOB-026 Joint Audit — Phase 7"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, phase-7, chat, github, admin, users, invites]
+    agents: [architect]
+    summary: >
+      Joint audit for Phase 7 parallel jobs. 260 tests pass (13 new).
+      Chat slideover, GitHub repo picker, admin user/invite management.
+      Merge conflict resolution documented. Verdict: PASS.
 
   # ---- 60_EVOLUTION ----
   - id: EVO-001

@@ -288,31 +288,31 @@ version: 1.3.0
 
 ---
 
-### JOB-025 — Chat Slideover + GitHub Repo Picker ⬜ OPEN
+### JOB-025 — Chat Slideover + GitHub Repo Picker ✅ CLOSED
 
 | ID | Task | Description | Priority | Status |
 |:---|:-----|:------------|:---------|:-------|
-| B-730 | Chat slideover component | Right-side slideover wrapping ChatPanel | P1 | Open |
-| B-731 | Pin-to-sidebar toggle | Switch between overlay and fixed sidebar, persist to localStorage | P1 | Open |
-| B-732 | Resizable pinned sidebar | Drag handle for sidebar width, persist width | P2 | Open |
-| B-733 | ProjectDetailPage integration | Replace inline ChatPanel, add floating trigger button | P1 | Open |
-| B-734 | GitHub feature gating | Disable "Create New Repo" when no token configured | P1 | Open |
-| B-735 | GitHub repos endpoint | GET /api/github/repos proxying user PAT | P1 | Open |
-| B-736 | Repo combobox component | Searchable dropdown querying repos API | P1 | Open |
-| B-737 | CON-002 update | Document repos endpoint | P1 | Open |
-| B-738 | Integration tests | Repos endpoint tests with mock HTTP | P1 | Open |
+| B-730 | Chat slideover component | Right-side slideover wrapping ChatPanel | P1 | ✅ Done |
+| B-731 | Pin-to-sidebar toggle | Switch between overlay and fixed sidebar, persist to localStorage | P1 | ✅ Done |
+| B-732 | Resizable pinned sidebar | Drag handle for sidebar width, persist width | P2 | ✅ Done |
+| B-733 | ProjectDetailPage integration | Replace inline ChatPanel, add floating trigger button | P1 | ✅ Done |
+| B-734 | GitHub feature gating | Disable "Create New Repo" when no token configured | P1 | ✅ Done |
+| B-735 | GitHub repos endpoint | GET /api/github/repos proxying user PAT | P1 | ✅ Done |
+| B-736 | Repo combobox component | Searchable dropdown querying repos API | P1 | ✅ Done |
+| B-737 | CON-002 update | Document repos endpoint | P1 | ✅ Done |
+| B-738 | Integration tests | Repos endpoint tests with mock HTTP | P1 | ✅ Done |
 
-### JOB-026 — Admin User Management + Invite UI ⬜ OPEN
+### JOB-026 — Admin User Management + Invite UI ✅ CLOSED
 
 | ID | Task | Description | Priority | Status |
 |:---|:-----|:------------|:---------|:-------|
-| B-740 | Invite generation UI | Generate button + copy-to-clipboard on SettingsPage | P1 | Open |
-| B-741 | Invite list panel | List all codes with created date | P1 | Open |
-| B-742 | Invite revocation | DELETE /api/invites/{id} endpoint + UI button | P1 | Open |
-| B-743 | User list panel | Table of all users (admin-only) | P1 | Open |
-| B-744 | User deletion | DELETE /api/users/{id} endpoint + UI button | P1 | Open |
-| B-745 | CON-002 update | Document invite/user management endpoints | P1 | Open |
-| B-746 | Integration tests | Tests for all new endpoints | P1 | Open |
+| B-740 | Invite generation UI | Generate button + copy-to-clipboard on SettingsPage | P1 | ✅ Done |
+| B-741 | Invite list panel | List all codes with created date | P1 | ✅ Done |
+| B-742 | Invite revocation | DELETE /api/invites/{id} endpoint + UI button | P1 | ✅ Done |
+| B-743 | User list panel | Table of all users (admin-only) | P1 | ✅ Done |
+| B-744 | User deletion | DELETE /api/users/{id} endpoint + UI button | P1 | ✅ Done |
+| B-745 | CON-002 update | Document invite/user management endpoints | P1 | ✅ Done |
+| B-746 | Integration tests | Tests for all new endpoints | P1 | ✅ Done |
 
 ---
 

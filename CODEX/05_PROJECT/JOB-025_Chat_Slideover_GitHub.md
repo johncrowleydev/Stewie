@@ -2,7 +2,7 @@
 id: JOB-025
 title: "Job 025 — Chat Slideover + GitHub Repo Picker"
 type: how-to
-status: OPEN
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, job, workflow, phase-7, chat, github, frontend, backend]
