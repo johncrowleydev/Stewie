@@ -269,9 +269,8 @@ Phases are **scope-bounded**, not time-bounded.
 
 ---
 
-### Phase 7: UI/UX Refinements ✅ COMPLETE
-**Goal:** Polish the dashboard: remove unprofessional elements, modernize layout, add admin controls.
-**Completed:** 2026-04-11 (JOB-024, JOB-025, JOB-026)
+### Phase 7: Design System Foundation 🔄 IN PROGRESS
+**Goal:** Migrate to Tailwind CSS v4, build reusable component library, fix visual bugs, remove dead features.
 **Exit criteria:**
 - [x] Replace all emoji with flat SVG icons (JOB-024)
 - [x] Delete deprecated ConversationContextPanel (JOB-024)
@@ -280,13 +279,41 @@ Phases are **scope-bounded**, not time-bounded.
 - [x] Admin invite code generation/revocation UI (JOB-026)
 - [x] Admin user list/deletion UI (JOB-026)
 - [x] Dark mode outline buttons, anchor hover fix (hotfix)
+- [ ] Tailwind CSS v4 migration with brand tokens and dark mode (JOB-027)
+- [ ] Reusable component library: Button, Card, Input, Badge, Select, DataTable, Dropdown, Modal (JOB-028)
+- [ ] Remove manual job creation, fix visual bugs, responsive audit (JOB-029)
 
 ---
 
-### Phase 8: Production Hardening (Future)
+### Phase 8: App Shell + Role-Based Architecture (Planned)
+**Goal:** Restructure navigation for admin vs. user roles, add project-scoped context with switcher, build admin system dashboard.
+**Exit criteria:**
+- [ ] Route restructuring: `/admin/*`, `/p/:projectId/*`, `/projects`, `/settings` (JOB-030)
+- [ ] ProjectContext provider with localStorage persistence (JOB-030)
+- [ ] Data-driven sidebar config — role → nav items mapping (JOB-031)
+- [ ] Project switcher dropdown in header (JOB-031)
+- [ ] Chat FAB on all project-scoped pages (JOB-031)
+- [ ] Admin System Dashboard: health, agents, stats, activity feed (JOB-032)
+- [ ] User Management extraction from Settings to `/admin/users` (JOB-033)
+- [ ] Settings page cleanup — personal preferences only (JOB-033)
+
+---
+
+### Phase 9: Code Explorer + Premium Polish (Planned)
+**Goal:** Add GitHub-backed code browsing, overhaul events page, premium visual polish pass.
+**Exit criteria:**
+- [ ] File tree browser via GitHub API proxy (JOB-034)
+- [ ] Read-only syntax-highlighted code viewer with Prism (JOB-034)
+- [ ] Events page: structured cards, filtering, project scoping (JOB-035)
+- [ ] Premium visual polish: stat cards, job timeline, micro-animations, empty states (JOB-036)
+- [ ] Full responsive audit at 320px–1920px (JOB-036)
+- [ ] Dark mode comprehensive audit (JOB-036)
+
+---
+
+### Phase 10: Production Hardening (Future)
 **Goal:** Harden the platform for real-world usage.
 **Exit criteria:**
-- [ ] Reusable UI component library (Button, Card, Input, Badge)
 - [ ] Multi-repo orchestration
 - [ ] Aider + Claude Code agent runtimes
 - [ ] GitLab and Bitbucket providers
