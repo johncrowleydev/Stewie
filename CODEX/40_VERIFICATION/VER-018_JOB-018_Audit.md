@@ -1,16 +1,18 @@
 ---
-tags:
-  - verification
-  - audit
-  - job-018
-  - architect
-status: final
-agents:
-  - architect
-references:
-  - CODEX/05_PROJECT/JOB-018
-  - CODEX/20_BLUEPRINTS/CON-004
+id: VER-018
+title: "JOB-018 Audit — Chat Bridge + Architect Lifecycle"
+type: reference
+status: APPROVED
+owner: architect
+agents: [architect]
+tags: [verification, audit, job, phase-5b, chat, architect]
+related: [JOB-018, CON-004, GOV-002]
+created: 2026-04-10
+updated: 2026-04-11
+version: 1.1.0
 ---
+
+> **BLUF:** Audit report for JOB-018 (Chat-to-RabbitMQ Bridge + Architect Lifecycle). 209 tests pass. Backend DI configuration resolved. Frontend CSS @import fixed. Architect start/stop integration with ChatPanel disabled input states verified. Verdict: PASS.
 
 # VER-018: Audit Report for JOB-018
 

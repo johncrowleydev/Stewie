@@ -8,8 +8,8 @@ agents: [all]
 tags: [documentation, standards, naming, frontmatter, templates, governance]
 related: []
 created: 2026-03-04
-updated: 2026-03-13
-version: 2.1.0
+updated: 2026-04-11
+version: 2.2.0
 ---
 
 > **BLUF:** NASA/JPL-grade documentation standard for all projects. All docs must use YAML frontmatter, BLUF-first writing, and follow the Indexed Decimal folder structure. Enforces change control (NPR 7150.2D), peer review gates, requirements traceability (DO-178C §6.4), and formal retention/archival policies. Documentation is a first-class deliverable — not an afterthought.
@@ -124,8 +124,8 @@ Every `.md` file **MUST** begin with this metadata block:
 ---
 id: GOV-001
 title: "Documentation Standard"
-type: reference              # Diátaxis: reference | how-to | tutorial | explanation
-status: DRAFT                # Lifecycle: DRAFT | REVIEW | APPROVED | DEPRECATED
+type: reference              # reference | how-to | tutorial | explanation | planning | contract | evolution
+status: DRAFT                # DRAFT | REVIEW | APPROVED | DEPRECATED | OPEN | CLOSED | ACTIVE | FIXED | PROPOSED
 owner: architect             # Who maintains this doc
 agents: [all]                # Which agent roles should read this: [all], [coder], [tester], etc.
 tags: [documentation, standards]
@@ -142,8 +142,8 @@ version: 1.0.0
 |:------|:-----|:------------|
 | `id` | string | Unique doc ID (`CATEGORY-NNN`) |
 | `title` | string | Human-readable title |
-| `type` | enum | `reference`, `how-to`, `tutorial`, `explanation` |
-| `status` | enum | `DRAFT`, `REVIEW`, `APPROVED`, `DEPRECATED` |
+| `type` | enum | `reference`, `how-to`, `tutorial`, `explanation`, `planning`, `contract`, `evolution` |
+| `status` | enum | `DRAFT`, `REVIEW`, `APPROVED`, `DEPRECATED`, `OPEN`, `CLOSED`, `ACTIVE`, `FIXED`, `PROPOSED` |
 | `owner` | string | Maintainer role or name |
 | `agents` | list | Agent roles that should read this doc |
 | `tags` | list | Searchable keywords |
@@ -165,9 +165,9 @@ This field answers: **"Which AI agent roles should care about this doc?"**
 | `[deployer]` | Deployment agents managing releases |
 | `[architect]` | The orchestrating agentic architect only |
 
-### 3.3 The `type` Field (Diátaxis)
+### 3.3 The `type` Field
 
-Choose the type that matches the doc's purpose:
+The core four types come from the Diátaxis framework. Extended types cover project management artifacts:
 
 | Type | Purpose | Example |
 |:-----|:--------|:--------|
@@ -175,6 +175,25 @@ Choose the type that matches the doc's purpose:
 | `how-to` | Solve a specific problem — step-by-step | Deployment guide, debug runbook |
 | `tutorial` | Learn by doing — guided exercises | "Getting Started" guide |
 | `explanation` | Understand why — concepts and decisions | Architecture explanation, ADR |
+| `planning` | Work tracking — backlogs, jobs, roadmaps | JOB-NNN sprint doc, BCK-NNN backlog |
+| `contract` | Binding interface — how components communicate | CON-NNN contract |
+| `evolution` | Proposed change — feature or process improvement | EVO-NNN proposal |
+
+### 3.4 The `status` Field
+
+Core lifecycle statuses plus extended statuses for work items and defects:
+
+| Status | Meaning | Used By |
+|:-------|:--------|:--------|
+| `DRAFT` | Work in progress, not reviewed | All doc types |
+| `REVIEW` | Ready for peer review | All doc types |
+| `APPROVED` | Reviewed and accepted | GOV, BLU, CON, VER, RUN, AGT |
+| `DEPRECATED` | Superseded or no longer relevant | All doc types |
+| `OPEN` | Available for assignment / active work | JOB, BCK |
+| `CLOSED` | Work completed | JOB, DEF |
+| `ACTIVE` | Currently in use (living document) | BCK, SESSION_HANDOFF, VER |
+| `FIXED` | Defect resolved | DEF |
+| `PROPOSED` | Awaiting approval | EVO |
 
 ---
 

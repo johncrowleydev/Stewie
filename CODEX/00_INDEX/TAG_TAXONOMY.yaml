@@ -12,7 +12,7 @@
 #   4. Group tags by domain for human readability
 # ============================================================================
 
-schema_version: "1.0.0"
+schema_version: "1.1.0"
 
 # ── Lifecycle & Status ────────────────────────────────────────────────────────
 lifecycle:
@@ -81,6 +81,8 @@ development:
     description: "Agentic development lifecycle, sprints, checkpoints, work item tracking"
   - tag: sprint
     description: "Sprint document — discrete unit of agent work with tasks and acceptance criteria"
+  - tag: job
+    description: "Job document — a discrete unit of developer work assigned by the Architect"
   - tag: backlog
     description: "Prioritized product/feature backlog managed by Architect Agent"
   - tag: contract
@@ -95,6 +97,32 @@ development:
     description: "Project-specific agent configuration or documentation"
   - tag: audit
     description: "Sprint audit, compliance audit, governance verification"
+  - tag: phase-1
+    description: "Phase 1 — Foundation MVP"
+  - tag: phase-2
+    description: "Phase 2 — Real Repo Interaction"
+  - tag: phase-3
+    description: "Phase 3 — Governance Engine"
+  - tag: phase-4
+    description: "Phase 4 — Multi-Task DAG"
+  - tag: phase-5a
+    description: "Phase 5a — Chat + Real-Time UI"
+  - tag: phase-5b
+    description: "Phase 5b — Message Bus + Agent Lifecycle"
+  - tag: phase-6
+    description: "Phase 6 — AI Agent Intelligence"
+  - tag: phase-7
+    description: "Phase 7 — Design System Foundation"
+  - tag: phase-8
+    description: "Phase 8 — App Shell + Role-Based Architecture"
+  - tag: phase-9
+    description: "Phase 9 — Code Explorer + Premium Polish"
+  - tag: phase-10
+    description: "Phase 10 — Production Hardening"
+  - tag: handoff
+    description: "Session handoff context for agent continuity"
+  - tag: session-context
+    description: "Session state and context information"
 
 # ── Testing & Verification ────────────────────────────────────────────────────
 testing:
@@ -135,6 +163,8 @@ research:
 defects:
   - tag: bug
     description: "Bug reports, defect documentation"
+  - tag: defect
+    description: "Defect report filed against a job or component"
   - tag: root-cause
     description: "Root cause analysis findings"
   - tag: incident
@@ -165,6 +195,10 @@ agents:
     description: "Agent workflow definitions, task orchestration"
   - tag: prompt-engineering
     description: "System prompts, persona definitions"
+  - tag: boot
+    description: "Agent boot document — project-specific session initialization"
+  - tag: agent
+    description: "Generic agent-related tag"
 
 # ── Training & Education ─────────────────────────────────────────────────────────
 training:
@@ -222,3 +256,78 @@ tools:
     description: "Web application projects, frontend/backend"
   - tag: full-stack
     description: "Full-stack development (frontend + backend + database)"
+
+# ── Stewie Technology ──────────────────────────────────────────────────────────
+stewie-tech:
+  - tag: frontend
+    description: "Frontend/UI/React component work"
+  - tag: backend
+    description: "Backend/API/.NET server-side work"
+  - tag: signalr
+    description: "ASP.NET SignalR WebSocket hub"
+  - tag: real-time
+    description: "Real-time features via WebSocket/polling"
+  - tag: chat
+    description: "Chat system — human-to-architect messaging"
+  - tag: rabbitmq
+    description: "RabbitMQ message broker infrastructure"
+  - tag: messaging
+    description: "Inter-service messaging and event routing"
+  - tag: containers
+    description: "Docker containers for agent runtimes"
+  - tag: agent-runtime
+    description: "IAgentRuntime implementations (OpenCode, Stub, etc.)"
+  - tag: streaming
+    description: "Live output streaming from containers"
+  - tag: opencode
+    description: "OpenCode CLI agent runtime"
+  - tag: architect-agent
+    description: "Architect Agent — LLM-based project manager"
+  - tag: dashboard
+    description: "Web dashboard UI components and pages"
+  - tag: analytics
+    description: "Governance analytics, metrics, and reporting"
+  - tag: admin
+    description: "Admin-only features and management interfaces"
+  - tag: users
+    description: "User management, authentication, authorization"
+  - tag: invites
+    description: "Invite code system for user registration"
+  - tag: github
+    description: "GitHub API integration, repo management"
+  - tag: tooling
+    description: "Build tooling, project configuration, dev infrastructure"
+  - tag: storage
+    description: "Artifact and workspace storage abstractions"
+  - tag: health-check
+    description: "Health monitoring, self-healing, status endpoints"
+  - tag: llm
+    description: "Large language model integration and configuration"
+  - tag: dag
+    description: "Directed acyclic graph — task dependency scheduling"
+  - tag: parallel-execution
+    description: "Concurrent task execution with bounded parallelism"
+  - tag: design-system
+    description: "CSS architecture, design tokens, component library"
+  - tag: tailwind
+    description: "Tailwind CSS framework"
+  - tag: responsive-design
+    description: "Mobile-first responsive layouts and breakpoints"
+  - tag: typescript
+    description: "TypeScript language-specific concerns"
+  - tag: operations
+    description: "Infrastructure operations and platform management"
+  - tag: devex
+    description: "Developer experience improvements"
+  - tag: credentials
+    description: "API keys, tokens, and credential management"
+  - tag: ux
+    description: "User experience design and interaction patterns"
+  - tag: auth
+    description: "Authentication and authorization"
+  - tag: theming
+    description: "Theme system, dark mode, light mode"
+  - tag: architect
+    description: "Architect agent role-specific work"
+  - tag: agent-loop
+    description: "Autonomous agent execution loop"
