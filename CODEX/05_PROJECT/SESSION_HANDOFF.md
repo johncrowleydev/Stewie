@@ -1,72 +1,81 @@
 ---
 id: SESSION_HANDOFF
-title: "Architect Session Handoff — Phase 7 Complete"
+title: "Architect Session Handoff"
 type: reference
 status: ACTIVE
 owner: architect
 agents: [architect]
-tags: [handoff, session-context, phase-7]
+tags: [handoff, session-context]
+related: [PRJ-001, BCK-001]
 created: 2026-04-11
 updated: 2026-04-11
-version: 7.1.0
+version: 8.0.0
 ---
 
-# Architect Session Handoff — Phase 7 Complete
+# Architect Session Handoff
 
-> **Purpose:** Context for the next Architect agent session to pick up where the previous one left off.
+> **Purpose:** Snapshot of project state for the next Architect agent session. Written once at session end.
 
 ## Current State
 
-- **Commit:** `5191390` + housekeeping on `main`
-- **Phase:** 7 — UI/UX Refinements — COMPLETE
-- **Test baseline:** 260 passed, 0 failed, 5 skipped
+- **Commit:** `a112a0c` on `main`
+- **Phase 7 (UI/UX Refinements):** COMPLETE
+- **Phase 8 (Production Hardening):** FUTURE — not started
+- **Tests:** 260 passed, 0 failed, 5 skipped
+- **Frontend modules:** 93 (381KB JS, 64KB CSS)
 
-## What Just Happened
+## What This Session Accomplished
 
-### Phase 7 — All 3 Jobs Complete
+### Phase 7 — 3 jobs delivered
 
-**JOB-024 — Visual Cleanup (CLOSED)**
-- Replaced 15 emoji instances with raw SVG icons in `Icons.tsx`
-- Deleted `ConversationContextPanel.tsx` + 165 lines CSS
-- Net: +96 / −393 lines
-
-**JOB-025 — Chat Slideover + GitHub Repo Picker (CLOSED)**
-- `ChatSlideover.tsx`: right-side slideover + pin-to-sidebar (localStorage persistence)
-- `RepoCombobox.tsx`: searchable GitHub repo dropdown (debounced)
-- `GitHubController.cs`: `GET /api/github/repos` with in-memory cache
-- GitHub feature gating on ProjectsPage (disabled when no PAT)
-- 4 new integration tests
-
-**JOB-026 — Admin User Management + Invite UI (CLOSED)**
-- Admin-only SettingsPage panels: invite generation/revocation, user list/deletion
-- `DELETE /api/invites/{id}`, `GET /api/users`, `DELETE /api/users/{id}`
-- 2 new icons (IconUsers, IconShield)
-- 9 new integration tests
+| Job | Scope | Branch |
+|:----|:------|:-------|
+| JOB-024 | Emoji purge, icon system, ConversationContextPanel deletion | direct to main |
+| JOB-025 | Chat slideover, GitHub repo combobox, feature gating | `feature/JOB-025-chat-github` |
+| JOB-026 | Admin invite management, user management | `feature/JOB-026-admin-ui` |
 
 ### Merge Resolution
 - JOB-025 merged clean (fast-forward)
-- JOB-026 had 5 conflicts (additive merges + duplicate functions from JOB-023)
-- All resolved by architect, verified with full build + 260 tests
+- JOB-026 had 5 file conflicts — all resolved (additive merges + duplicate function cleanup)
 
-## Key Decisions
+### Hotfixes
+- Button hover text vanishing (anchor hover override on `<Link>` buttons)
+- Dark mode `btn-primary` changed from solid fill to outline variant
 
-| Decision | Answer |
-|:---------|:-------|
-| Icons | Raw inline SVGs in `Icons.tsx` — 8 icons total |
-| Chat panel | Slideover + pinnable sidebar, `localStorage` persistence |
-| Chat width | 440px default, 320px min, 600px max |
-| GitHub repos | Searchable combobox via `GET /api/github/repos`, debounced |
-| Admin UI | Invite + User panels on SettingsPage, admin-only visibility |
-| Agent model | 2 parallel agents (one per job), not 4 |
+### CODEX Overhaul
+- README.md fully rewritten (was deeply stale — empty placeholder sections since v2.0)
+- PRJ-001 Roadmap: Phase 7 added, Phase 8 renumbered, all CON versions fixed
+- Audit workflow (`audit_job.md`) Step 10 restructured with automated contract version cross-check, test count verification, and a BLOCKING GATE requiring explicit confirmation
+- SESSION_HANDOFF clarified as session-end snapshot, removed from audit blocking gate
+
+## Key Design Decisions
+
+| Decision | Rationale |
+|:---------|:----------|
+| Raw SVG icons in `Icons.tsx` | Zero runtime deps, 8 icons, inherits `currentColor` |
+| Chat = slideover + pinnable sidebar | Inspired by Azure Portal, localStorage persistence for mode + width |
+| `btn-primary` outline in dark mode | Solid green was visually aggressive on dark backgrounds |
+| `a.btn:hover { color: inherit }` | Prevents global anchor hover from overriding button text |
+| SESSION_HANDOFF is NOT a reference doc | Written once at session end, not maintained during audits |
 
 ## Infrastructure
 
-- SQL Server: `stewie-sqlserver` container on port 1433
-- RabbitMQ: `stewie-rabbitmq` container on port 5672
-- Backend env vars: `Stewie__AdminPassword=admin`, `Stewie__JwtSecret="super-secret-jwt-key-that-is-at-least-32-bytes-long"`, `Stewie__EncryptionKey="GkLUVANEsbyw1TnDCFvj5ZJ9BFmi3AlX9zMKvp5vHM4="`
+- SQL Server: `stewie-sqlserver` (port 1433)
+- RabbitMQ: `stewie-rabbitmq` (port 5672)
+- Backend: `Stewie__AdminPassword=admin`, `Stewie__JwtSecret="super-secret-jwt-key-that-is-at-least-32-bytes-long"`, `Stewie__EncryptionKey="GkLUVANEsbyw1TnDCFvj5ZJ9BFmi3AlX9zMKvp5vHM4="`
+- Login: admin / admin
 
-## Next Steps
+## Next Steps (for the next architect session)
 
-1. Visual walkthrough of all new features (`/run_app` + browser)
-2. Assess next priorities from `BCK-001_Backlog.md` Future Backlog
-3. Consider Phase 8 planning based on user feedback
+1. **Reusable UI component library** — `Button`, `Card`, `Input`, `Badge` components. Currently all buttons use raw CSS classes (`btn btn-primary`). This is Phase 8 scope.
+2. **Visual inspection** of all Phase 7 features (chat slideover, admin panels, GitHub gating) if not done yet.
+3. **Phase 8 planning** — roadmap has exit criteria but no jobs scoped yet. User decides priority.
+
+## Contracts (current versions)
+
+| Contract | Version |
+|:---------|:--------|
+| CON-001 | v1.6.0 |
+| CON-002 | v2.0.0 |
+| CON-003 | v1.1.0 |
+| CON-004 | v1.1.0 |

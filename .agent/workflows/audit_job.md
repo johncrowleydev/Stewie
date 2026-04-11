@@ -235,18 +235,11 @@ done
 ### 10.3 Test Count Accuracy (automated)
 
 // turbo
-**Verify test counts in SESSION_HANDOFF match actual:**
+**Run tests and record the count for the VER audit report:**
 ```bash
-echo "=== Test Count Accuracy ==="
-ACTUAL_TESTS=$(dotnet test src/Stewie.Tests/Stewie.Tests.csproj --verbosity quiet 2>&1 | grep -oP 'Passed:\s+\K\d+')
-HANDOFF_TESTS=$(grep -oP 'Passed.*?(\d+)' CODEX/05_PROJECT/SESSION_HANDOFF.md 2>/dev/null | grep -oP '\d+' | tail -1)
-echo "  Actual: $ACTUAL_TESTS passed"
-echo "  SESSION_HANDOFF reports: $HANDOFF_TESTS"
-if [ "$ACTUAL_TESTS" = "$HANDOFF_TESTS" ]; then
-  echo "  ✅ Match"
-else
-  echo "  ⚠️  Mismatch — update SESSION_HANDOFF"
-fi
+echo "=== Test Count ==="
+dotnet test src/Stewie.Tests/Stewie.Tests.csproj --verbosity quiet 2>&1 | tail -3
+echo "Record the Passed/Failed/Skipped counts in the VER-NNN audit report."
 ```
 
 ---
@@ -286,12 +279,14 @@ fi
 
 ---
 
-### 10.7 SESSION_HANDOFF.md
+### 10.7 SESSION_HANDOFF.md (at session end only)
 
-- [ ] Updated with current commit hash
-- [ ] Current phase status accurate
-- [ ] Test baseline updated
-- [ ] Next steps reflect actual state
+> [!NOTE]
+> SESSION_HANDOFF is a **session-end snapshot**, not a living reference doc.
+> Do NOT update it during audits. Write it once when the architect session
+> is ending, with accurate state at that moment.
+
+- Write it at the end of the session, not during the audit
 
 ---
 
@@ -305,11 +300,11 @@ fi
 HOUSEKEEPING GATE:
 - [ ] 10.1 MANIFEST sync — PASS
 - [ ] 10.2 Contract versions — PASS
-- [ ] 10.3 Test count — PASS
+- [ ] 10.3 Test count recorded — PASS
 - [ ] 10.4 Roadmap phase state — PASS
 - [ ] 10.5 README accuracy — PASS
 - [ ] 10.6 Backlog updated — PASS
-- [ ] 10.7 SESSION_HANDOFF updated — PASS
+```
 ```
 
 **Only proceed to commit after ALL items above are checked.**
