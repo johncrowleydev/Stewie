@@ -14,16 +14,17 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { fetchChatMessages, sendChatMessage } from "../api/client";
 import { useSignalR } from "../hooks/useSignalR";
+import { IconUser, IconBot, IconGear, IconChat } from "./Icons";
 import type { ChatMessage } from "../types";
 
 /** Max message length (matches backend validation) */
 const MAX_CONTENT_LENGTH = 10000;
 
-/** Role display config */
-const ROLE_CONFIG: Record<string, { icon: string; label: string }> = {
-  Human: { icon: "👤", label: "Human" },
-  Architect: { icon: "🤖", label: "Architect" },
-  System: { icon: "⚙️", label: "System" },
+/** Role display config — maps sender role to icon component and label */
+const ROLE_CONFIG: Record<string, { icon: React.ReactNode; label: string }> = {
+  Human: { icon: <IconUser size={14} />, label: "Human" },
+  Architect: { icon: <IconBot size={14} />, label: "Architect" },
+  System: { icon: <IconGear size={14} />, label: "System" },
 };
 
 interface ChatPanelProps {
@@ -197,7 +198,7 @@ export function ChatPanel({ projectId, architectActive = false }: ChatPanelProps
       {/* Header */}
       <div className="chat-header">
         <span className="chat-header-title">
-          💬 Project Chat
+          <IconChat size={16} className="chat-header-icon" /> Project Chat
           {architectActive && (
             <span className="chat-architect-indicator" title="Architect is online">
               <span className="chat-architect-dot" />
@@ -218,7 +219,7 @@ export function ChatPanel({ projectId, architectActive = false }: ChatPanelProps
       <div className="chat-messages" ref={messagesContainerRef} id="chat-messages">
         {messages.length === 0 && !error && (
           <div className="chat-empty">
-            <div className="empty-icon">💬</div>
+            <div className="empty-icon"><IconChat size={32} /></div>
             <h3>Start a conversation</h3>
             <p>Send a message to begin chatting with the Architect.</p>
           </div>

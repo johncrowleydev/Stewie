@@ -14,6 +14,7 @@ import {
   addCredential,
   deleteCredential,
 } from "../api/client";
+import { IconKey } from "../components/Icons";
 import type { GitHubStatus, Credential } from "../types";
 
 /** LLM provider definitions — maps credential types to display info */
@@ -21,19 +22,16 @@ const LLM_PROVIDERS = [
   {
     credentialType: "GoogleAiApiKey",
     name: "Google AI (Gemini)",
-    icon: "🔮",
     placeholder: "AIza...",
   },
   {
     credentialType: "AnthropicApiKey",
     name: "Anthropic (Claude)",
-    icon: "🧠",
     placeholder: "sk-ant-...",
   },
   {
     credentialType: "OpenAiApiKey",
     name: "OpenAI (GPT)",
-    icon: "⚡",
     placeholder: "sk-...",
   },
 ] as const;
@@ -310,7 +308,7 @@ export function SettingsPage() {
       {/* LLM Provider Keys — T-201 */}
       <div className="card credential-card" style={{ maxWidth: 600, marginTop: "var(--space-lg)" }} id="llm-credentials">
         <div className="card-header">
-          <span className="card-title">🔑 LLM Provider Keys</span>
+          <span className="card-title"><IconKey size={14} className="card-title-icon" /> LLM Provider Keys</span>
         </div>
 
         <div style={{ padding: "var(--space-md)" }}>
@@ -329,7 +327,7 @@ export function SettingsPage() {
                     id={`credential-${provider.credentialType}`}
                   >
                     <div className="credential-provider-header">
-                      <span className="credential-provider-icon">{provider.icon}</span>
+                      <IconKey size={14} className="credential-provider-icon" />
                       <span className="credential-provider-name">{provider.name}</span>
                     </div>
 

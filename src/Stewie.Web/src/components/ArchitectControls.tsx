@@ -9,6 +9,7 @@
  */
 import { useState, useEffect, useCallback, useRef } from "react";
 import { startArchitect, stopArchitect, getArchitectStatus } from "../api/client";
+import { IconBot } from "./Icons";
 import type { ArchitectStatus } from "../types";
 
 /** Polling interval (ms) — status refresh cycle */
@@ -178,7 +179,7 @@ export function ArchitectControls({ projectId, onStatusChange }: ArchitectContro
       {/* Header row */}
       <div className="architect-header">
         <div className="architect-title">
-          <span className="architect-icon">🤖</span>
+          <IconBot size={18} className="architect-icon" />
           <span className="architect-label">Architect Agent</span>
         </div>
         <span

@@ -260,14 +260,4 @@ export interface AddCredentialRequest {
   value: string;
 }
 
-/** Architect context response — CON-002 v1.9.0 (JOB-023 T-204) */
-export interface ArchitectContext {
-  tokenEstimate: number;
-  maxTokens: number;
-  chatMessageCount: number;
-  activeJobCount: number;
-  completedTaskCount: number;
-  totalTaskCount: number;
-  governanceReportCount: number;
-  lastUpdated: string;
-}
+

@@ -13,6 +13,7 @@
  */
 import { useState, useEffect, useCallback } from "react";
 import { fetchGovernanceAnalytics } from "../api/client";
+import { IconBarChart } from "./Icons";
 import type { GovernanceAnalytics, FailingRule } from "../types";
 
 /** Time filter options */
@@ -150,7 +151,7 @@ export function GovernanceAnalyticsPanel({ projectId }: GovernanceAnalyticsPanel
       {/* Top failing rules table */}
       {data.topFailingRules.length > 0 && (
         <div className="analytics-section" id="failing-rules-section">
-          <h3>🔥 Top Failing Rules</h3>
+          <h3><IconBarChart size={14} className="section-heading-icon" /> Top Failing Rules</h3>
           <table className="data-table">
             <thead>
               <tr>

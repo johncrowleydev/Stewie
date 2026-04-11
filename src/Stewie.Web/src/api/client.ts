@@ -10,7 +10,7 @@ import type {
   Job, Project, CreateProjectRequest, CreateJobRequest,
   ApiError, Event, LoginRequest, RegisterRequest, AuthResponse, GitHubStatus,
   GovernanceReport, GovernanceAnalytics, ChatMessage, ChatMessagesResponse, ContainerOutputResponse,
-  AgentSession, ArchitectStatus, Credential, ArchitectContext
+  AgentSession, ArchitectStatus, Credential
 } from "../types";
 
 /** Base URL is proxied via Vite config — no absolute URL needed. */
@@ -342,13 +342,3 @@ export async function deleteCredential(id: string): Promise<void> {
   });
 }
 
-// --- Architect context endpoint (JOB-023 T-204) ---
-
-/** Fetch Architect context stats — GET /api/agents/project/{projectId}/context */
-export async function fetchArchitectContext(
-  projectId: string
-): Promise<ArchitectContext> {
-  return request<ArchitectContext>(
-    `/api/agents/project/${encodeURIComponent(projectId)}/context`
-  );
-}
