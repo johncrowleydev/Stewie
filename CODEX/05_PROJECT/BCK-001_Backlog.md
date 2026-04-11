@@ -242,14 +242,61 @@ version: 1.2.0
 
 ---
 
+## Phase 6: AI Agent Intelligence ⬜ IN PROGRESS
+
+### JOB-021 — OpenCode Agent Runtime ⬜ OPEN
+
+| ID | Task | Description | Priority | Status |
+|:---|:-----|:------------|:---------|:-------|
+| B-700 | OpenCodeAgentRuntime.cs | IAgentRuntime impl for OpenCode CLI | P0 | Open |
+| B-701 | Dockerfile (stewie-opencode-agent) | Docker image with OpenCode + Python harness | P0 | Open |
+| B-702 | Agent entrypoint harness | RabbitMQ ↔ OpenCode CLI bridge (entrypoint.py) | P0 | Open |
+| B-703 | LLM credential storage | CredentialType enum, migration, repository extension | P1 | Open |
+| B-704 | File-based secret injection | AgentLifecycleService writes key to temp file, mounts | P1 | Open |
+| B-705 | AgentLaunchRequest extension | Add LlmProvider, ModelName, SecretsMountPath | P1 | Open |
+| B-706 | DI registration | Register OpenCodeAgentRuntime alongside StubAgentRuntime | P1 | Open |
+| B-707 | Mock LLM responder | Simulates OpenCode output for CI testing | P1 | Open |
+| B-708 | Unit tests | OpenCodeAgentRuntimeTests + CredentialTypeTests | P1 | Open |
+
+### JOB-022 — Architect Agent Loop ⬜ OPEN
+
+| ID | Task | Description | Priority | Status |
+|:---|:-----|:------------|:---------|:-------|
+| B-710 | Architect entry script | Main loop: chat → LLM → plan → approval → execute | P0 | Open |
+| B-711 | Stewie API client (Python) | HTTP client for agent containers to call Stewie API | P0 | Open |
+| B-712 | Agent session tokens | Short-lived JWTs for agent container auth | P0 | Open |
+| B-713 | Conversation context builder | Assembles LLM prompt from project state + history | P1 | Open |
+| B-714 | Plan approval protocol | New message types + API endpoint for plan decisions | P1 | Open |
+| B-715 | Job creation from plan | Parser: LLM output → Stewie API job/task creation | P1 | Open |
+| B-716 | Dev Agent monitoring | Watch for completion/failure, report to Human | P1 | Open |
+| B-717 | ArchitectMode config | stewie.json: plan_first / auto_execute | P1 | Open |
+| B-718 | Architect Dockerfile | Extends opencode-agent with Architect scripts | P1 | Open |
+| B-719 | Integration tests | Mock LLM end-to-end Architect loop | P1 | Open |
+
+### JOB-023 — Agent Intelligence Dashboard + E2E ⬜ OPEN
+
+| ID | Task | Description | Priority | Status |
+|:---|:-----|:------------|:---------|:-------|
+| B-720 | Model/provider selector | Dropdown on ArchitectControls for runtime + model | P1 | Open |
+| B-721 | Provider key management UI | Settings page section for LLM API keys | P1 | Open |
+| B-722 | Provider key API endpoints | CRUD for LLM provider credentials | P1 | Open |
+| B-723 | Plan approval UI | Approve/reject buttons on plan proposals in ChatPanel | P1 | Open |
+| B-724 | Conversation context panel | Shows Architect context window state | P2 | Open |
+| B-725 | CON-002 v1.9.0 | Document new endpoints | P1 | Open |
+| B-726 | End-to-end smoke test | Full autonomous loop validation + RUN-003 runbook | P1 | Open |
+| B-727 | Update PRJ-001 roadmap | Mark Phase 6 complete | P2 | Open |
+
+---
+
 ## Future Backlog
 
 | ID | Task | Description | Priority |
 |:---|:-----|:------------|:---------|
-| B-700 | Workspace TTL-based cleanup | Auto-delete old workspaces | P3 |
-| B-701 | AI agent worker (Phase 6) | Container with LLM API for code generation | P1 → Phase 6 |
-| B-702 | GitLab provider | IGitPlatformService implementation for GitLab | P3 |
-| B-703 | Bitbucket provider | IGitPlatformService implementation for Bitbucket | P3 |
+| B-800 | Workspace TTL-based cleanup | Auto-delete old workspaces | P3 |
+| B-801 | GitLab provider | IGitPlatformService implementation for GitLab | P3 |
+| B-802 | Bitbucket provider | IGitPlatformService implementation for Bitbucket | P3 |
+| B-803 | Aider runtime | IAgentRuntime implementation for Aider CLI | P3 |
+| B-804 | Custom Docker network | Isolated per-job container networking | P3 |
 
 ---
 
@@ -266,4 +313,5 @@ version: 1.2.0
 | 2026-04-10 | Phase 5a COMPLETE. B-500 through B-530 done (JOB-012/013/014/015). |
 | 2026-04-10 | Phase 5b started. JOB-016 and JOB-017 CLOSED. JOB-018 OPEN. B-600 through B-615 done. |
 | 2026-04-10 | Phase 5b COMPLETE. JOB-018 CLOSED. B-620 through B-624 done. |
+| 2026-04-11 | Phase 6 started. JOB-021/022/023 created. B-700 through B-727 added. |
 

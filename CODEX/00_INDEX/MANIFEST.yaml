@@ -378,6 +378,42 @@ documents:
       into the REST API polling endpoint alongside defensive 409 rejections for Chat inputs 
       routed to definitively offline systems.
 
+  - id: JOB-021
+    path: 05_PROJECT/JOB-021_OpenCode_Agent_Runtime.md
+    title: "Job 021 — OpenCode Agent Runtime"
+    type: how-to
+    status: OPEN
+    tags: [project-management, job, workflow, phase-6, agent-runtime, opencode, containers]
+    agents: [coder]
+    summary: >
+      Phase 6 foundation: first real IAgentRuntime implementation using OpenCode CLI
+      and Gemini Flash. Docker image, Python entrypoint harness, file-based secret
+      injection, LLM credential storage, and mock LLM responder for CI testing.
+
+  - id: JOB-022
+    path: 05_PROJECT/JOB-022_Architect_Agent_Loop.md
+    title: "Job 022 — Architect Agent Loop"
+    type: how-to
+    status: OPEN
+    tags: [project-management, job, workflow, phase-6, architect-agent, chat, llm]
+    agents: [coder]
+    summary: >
+      Architect Agent brain: chat-to-plan-to-job autonomous pipeline. Receives
+      human chat, builds LLM context, proposes plans for approval, creates jobs
+      on approval, monitors Dev Agents, and reports results. Plan-first workflow.
+
+  - id: JOB-023
+    path: 05_PROJECT/JOB-023_Agent_Intelligence_Dashboard.md
+    title: "Job 023 — Agent Intelligence Dashboard + E2E"
+    type: how-to
+    status: OPEN
+    tags: [project-management, job, workflow, phase-6, dashboard, frontend, e2e]
+    agents: [coder]
+    summary: >
+      Dashboard enhancements: model/provider selector, LLM API key management,
+      plan approval UI in ChatPanel, conversation context panel. End-to-end
+      validation of the full autonomous loop with runbook documentation.
+
   # ── 10_GOVERNANCE ───────────────────────────────────────────────────────────
   - id: GOV-001
     path: 10_GOVERNANCE/GOV-001_DocumentationStandard.md
