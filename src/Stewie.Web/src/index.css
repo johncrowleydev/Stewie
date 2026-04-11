@@ -981,7 +981,8 @@ textarea.form-input {
 
 /* --- Mobile Menu Trigger (hamburger) --- */
 .mobile-menu-trigger {
-  display: none; /* hidden on desktop */
+  display: none;
+  /* hidden on desktop */
   align-items: center;
   justify-content: center;
   width: 36px;
@@ -1016,11 +1017,13 @@ textarea.form-input {
 
 /* --- Sidebar Overlay (mobile backdrop) --- */
 .sidebar-overlay {
-  display: none; /* hidden on desktop */
+  display: none;
+  /* hidden on desktop */
 }
 
 /* --- Tablet + Mobile (≤768px) --- */
 @media (max-width: 768px) {
+
   /* Show hamburger */
   .mobile-menu-trigger {
     display: flex;
@@ -1049,8 +1052,13 @@ textarea.form-input {
   }
 
   @keyframes overlay-fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
   }
 
   /* Main content: full width */
@@ -1239,6 +1247,7 @@ textarea.form-input {
 
 /* --- Small Mobile (≤480px) --- */
 @media (max-width: 480px) {
+
   /* Terminal title: hide to save space */
   .terminal-header-title {
     display: none;
@@ -1543,7 +1552,7 @@ textarea.form-input {
 
 .auth-logo {
   width: 228px;
-  height: 228px;
+  height: auto;
 }
 
 .auth-title {
@@ -1578,6 +1587,7 @@ textarea.form-input {
 
 .btn-full {
   width: 100%;
+  justify-content: center;
   margin-top: var(--space-md);
 }
 
@@ -2788,9 +2798,17 @@ textarea.form-input {
   border-radius: 50%;
 }
 
-.terminal-header-dot--red { background: #ff5f57; }
-.terminal-header-dot--yellow { background: #febc2e; }
-.terminal-header-dot--green { background: #28c840; }
+.terminal-header-dot--red {
+  background: #ff5f57;
+}
+
+.terminal-header-dot--yellow {
+  background: #febc2e;
+}
+
+.terminal-header-dot--green {
+  background: #28c840;
+}
 
 .terminal-header-title {
   font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
@@ -2879,6 +2897,7 @@ textarea.form-input {
     opacity: 0;
     transform: translateY(2px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -2962,10 +2981,13 @@ textarea.form-input {
 }
 
 @keyframes terminal-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
     box-shadow: 0 0 4px rgba(111, 172, 80, 0.5);
   }
+
   50% {
     opacity: 0.4;
     box-shadow: 0 0 8px rgba(111, 172, 80, 0.2);
@@ -2997,8 +3019,15 @@ textarea.form-input {
 }
 
 @keyframes scroll-lock-appear {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .terminal-scroll-lock-icon {
@@ -3026,8 +3055,16 @@ textarea.form-input {
 }
 
 @keyframes terminal-blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
+
+  0%,
+  50% {
+    opacity: 1;
+  }
+
+  51%,
+  100% {
+    opacity: 0;
+  }
 }
 
 /* --- Collapsible Output Toggle (in task chain) --- */
@@ -3393,10 +3430,13 @@ textarea.form-input {
 }
 
 @keyframes architect-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
     box-shadow: 0 0 0 0 rgba(111, 172, 80, 0.4);
   }
+
   50% {
     opacity: 0.7;
     box-shadow: 0 0 0 4px rgba(111, 172, 80, 0);
@@ -3481,7 +3521,9 @@ textarea.form-input {
 }
 
 @keyframes architect-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Metadata */

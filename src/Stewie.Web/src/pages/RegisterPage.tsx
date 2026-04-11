@@ -70,7 +70,6 @@ export function RegisterPage() {
           <span className="brand-wordmark">stewie</span>
         </div>
 
-        <h2 className="auth-heading">Create account</h2>
 
         <form onSubmit={(e) => { void handleSubmit(e); }} id="register-form">
           <div className="form-group">
