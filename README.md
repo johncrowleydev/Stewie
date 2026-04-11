@@ -4,45 +4,64 @@
 
 # stewie
 
-Governance-first orchestration system for AI-driven multi-agent software development.
+Autonomous AI development platform where a Human directs software development entirely through conversation with an Architect Agent.
 
-Stewie coordinates multiple AI agents to build software in parallel — creating isolated workspaces, launching worker containers, managing git branches, pushing code, and opening pull requests — all under strict governance. It does not write code itself; it orchestrates agents that do.
+Stewie is the **control plane** — it manages state, persistence, messaging, and the dashboard. It contains **zero AI**. All intelligence lives in pluggable agent containers that can run any LLM provider (Claude, GPT, Gemini) via any agentic framework (Claude Code, OpenCode, Aider).
+
+The Human never creates jobs, writes task specs, or manages agents directly — they chat, and the Architect handles everything else.
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│  React Dashboard (Vite)           :5173             │
-│  Projects · Jobs · DAG View · Governance Analytics  │
-└────────────────────┬────────────────────────────────┘
-                     │ HTTP/JSON
-┌────────────────────▼────────────────────────────────┐
-│  .NET 10 API                      :5275             │
-│  JWT Auth · Project CRUD · Job Orchestration        │
-├─────────────────────────────────────────────────────┤
-│  JobOrchestrationService                             │
-│  ┌─── DAG Scheduler (TaskGraph) ───────────┐        │
-│  │ Build DAG → Validate Acyclic            │        │
-│  │ Poll Ready → Launch Parallel (≤5)       │        │
-│  │ Per-Task Governance → Cascade Failures  │        │
-│  └─────────────────────────────────────────┘        │
-├─────────────────────────────────────────────────────┤
-│  SQL Server 2022     NHibernate     FluentMigrator  │
-└─────────────────────────────────────────────────────┘
-         │                              │
-    ┌────▼────┐                   ┌─────▼──────┐
-    │ Docker  │                   │ GitHub API │
-    │ Workers │                   │ (Octokit)  │
-    └─────────┘                   └────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│  React Dashboard (Vite)                           :5173         │
+│  Chat · Projects · Jobs · DAG View · Governance · Agent Status  │
+└───────────────┬──────────────────────┬───────────────────────────┘
+                │ HTTP/JSON            │ WebSocket
+┌───────────────▼──────────────────────▼───────────────────────────┐
+│  .NET 10 API (Control Plane)                      :5275         │
+│  JWT Auth · SignalR Hub · REST API · Job Orchestration          │
+├──────────────────────────────────────────────────────────────────┤
+│  Core Services                                                   │
+│  ┌─── JobOrchestrationService ───┐  ┌─── AgentLifecycleService ─┐│
+│  │ DAG Scheduler (TaskGraph)     │  │ IAgentRuntime (pluggable) ││
+│  │ Parallel Execution (≤5)       │  │ Container Create/Monitor  ││
+│  │ Per-Task Governance           │  │ Secret Injection           ││
+│  └───────────────────────────────┘  └────────────────────────────┘│
+├──────────────────────────────────────────────────────────────────┤
+│  SQL Server 2022   NHibernate   FluentMigrator   RabbitMQ       │
+└────────┬──────────────┬─────────────────┬───────────────────────┘
+    ┌────▼────┐    ┌────▼────┐      ┌─────▼──────┐
+    │ Architect│    │ Dev A   │      │ GitHub API │
+    │ Agent   │    │ Agent   │      │ (Octokit)  │
+    └─────────┘    └─────────┘      └────────────┘
+     (container)    (container)
+     [OpenCode]     [OpenCode/Aider]
+         ↕               ↕
+       RabbitMQ Message Bus
 ```
 
 ### Three-Tier Agent Hierarchy
 
 | Role | Description |
 |:-----|:------------|
-| **Human** | Final authority. Sets vision, approves plans. |
-| **Architect Agent** | AI project manager. Plans sprints, audits output, enforces governance. Does not write code. |
-| **Developer/Tester Agents** | Execute tasks in isolated containers. Write code, run tests, produce results. |
+| **Human** | Final authority. Sets vision, approves plans, provides guidance via chat. |
+| **Architect Agent** | AI project manager. Plans work, creates jobs, spins up Dev Agents, reviews output, enforces governance. Does not write feature code. |
+| **Developer/Tester Agents** | Ephemeral LLM containers. Execute tasks, write code, run tests, produce results. Destroyed on completion. |
+
+### Agent Runtime Abstraction
+
+Agent runtimes are pluggable via the `IAgentRuntime` interface:
+
+```
+IAgentRuntime
+├── OpenCodeRuntime       (OpenCode CLI in a container)
+├── StubAgentRuntime      (Mock agent for testing)
+├── AiderRuntime          (planned)
+└── ClaudeCodeRuntime     (planned)
+```
+
+Each runtime knows how to build/launch a container, configure it with the right LLM provider and API keys, wire it to RabbitMQ, and manage its lifecycle. The model and runtime can be configured per project.
 
 ## Prerequisites
 
@@ -52,32 +71,37 @@ Stewie coordinates multiple AI agents to build software in parallel — creating
 
 ## Quick Start
 
-### 1. Start SQL Server
+### 1. Start Infrastructure (SQL Server + RabbitMQ)
 
 ```bash
 docker-compose up -d
 ```
 
-### 2. Build Worker Images
+This starts:
+- **SQL Server 2022** on port `1433`
+- **RabbitMQ** on port `5672` (AMQP) and `15672` (management UI)
+
+### 2. Build Container Images
 
 ```bash
-# Test worker (proves container contract)
+# Worker containers (task execution)
 docker build -t stewie-dummy-worker workers/dummy-worker/
-
-# Script worker (real execution — Alpine + bash + git)
 docker build -t stewie-script-worker workers/script-worker/
-
-# Governance worker (automated GOV compliance checks)
 docker build -t stewie-governance-worker workers/governance-worker/
+
+# Agent containers (LLM-powered)
+docker build -t stewie-opencode-agent docker/opencode-agent/
+docker build -t stewie-architect-agent docker/architect-agent/
+docker build -t stewie-stub-agent docker/stub-agent/
 ```
 
 ### 3. Set Required Environment Variables
 
 ```bash
-export STEWIE_JWT_SECRET="your-32-char-minimum-secret-key-here"
-export STEWIE_ENCRYPTION_KEY="your-32-char-aes-encryption-key-here"
-export STEWIE_ADMIN_PASSWORD="YourAdminPassword123!"
-export STEWIE_ADMIN_USERNAME="admin"  # optional, defaults to "admin"
+export Stewie__JwtSecret="your-32-char-minimum-secret-key-here"
+export Stewie__EncryptionKey="your-32-char-aes-encryption-key-here"
+export Stewie__AdminPassword="YourAdminPassword123!"
+export Stewie__AdminUsername="admin"  # optional, defaults to "admin"
 ```
 
 ### 4. Run the API
@@ -88,7 +112,7 @@ dotnet run --project src/Stewie.Api
 
 On first start:
 - FluentMigrator creates the database and runs all migrations
-- An admin user is seeded with the credentials from `STEWIE_ADMIN_USERNAME` / `STEWIE_ADMIN_PASSWORD`
+- An admin user is seeded with the configured credentials
 
 ### 5. Run the Dashboard
 
@@ -98,27 +122,33 @@ npm install
 npm run dev
 ```
 
-Dashboard available at `http://localhost:5173`. API at `http://localhost:5275`.
+Dashboard: `http://localhost:5173` · API: `http://localhost:5275`
 
-### 6. Login and Configure
+### 6. Login and Start Building
 
 1. Open `http://localhost:5173` → Login with your admin credentials
-2. Navigate to **Settings** → Add your GitHub PAT (stored AES-256-CBC encrypted)
+2. Navigate to **Settings** → Add your GitHub PAT and LLM provider API keys
 3. Create a **Project** — link an existing repo or create a new one on GitHub
-4. Create a **Job** — define tasks with objectives, dependencies, and optional scripts
-5. Stewie clones the repo, resolves the DAG, executes tasks in parallel, runs governance, and opens PRs
+4. **Chat with the Architect** — describe what you want built in natural language
+5. The Architect plans the work, creates jobs, spins up Dev Agents, and manages the entire lifecycle
 
 ## How It Works
 
-### Single-Task Job (Legacy)
+### Chat-Driven Development
 
-1. User creates a **Job** with one objective
-2. Stewie creates a Task, clones the repo, launches a container, captures results
-3. Governance check runs → if pass, push + PR; if fail, retry with feedback
+1. Human opens a project and types a request in the chat panel
+2. The **Architect Agent** (an LLM running in a container) receives the message via RabbitMQ
+3. The Architect plans the work and proposes a plan back to the Human
+4. Human approves → Architect creates jobs and tasks via the Stewie API
+5. **Developer Agent** containers are spun up per task with isolated workspaces
+6. Dev Agents write code, commit, and report progress via RabbitMQ
+7. The Architect reviews output, runs governance, and iterates
+8. When Dev Agents are blocked, the Architect answers — or escalates to the Human
+9. The Human watches progress in real time via the dashboard
 
-### Multi-Task Job (DAG)
+### Multi-Task Jobs (DAG)
 
-1. User creates a **Job** with multiple tasks and dependency edges
+1. The Architect creates a job with multiple tasks and dependency edges
 2. Stewie validates the dependency graph is acyclic (Kahn's algorithm)
 3. The DAG scheduler loop runs:
    - Tasks with no unmet dependencies are launched in parallel (max 5 concurrent containers)
@@ -153,6 +183,12 @@ Stewie tracks governance failures over time and provides:
 - **GOV update suggestions** — recommendations to relax, strengthen, or review specific governance rules based on historical failure data
 - Filterable by project and time window (7d, 30d, 90d)
 
+### Retry Logic
+
+- **Transient failures** (timeout, Docker errors) → automatic 1 retry
+- **Permanent failures** (worker crash, bad results) → no retry, failure reason recorded
+- **Governance failures** → retry with violation feedback (up to 2 attempts, configurable)
+
 ### Project Configuration (`stewie.json`)
 
 Drop a `stewie.json` in your repo root to configure Stewie explicitly:
@@ -178,13 +214,7 @@ Drop a `stewie.json` in your repo root to configure Stewie explicitly:
 ```
 
 If absent, the governance worker falls back to heuristic stack detection.
-Full contract: `CODEX/20_BLUEPRINTS/CON-003_ProjectConfig_Contract.md` (v1.0.0)
-
-### Retry Logic
-
-- **Transient failures** (timeout, Docker errors) → automatic 1 retry
-- **Permanent failures** (worker crash, bad results) → no retry, failure reason recorded
-- **Governance failures** → retry with violation feedback (up to 2 attempts, configurable)
+Full contract: `CODEX/20_BLUEPRINTS/CON-003_ProjectConfig_Contract.md`
 
 ## Project Structure
 
@@ -192,44 +222,110 @@ Full contract: `CODEX/20_BLUEPRINTS/CON-003_ProjectConfig_Contract.md` (v1.0.0)
 src/
   Stewie.Domain/           # Entities, enums, contracts (DTOs)
   Stewie.Application/      # Service interfaces, orchestration logic, TaskGraph
-  Stewie.Infrastructure/   # NHibernate, FluentMigrator, Docker, GitHub, filesystem
-  Stewie.Api/              # ASP.NET Core API host + controllers
+  Stewie.Infrastructure/   # NHibernate, FluentMigrator, Docker, GitHub, RabbitMQ
+  Stewie.Api/              # ASP.NET Core API host, controllers, SignalR hub
   Stewie.Web/ClientApp/    # React + Vite dashboard
-  Stewie.Tests/            # xUnit integration + unit tests (110 tests)
+  Stewie.Tests/            # xUnit integration + unit tests (260 tests)
 workers/
   dummy-worker/            # Test worker (proves container contract)
   script-worker/           # Real worker (Alpine + bash + git)
   governance-worker/       # Governance checker (runs 15 GOV rules)
+docker/
+  opencode-agent/          # OpenCode agent runtime (LLM-powered dev agent)
+  architect-agent/         # Architect agent (LLM-powered project manager)
+  stub-agent/              # Mock agent for CI/testing
 CODEX/                     # Project governance documentation
   00_INDEX/                # MANIFEST.yaml — document registry
   05_PROJECT/              # Sprints, backlog, roadmap
   10_GOVERNANCE/           # Standards (GOV-001 through GOV-008)
-  20_BLUEPRINTS/           # Design specs, API/runtime/config contracts
+  20_BLUEPRINTS/           # Design specs, API/runtime/config/messaging contracts
   40_VERIFICATION/         # Audit reports
   80_AGENTS/               # Agent role definitions
 ```
 
 ## API Overview
 
-All endpoints require `Authorization: Bearer {jwt}` (except `/api/auth/login`).
+All endpoints require `Authorization: Bearer {jwt}` unless noted.
+
+### Auth & Users
 
 | Method | Endpoint | Description |
 |:-------|:---------|:------------|
-| `POST` | `/api/auth/login` | Authenticate, receive JWT (24hr expiry) |
-| `POST` | `/api/auth/register` | Register new user (requires invite code) |
+| `POST` | `/api/auth/login` | Authenticate, receive JWT (24hr expiry) — **no auth required** |
+| `POST` | `/api/auth/register` | Register (requires invite code) — **no auth required** |
+| `GET` | `/api/users` | List all users (admin only) |
+| `DELETE` | `/api/users/{id}` | Delete user (admin only) |
+| `GET` | `/api/users/me` | Current user profile |
+| `PUT` | `/api/users/me/github-token` | Store GitHub PAT (AES-256 encrypted) |
+| `DELETE` | `/api/users/me/github-token` | Remove stored GitHub PAT |
+| `GET` | `/api/users/me/github-status` | Check PAT configuration status |
+
+### Projects & Chat
+
+| Method | Endpoint | Description |
+|:-------|:---------|:------------|
 | `GET` | `/api/projects` | List all projects |
 | `POST` | `/api/projects` | Create project (link existing repo or create new) |
-| `GET` | `/api/jobs` | List jobs (optionally filter by `?projectId=`) |
-| `POST` | `/api/jobs` | Create job — single-task (objective) or multi-task (tasks array with deps) |
-| `GET` | `/api/jobs/{id}` | Get job details with nested tasks and aggregate counts |
-| `GET` | `/api/jobs/{id}/governance` | Get latest governance report for a job |
-| `GET` | `/api/tasks/{id}/governance` | Get governance report for a tester task |
-| `GET` | `/api/governance/analytics` | Governance violation trending and suggestions |
-| `POST` | `/jobs/test` | Trigger a test job (dummy worker) |
-| `POST` | `/api/users/github-token` | Store GitHub PAT (AES-256 encrypted) |
-| `GET` | `/api/users/github-token/status` | Check PAT configuration status |
+| `GET` | `/api/projects/{id}` | Get project details |
+| `GET` | `/api/projects/{id}/chat` | Get chat history for a project |
+| `POST` | `/api/projects/{id}/chat` | Send a chat message |
+| `POST` | `/api/projects/{id}/chat/plan-decision` | Approve/reject an Architect plan |
 
-Full contract: `CODEX/20_BLUEPRINTS/CON-002_API_Contract.md` (v1.8.0)
+### Jobs & Tasks
+
+| Method | Endpoint | Description |
+|:-------|:---------|:------------|
+| `GET` | `/api/jobs` | List jobs (filterable by `?projectId=`) |
+| `POST` | `/api/jobs` | Create job (single-task or multi-task with deps) |
+| `GET` | `/api/jobs/{id}` | Job details with nested tasks and aggregate counts |
+| `GET` | `/api/jobs/{id}/tasks` | List tasks for a job |
+| `GET` | `/api/tasks/{id}` | Get task details |
+| `GET` | `/api/tasks/{id}/output` | Stream container output for a task |
+| `POST` | `/jobs/test` | Trigger a test job (dummy worker) |
+
+### Governance
+
+| Method | Endpoint | Description |
+|:-------|:---------|:------------|
+| `GET` | `/api/jobs/{id}/governance` | Latest governance report for a job |
+| `GET` | `/api/tasks/{id}/governance` | Governance report for a tester task |
+| `GET` | `/api/governance/analytics` | Violation trending and GOV update suggestions |
+
+### Agents
+
+| Method | Endpoint | Description |
+|:-------|:---------|:------------|
+| `POST` | `/api/agents/launch` | Launch an agent container |
+| `DELETE` | `/api/agents/{id}` | Stop an agent container |
+| `GET` | `/api/agents/{id}/status` | Get agent session status |
+| `GET` | `/api/projects/{id}/agents` | List agents for a project |
+| `POST` | `/api/projects/{id}/architect/start` | Start Architect agent for a project |
+| `DELETE` | `/api/projects/{id}/architect` | Stop Architect agent |
+| `GET` | `/api/projects/{id}/architect/status` | Architect agent status |
+
+### Settings & Admin
+
+| Method | Endpoint | Description |
+|:-------|:---------|:------------|
+| `GET` | `/api/settings/credentials` | List stored LLM provider credentials |
+| `POST` | `/api/settings/credentials` | Store an LLM provider API key |
+| `DELETE` | `/api/settings/credentials/{id}` | Delete a stored credential |
+| `GET` | `/api/github/repos` | List GitHub repos (proxied via user PAT) |
+| `POST` | `/api/invites` | Generate an invite code (admin only) |
+| `GET` | `/api/invites` | List invite codes (admin only) |
+| `DELETE` | `/api/invites/{id}` | Revoke an invite code (admin only) |
+| `GET` | `/api/events` | List system events |
+| `GET` | `/health` | Health check (SQL Server + RabbitMQ) |
+
+### Real-Time (SignalR)
+
+The API exposes a SignalR hub at `/hubs/stewie` for real-time updates:
+- Job/task status changes
+- Chat messages
+- Container output streaming
+- Agent session events
+
+Full contract: `CODEX/20_BLUEPRINTS/CON-002_API_Contract.md`
 
 ## Configuration
 
@@ -241,15 +337,20 @@ Configuration via `src/Stewie.Api/appsettings.json` and environment variables:
 | `Stewie:WorkspaceRoot` | — | `./workspaces` | Base directory for task workspaces |
 | `Stewie:DockerImageName` | — | `stewie-dummy-worker` | Default Docker image for test runs |
 | `Stewie:ScriptWorkerImage` | — | `stewie-script-worker` | Docker image for real task execution |
+| `Stewie:GovernanceWorkerImage` | — | `stewie-governance-worker` | Docker image for governance checks |
 | `Stewie:TaskTimeoutSeconds` | — | `300` | Hard timeout for container execution (seconds) |
 | `Stewie:MaxConcurrentTasks` | — | `5` | Max parallel containers per job |
-| `Stewie:JwtSecret` | `STEWIE_JWT_SECRET` | **required** | JWT signing key (min 32 chars) |
-| `Stewie:EncryptionKey` | `STEWIE_ENCRYPTION_KEY` | **required** | AES-256 key for credential encryption |
-| `Stewie:AdminPassword` | `STEWIE_ADMIN_PASSWORD` | **required** | Initial admin password (first startup only) |
-| `Stewie:AdminUsername` | `STEWIE_ADMIN_USERNAME` | `admin` | Initial admin username |
 | `Stewie:MaxGovernanceRetries` | — | `2` | Max governance retry attempts per task |
-| `Stewie:GovernanceWorkerImage` | — | `stewie-governance-worker` | Docker image for governance checks |
-| `Stewie:WarningsBlockAcceptance` | — | `false` | Whether warning-severity governance failures block acceptance |
+| `Stewie:WarningsBlockAcceptance` | — | `false` | Whether warning-severity governance failures block |
+| `Stewie:JwtSecret` | `Stewie__JwtSecret` | **required** | JWT signing key (min 32 chars) |
+| `Stewie:EncryptionKey` | `Stewie__EncryptionKey` | **required** | AES-256 key for credential encryption |
+| `Stewie:AdminPassword` | `Stewie__AdminPassword` | **required** | Initial admin password (first startup only) |
+| `Stewie:AdminUsername` | `Stewie__AdminUsername` | `admin` | Initial admin username |
+| `RabbitMQ:HostName` | — | `localhost` | RabbitMQ host |
+| `RabbitMQ:Port` | — | `5672` | RabbitMQ AMQP port |
+| `RabbitMQ:UserName` | — | `stewie` | RabbitMQ username |
+| `RabbitMQ:Password` | — | `Stewie_Dev_R@bbit1` | RabbitMQ password |
+| `RabbitMQ:VirtualHost` | — | `stewie` | RabbitMQ virtual host |
 
 ## Runtime Contract
 
@@ -287,12 +388,12 @@ Workers communicate with Stewie via JSON files mounted in the container.
 }
 ```
 
-Full contract: `CODEX/20_BLUEPRINTS/CON-001_Runtime_Contract.md` (v1.5.0)
+Full contract: `CODEX/20_BLUEPRINTS/CON-001_Runtime_Contract.md`
 
 ## Testing
 
 ```bash
-# Run all tests (110 passing)
+# Run all tests (260 passing)
 dotnet test src/Stewie.Tests/Stewie.Tests.csproj
 
 # Frontend build verification
@@ -303,9 +404,10 @@ cd src/Stewie.Web/ClientApp && npm run build
 
 | Contract | Version | Description |
 |:---------|:--------|:------------|
-| CON-001 | v1.5.0 | Runtime Contract — task.json / result.json / projectConfig |
-| CON-002 | v1.8.0 | API Contract — HTTP endpoints, schemas, error codes |
-| CON-003 | v1.0.0 | Project Configuration — stewie.json file format |
+| CON-001 | v1.6.0 | Runtime Contract — task.json / result.json / projectConfig |
+| CON-002 | v2.0.0 | API Contract — HTTP endpoints, SignalR hub, schemas, error codes |
+| CON-003 | v1.1.0 | Project Configuration — stewie.json file format |
+| CON-004 | v1.1.0 | Agent Messaging Contract — RabbitMQ exchange topology and message types |
 
 ## Roadmap
 
@@ -318,7 +420,13 @@ cd src/Stewie.Web/ClientApp && npm run build
 | 2.75 | Repository Automation + Platform Abstraction | ✅ Complete |
 | 3 | Governance Engine | ✅ Complete |
 | 4 | Multi-Task Jobs (DAG, Parallel, Analytics) | ✅ Complete |
-| **5** | **Real-Time Interaction** | 🔜 Next |
+| 5a | Chat + Real-Time UI (SignalR, Chat, Streaming) | ✅ Complete |
+| 5b | Message Bus + Agent Lifecycle (RabbitMQ, IAgentRuntime) | ✅ Complete |
+| 6 | AI Agent Intelligence (OpenCode, Architect Loop, E2E) | ✅ Complete |
+| **7** | **Design System Foundation (Tailwind v4, Component Library)** | 🔄 In Progress |
+| 8 | App Shell + Role-Based Architecture | 📋 Planned |
+| 9 | Code Explorer + Premium Polish | 📋 Planned |
+| 10 | Production Hardening | 📋 Planned |
 
 Full roadmap: `CODEX/05_PROJECT/PRJ-001_Roadmap.md`
 
