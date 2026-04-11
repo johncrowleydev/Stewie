@@ -24,7 +24,7 @@ export function JobsPage() {
   const isLive = signalRState === "connected";
 
   const fetchJobsFn = useCallback(() => fetchJobs(), []);
-  const { data: jobs, loading, polling, error, refresh } = usePolling<Job[]>(
+  const { data: jobs, loading, error, refresh } = usePolling<Job[]>(
     fetchJobsFn,
     FALLBACK_POLL_MS,
     !isLive // Disable polling when WebSocket is connected
@@ -97,18 +97,6 @@ export function JobsPage() {
       <div className="page-title-row">
         
         <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
-          {/* Connection mode indicator */}
-          {isLive ? (
-            <span className="live-indicator live-indicator--ws" id="jobs-live">
-              <span className="live-dot" />
-              Live
-            </span>
-          ) : polling ? (
-            <span className="live-indicator live-indicator--poll" id="jobs-polling">
-              <span className="live-dot live-dot--poll" />
-              Polling
-            </span>
-          ) : null}
           <span className="card-label">{jobList.length} total</span>
           <Link to="/jobs/new" className="btn btn-primary" id="jobs-new-job">
             + New Job

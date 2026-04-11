@@ -667,6 +667,31 @@ Tailwind utility classes **MUST** be split across multiple lines when they excee
 | Prettier | Formatting | Pre-commit hook |
 | `tsc --noEmit` | Type checking | Zero errors |
 
+### 8.10 Responsive Design (Mandatory)
+
+All UI work **MUST** be responsive across three breakpoints. No page or component may ship without responsive verification.
+
+| Breakpoint | Width | Description |
+|:-----------|:------|:------------|
+| Mobile | `≤640px` | Phones. Single column. Hamburger sidebar. Stacked layouts. |
+| Tablet | `641–768px` | Small tablets. Sidebar collapsed, hamburger available. |
+| Desktop | `≥769px` | Full sidebar visible. Multi-column layouts. |
+
+**Requirements:**
+
+| Requirement | Implementation | When Required |
+|:------------|:---------------|:--------------|
+| **Navigation** | Sidebar accessible via hamburger menu on mobile; overlay backdrop to dismiss | Every page |
+| **Tables** | Must scroll horizontally (`overflow-x: auto`) or hide low-priority columns | Every data table |
+| **Forms** | Must stack to single-column on mobile (`grid-template-columns: 1fr`) | Every form with row layouts |
+| **Cards/Grids** | Must use `auto-fit`/`auto-fill` with mobile-safe minimums (e.g., `140px` not `320px`) | Every grid |
+| **Panels** | Chat, terminal, and detail panels must reduce height on mobile | Every fixed-height panel |
+| **Touch targets** | Interactive elements must be ≥44px tap target | Every button, link, toggle |
+| **Overflow** | No horizontal page scroll — ever. Use `overflow-x: auto` on containers, not body. | Every component |
+| **Text** | Long text (IDs, URLs, objectives) must wrap or truncate, never overflow | Every text container |
+
+**Verification:** Every page and component must be tested at `375px` (phone), `768px` (tablet), and `1280px` (desktop) widths before merge. Agents must resize the browser and verify no horizontal scroll, no clipped content, and full navigability at all three widths.
+
 ---
 
 ## 9. Error Handling Pattern (All Languages)
@@ -852,6 +877,7 @@ Before submitting code in **any language**:
 - [ ] **React/TS only:** ARIA attributes present on all components (§8.3)
 - [ ] **React/TS only:** `data-testid` attributes on all component roots and key sub-elements (§8.4)
 - [ ] **React/TS only:** Multi-line className formatting for long utility strings (§8.7)
+- [ ] **React/TS only:** Responsive at 375px, 768px, and 1280px — no horizontal scroll, no clipped content (§8.10)
 
 ---
 

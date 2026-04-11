@@ -1,12 +1,14 @@
 /**
  * Layout — App shell component with sidebar navigation and main content area.
  * Provides consistent structure across all pages with Stewie branding.
+ * Responsive: hamburger menu on mobile, overlay sidebar.
  * User menu with theme toggle and logout in the top-right header.
  */
 import { useState, useRef, useEffect } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useTheme } from "../hooks/useTheme";
 import { useAuth } from "../contexts/AuthContext";
+import { useSignalR } from "../hooks/useSignalR";
 
 /** SVG icon components for sidebar navigation */
 function DashboardIcon() {
@@ -73,10 +75,13 @@ export function Layout() {
   const pageTitle = getPageTitle(location.pathname);
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
+  const { state: signalRState } = useSignalR();
+  const isLive = signalRState === "connected";
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close menu on outside click
+  // Close user menu on outside click
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -87,9 +92,23 @@ export function Layout() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setMobileSidebarOpen(false);
+  }, [location.pathname]);
+
   return (
     <div className="app-layout">
-      <aside className="sidebar" id="main-sidebar">
+      {/* Mobile overlay — click to dismiss sidebar */}
+      {mobileSidebarOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setMobileSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside className={`sidebar ${mobileSidebarOpen ? "open" : ""}`} id="main-sidebar">
         <div className="sidebar-brand">
           <img src="/stewie-logo.png" alt="Stewie" />
         </div>
@@ -120,7 +139,33 @@ export function Layout() {
 
       <main className="main-content">
         <header className="main-header">
-          <h2>{pageTitle}</h2>
+          <div className="main-header-left">
+            {/* Hamburger — visible only on mobile via CSS */}
+            <button
+              className="mobile-menu-trigger"
+              onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+              aria-label="Toggle navigation menu"
+              id="mobile-menu-btn"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
+            <h2>{pageTitle}</h2>
+            {isLive ? (
+              <span className="live-indicator live-indicator--ws" id="global-live" title="Connected to live data feed">
+                <span className="live-dot" />
+                Live
+              </span>
+            ) : (
+              <span className="live-indicator live-indicator--poll" id="global-polling" title="Disconnected from live feed, polling for updates">
+                <span className="live-dot live-dot--poll" />
+                Polling
+              </span>
+            )}
+          </div>
           <div className="header-actions" ref={menuRef}>
             <button
               className="user-menu-trigger"
@@ -183,3 +228,4 @@ export function Layout() {
     </div>
   );
 }
+

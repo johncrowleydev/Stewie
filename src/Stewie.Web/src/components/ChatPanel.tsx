@@ -204,14 +204,6 @@ export function ChatPanel({ projectId, architectActive = false }: ChatPanelProps
             </span>
           )}
         </span>
-        {isLive ? (
-          <span className="live-indicator live-indicator--ws">
-            <span className="live-dot" />
-            Live
-          </span>
-        ) : (
-          <span className="chat-header-hint">Messages may be delayed</span>
-        )}
       </div>
 
       {/* Error */}

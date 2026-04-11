@@ -959,22 +959,295 @@ textarea.form-input {
   font-weight: 700;
 }
 
-/* --- Responsive --- */
+/* ===================================================================
+   Responsive Design System
+   Mobile: ≤640px | Tablet: 641–768px | Desktop: ≥769px
+   =================================================================== */
+
+/* --- Mobile Menu Trigger (hamburger) --- */
+.mobile-menu-trigger {
+  display: none; /* hidden on desktop */
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.mobile-menu-trigger:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+  border-color: var(--color-border-hover);
+}
+
+.mobile-menu-trigger svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* --- Main Header Left (title + live indicator container) --- */
+.main-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+/* --- Sidebar Overlay (mobile backdrop) --- */
+.sidebar-overlay {
+  display: none; /* hidden on desktop */
+}
+
+/* --- Tablet + Mobile (≤768px) --- */
 @media (max-width: 768px) {
-  .sidebar {
-    transform: translateX(-100%);
+  /* Show hamburger */
+  .mobile-menu-trigger {
+    display: flex;
   }
 
+  /* Sidebar: off-screen by default, slides in when .open */
+  .sidebar {
+    transform: translateX(-100%);
+    z-index: 200;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Overlay: visible when sidebar is open */
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 199;
+    animation: overlay-fade-in 200ms ease;
+  }
+
+  @keyframes overlay-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Main content: full width */
   .main-content {
     margin-left: 0;
   }
 
+  /* Header: smaller padding */
+  .main-header {
+    padding: 0 var(--space-md);
+  }
+
+  .main-header h2 {
+    font-size: var(--font-size-md);
+  }
+
+  /* Hide username in header — avatar + chevron only */
+  .user-menu-name {
+    display: none;
+  }
+
+  /* Page content: tighter padding */
+  .page-content {
+    padding: var(--space-md);
+  }
+
+  /* Page title rows: allow wrapping */
+  .page-title-row {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  /* Forms: single column */
   .form-row {
     grid-template-columns: 1fr;
   }
 
+  /* Detail meta: single column */
   .detail-meta {
     grid-template-columns: 1fr;
+  }
+
+  /* Detail header: allow wrapping */
+  .detail-header {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  /* Stats grid: smaller minimums so 2 cards fit */
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--space-md);
+  }
+
+  .stat-card {
+    padding: var(--space-md);
+  }
+
+  /* Cards: horizontal scroll for tables */
+  .card {
+    overflow-x: auto;
+  }
+
+  /* Projects grid: smaller minimum */
+  .projects-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--space-md);
+  }
+
+  /* Mode toggle: stack vertically */
+  .mode-toggle {
+    grid-template-columns: 1fr;
+  }
+
+  /* Create form: smaller padding */
+  .create-form {
+    padding: var(--space-md);
+  }
+
+  /* Events: filter buttons wrap */
+  .event-filters {
+    flex-wrap: wrap;
+  }
+
+  /* Timeline header: allow wrapping */
+  .timeline-header {
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+  }
+
+  /* Mini-timeline items: smaller */
+  .mini-timeline-item {
+    min-width: 90px;
+  }
+
+  /* Task chain: governance panel full width */
+  .task-chain-governance {
+    margin-left: 0;
+  }
+
+  /* Task chain objective: allow wrapping */
+  .task-chain-objective {
+    max-width: none;
+    white-space: normal;
+  }
+
+  /* Terminal: shorter on mobile */
+  .terminal-body {
+    max-height: 250px;
+  }
+
+  /* Terminal header: allow wrapping */
+  .terminal-header {
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+  }
+
+  /* Governance header: wrapping */
+  .governance-header {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  /* Governance rule row: wrapping */
+  .governance-rule-row {
+    flex-wrap: wrap;
+  }
+
+  /* DAG view: smaller nodes */
+  .dag-layer {
+    min-width: 120px;
+  }
+
+  .dag-node {
+    min-width: 100px;
+  }
+
+  /* Progress panel header: wrapping */
+  .progress-header {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  .progress-counts {
+    flex-wrap: wrap;
+  }
+
+  /* Progress task objective: allow wrapping */
+  .progress-task-objective {
+    white-space: normal;
+  }
+
+  /* Analytics summary: smaller grid */
+  .analytics-summary {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+
+  /* Analytics time filter: wrapping */
+  .analytics-time-filter {
+    flex-wrap: wrap;
+  }
+
+  /* Architect controls: smaller padding */
+  .architect-controls {
+    padding: var(--space-md);
+  }
+
+  .architect-meta {
+    gap: var(--space-md);
+  }
+
+  .architect-confirm-stop {
+    flex-wrap: wrap;
+  }
+
+  /* Chat panel: shorter on mobile */
+  .chat-panel {
+    height: 400px;
+    max-height: 60vh;
+  }
+
+  .chat-bubble {
+    max-width: 92%;
+  }
+}
+
+/* --- Small Mobile (≤480px) --- */
+@media (max-width: 480px) {
+  /* Terminal title: hide to save space */
+  .terminal-header-title {
+    display: none;
+  }
+
+  /* Chat send button: smaller */
+  .chat-send-btn {
+    min-width: 48px;
+    padding: var(--space-sm);
+  }
+
+  /* Chat messages: tighter padding */
+  .chat-messages {
+    padding: var(--space-sm);
+  }
+
+  /* Stats grid: single column on very small screens */
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Stat card value: slightly smaller */
+  .card-value {
+    font-size: var(--font-size-2xl);
   }
 }
 
@@ -3026,17 +3299,6 @@ textarea.form-input {
   margin-bottom: var(--space-xs);
 }
 
-/* Responsive */
-@media (max-width: 640px) {
-  .chat-panel {
-    height: 400px;
-    max-height: 60vh;
-  }
-
-  .chat-bubble {
-    max-width: 92%;
-  }
-}
 
 
 /* ===================================================================
@@ -3274,19 +3536,4 @@ textarea.form-input {
   text-align: center;
   padding: var(--space-xs) 0;
   font-style: italic;
-}
-
-/* Responsive */
-@media (max-width: 640px) {
-  .architect-controls {
-    padding: var(--space-md);
-  }
-
-  .architect-meta {
-    gap: var(--space-md);
-  }
-
-  .architect-confirm-stop {
-    flex-wrap: wrap;
-  }
 }

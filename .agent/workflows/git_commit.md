@@ -349,10 +349,10 @@ Before executing the commit, verify:
 
 ---
 
-## Step 6: Push to Remote (optional)
-
-Only push when the architect requests it, or if the workflow explicitly calls for it.
-
+## Step 6: Push to Remote
+ 
+Always push your working branch to the remote (`origin`) so the Architect Agent can audit your code.
+ 
 ```bash
 GIT_TERMINAL_PROMPT=0 git push origin main
 ```
