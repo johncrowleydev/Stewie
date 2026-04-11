@@ -607,6 +607,19 @@ documents:
       Covers SQL Server via Docker, .NET API, React frontend, dummy worker
       image build, end-to-end verification, and troubleshooting.
 
+  - id: RUN-003
+    path: 30_RUNBOOKS/RUN-003_End_to_End_Agent_Loop.md
+    title: "End-to-End Agent Loop Validation"
+    type: how-to
+    status: ACTIVE
+    tags: [runbook, e2e, testing, agent-loop, validation]
+    agents: [all]
+    summary: >
+      13-step validation runbook for the full autonomous agent loop: Human
+      chats → Architect plans → Dev executes → Architect reviews → Human
+      sees results. Includes mock-LLM and real-LLM paths, curl-based CI
+      smoke test script, and troubleshooting section.
+
   # ── 40_VERIFICATION ────────────────────────────────────────────────────────
   # (empty — add project-specific verification docs here)
 

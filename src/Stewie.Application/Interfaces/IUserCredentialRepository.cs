@@ -18,6 +18,12 @@ public interface IUserCredentialRepository
     /// </summary>
     Task<UserCredential?> GetByTypeAsync(Guid userId, CredentialType type);
 
+    /// <summary>Retrieves a credential by its unique ID.</summary>
+    Task<UserCredential?> GetByIdAsync(Guid id);
+
+    /// <summary>Retrieves all credentials for a user. REF: JOB-023 T-202.</summary>
+    Task<IList<UserCredential>> GetByUserIdAsync(Guid userId);
+
     /// <summary>Deletes a credential.</summary>
     Task DeleteAsync(UserCredential credential);
 }

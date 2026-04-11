@@ -83,6 +83,7 @@ public class ChatController : ControllerBase
                 senderRole = m.SenderRole,
                 senderName = m.SenderName,
                 content = m.Content,
+                messageType = m.MessageType,
                 createdAt = m.CreatedAt.ToString("O")
             }),
             total,

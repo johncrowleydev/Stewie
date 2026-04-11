@@ -20,6 +20,16 @@ public class UserCredentialRepository : IUserCredentialRepository
         await _uow.Session.Query<UserCredential>()
             .FirstOrDefaultAsync(c => c.UserId == userId && c.CredentialType == type);
 
+    /// <inheritdoc/>
+    public async Task<UserCredential?> GetByIdAsync(Guid id) =>
+        await _uow.Session.GetAsync<UserCredential>(id);
+
+    /// <inheritdoc/>
+    public async Task<IList<UserCredential>> GetByUserIdAsync(Guid userId) =>
+        await _uow.Session.Query<UserCredential>()
+            .Where(c => c.UserId == userId)
+            .ToListAsync();
+
     public async Task DeleteAsync(UserCredential credential) => await _uow.Session.DeleteAsync(credential);
 }
 
