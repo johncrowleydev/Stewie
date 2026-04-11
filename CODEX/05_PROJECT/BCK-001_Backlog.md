@@ -258,20 +258,20 @@ version: 1.2.0
 | B-707 | Mock LLM responder | Simulates OpenCode output for CI testing | P1 | ✅ Done |
 | B-708 | Unit tests | OpenCodeAgentRuntimeTests + CredentialTypeTests | P1 | ✅ Done |
 
-### JOB-022 — Architect Agent Loop ⬜ OPEN
+### JOB-022 — Architect Agent Loop ✅ CLOSED
 
 | ID | Task | Description | Priority | Status |
 |:---|:-----|:------------|:---------|:-------|
-| B-710 | Architect entry script | Main loop: chat → LLM → plan → approval → execute | P0 | Open |
-| B-711 | Stewie API client (Python) | HTTP client for agent containers to call Stewie API | P0 | Open |
-| B-712 | Agent session tokens | Short-lived JWTs for agent container auth | P0 | Open |
-| B-713 | Conversation context builder | Assembles LLM prompt from project state + history | P1 | Open |
-| B-714 | Plan approval protocol | New message types + API endpoint for plan decisions | P1 | Open |
-| B-715 | Job creation from plan | Parser: LLM output → Stewie API job/task creation | P1 | Open |
-| B-716 | Dev Agent monitoring | Watch for completion/failure, report to Human | P1 | Open |
-| B-717 | ArchitectMode config | stewie.json: plan_first / auto_execute | P1 | Open |
-| B-718 | Architect Dockerfile | Extends opencode-agent with Architect scripts | P1 | Open |
-| B-719 | Integration tests | Mock LLM end-to-end Architect loop | P1 | Open |
+| B-710 | Architect entry script | Main loop: chat → LLM → plan → approval → execute | P0 | ✅ Done |
+| B-711 | Stewie API client (Python) | HTTP client for agent containers to call Stewie API | P0 | ✅ Done |
+| B-712 | Agent session tokens | Short-lived JWTs for agent container auth | P0 | ✅ Done |
+| B-713 | Conversation context builder | Assembles LLM prompt from project state + history | P1 | ✅ Done |
+| B-714 | Plan approval protocol | New message types + API endpoint for plan decisions | P1 | ✅ Done |
+| B-715 | Job creation from plan | Parser: LLM output → Stewie API job/task creation | P1 | ✅ Done |
+| B-716 | Dev Agent monitoring | Watch for completion/failure, report to Human | P1 | ✅ Done |
+| B-717 | ArchitectMode config | stewie.json: plan_first / auto_execute | P1 | ✅ Done |
+| B-718 | Architect Dockerfile | Extends opencode-agent with Architect scripts | P1 | ✅ Done |
+| B-719 | Integration tests | Mock LLM end-to-end Architect loop | P1 | ✅ Done |
 
 ### JOB-023 — Agent Intelligence Dashboard + E2E ⬜ OPEN
 

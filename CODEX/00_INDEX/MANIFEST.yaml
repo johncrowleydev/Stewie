@@ -394,7 +394,7 @@ documents:
     path: 05_PROJECT/JOB-022_Architect_Agent_Loop.md
     title: "Job 022 — Architect Agent Loop"
     type: how-to
-    status: OPEN
+    status: CLOSED
     tags: [project-management, job, workflow, phase-6, architect-agent, chat, llm]
     agents: [coder]
     summary: >
@@ -970,6 +970,18 @@ documents:
       Audit report for JOB-021 (OpenCode Agent Runtime). 229 tests pass
       (26 new). Clean fast-forward merge. OpenCodeAgentRuntime, Docker image,
       entrypoint harness, credential storage, mock LLM. Verdict: PASS.
+
+  - id: VER-022
+    path: 40_VERIFICATION/VER-022_JOB-022_Audit.md
+    title: "JOB-022 Audit — Architect Agent Loop"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, phase-6, architect-agent, chat]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-022 (Architect Agent Loop). 239 tests pass
+      (10 new). Architect main loop, API client, context builder, job
+      parser, agent tokens, CON-004 v1.1.0. Verdict: PASS.
 
   # ---- 60_EVOLUTION ----
   - id: EVO-001

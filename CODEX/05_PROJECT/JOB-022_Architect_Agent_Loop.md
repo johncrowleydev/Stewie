@@ -2,7 +2,7 @@
 id: JOB-022
 title: "Job 022 — Architect Agent Loop"
 type: how-to
-status: OPEN
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, job, workflow, phase-6, architect-agent, chat, llm]
