@@ -244,19 +244,19 @@ version: 1.2.0
 
 ## Phase 6: AI Agent Intelligence ⬜ IN PROGRESS
 
-### JOB-021 — OpenCode Agent Runtime ⬜ OPEN
+### JOB-021 — OpenCode Agent Runtime ✅ CLOSED
 
 | ID | Task | Description | Priority | Status |
 |:---|:-----|:------------|:---------|:-------|
-| B-700 | OpenCodeAgentRuntime.cs | IAgentRuntime impl for OpenCode CLI | P0 | Open |
-| B-701 | Dockerfile (stewie-opencode-agent) | Docker image with OpenCode + Python harness | P0 | Open |
-| B-702 | Agent entrypoint harness | RabbitMQ ↔ OpenCode CLI bridge (entrypoint.py) | P0 | Open |
-| B-703 | LLM credential storage | CredentialType enum, migration, repository extension | P1 | Open |
-| B-704 | File-based secret injection | AgentLifecycleService writes key to temp file, mounts | P1 | Open |
-| B-705 | AgentLaunchRequest extension | Add LlmProvider, ModelName, SecretsMountPath | P1 | Open |
-| B-706 | DI registration | Register OpenCodeAgentRuntime alongside StubAgentRuntime | P1 | Open |
-| B-707 | Mock LLM responder | Simulates OpenCode output for CI testing | P1 | Open |
-| B-708 | Unit tests | OpenCodeAgentRuntimeTests + CredentialTypeTests | P1 | Open |
+| B-700 | OpenCodeAgentRuntime.cs | IAgentRuntime impl for OpenCode CLI | P0 | ✅ Done |
+| B-701 | Dockerfile (stewie-opencode-agent) | Docker image with OpenCode + Python harness | P0 | ✅ Done |
+| B-702 | Agent entrypoint harness | RabbitMQ ↔ OpenCode CLI bridge (entrypoint.py) | P0 | ✅ Done |
+| B-703 | LLM credential storage | CredentialType enum, migration, repository extension | P1 | ✅ Done |
+| B-704 | File-based secret injection | AgentLifecycleService writes key to temp file, mounts | P1 | ✅ Done |
+| B-705 | AgentLaunchRequest extension | Add LlmProvider, ModelName, SecretsMountPath | P1 | ✅ Done |
+| B-706 | DI registration | Register OpenCodeAgentRuntime alongside StubAgentRuntime | P1 | ✅ Done |
+| B-707 | Mock LLM responder | Simulates OpenCode output for CI testing | P1 | ✅ Done |
+| B-708 | Unit tests | OpenCodeAgentRuntimeTests + CredentialTypeTests | P1 | ✅ Done |
 
 ### JOB-022 — Architect Agent Loop ⬜ OPEN
 

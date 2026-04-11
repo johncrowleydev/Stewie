@@ -382,7 +382,7 @@ documents:
     path: 05_PROJECT/JOB-021_OpenCode_Agent_Runtime.md
     title: "Job 021 — OpenCode Agent Runtime"
     type: how-to
-    status: OPEN
+    status: CLOSED
     tags: [project-management, job, workflow, phase-6, agent-runtime, opencode, containers]
     agents: [coder]
     summary: >
@@ -958,6 +958,18 @@ documents:
       Audit report for JOB-020 (Self-Healing Architect Lifecycle). 203 tests
       pass post-merge. Defensive 409 rejections, container state inspection
       via Docker API, and session status endpoint verified.
+
+  - id: VER-021
+    path: 40_VERIFICATION/VER-021_JOB-021_Audit.md
+    title: "JOB-021 Audit — OpenCode Agent Runtime"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, phase-6, agent-runtime, opencode]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-021 (OpenCode Agent Runtime). 229 tests pass
+      (26 new). Clean fast-forward merge. OpenCodeAgentRuntime, Docker image,
+      entrypoint harness, credential storage, mock LLM. Verdict: PASS.
 
   # ---- 60_EVOLUTION ----
   - id: EVO-001

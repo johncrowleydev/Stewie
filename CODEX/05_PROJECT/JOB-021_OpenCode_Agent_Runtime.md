@@ -2,7 +2,7 @@
 id: JOB-021
 title: "Job 021 — OpenCode Agent Runtime"
 type: how-to
-status: OPEN
+status: CLOSED
 owner: architect
 agents: [coder]
 tags: [project-management, job, workflow, phase-6, agent-runtime, opencode, containers]
