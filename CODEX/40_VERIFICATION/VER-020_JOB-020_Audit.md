@@ -1,16 +1,18 @@
 ---
 id: VER-020
 title: "JOB-020 Verification Report"
-type: audit
+type: reference
 status: APPROVED
 owner: architect
-agents: [none]
-tags: [verification, audit, phase-5b]
+agents: [architect]
+tags: [verification, audit, phase-5b, health-check]
 related: [JOB-020, CON-004, GOV-008]
 created: 2026-04-10
-updated: 2026-04-10
-version: 1.0.0
+updated: 2026-04-11
+version: 1.1.0
 ---
+
+> **BLUF:** Audit report for JOB-020 (Self-Healing Architect Lifecycle). 203 tests pass. Defensive 409 rejections, container state inspection via Docker API, and session status endpoint verified. Verdict: PASS.
 
 # VER-020: Verification Report for JOB-020
 

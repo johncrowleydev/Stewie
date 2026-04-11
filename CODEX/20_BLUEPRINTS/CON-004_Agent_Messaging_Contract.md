@@ -5,18 +5,17 @@ type: contract
 status: APPROVED
 version: "1.1.0"
 created: 2026-04-10
-updated: 2026-04-10
-owner: Architect
+updated: 2026-04-11
+owner: architect
 tags: [rabbitmq, messaging, agent, contract, infrastructure]
 agents: [architect, developer]
-refs: [BLU-001, JOB-016]
+related: [BLU-001, JOB-016]
 ---
+
+> **BLUF:** Defines the RabbitMQ exchange topology, routing keys, and JSON message schemas for all API-to-agent communication. Three exchanges (stewie.commands, stewie.events, stewie.chat) with 10 message types covering task assignment, progress events, chat relay, and plan approval.
 
 # CON-004: Agent Messaging Contract
 
-> **Purpose:** Defines the RabbitMQ topology, routing conventions, and JSON message schemas
-> used for all communication between the Stewie API control plane and agent containers.
->
 > **Scope:** This contract governs wire-format messages only. Application-level semantics
 > (how agents act on messages) are defined in the agent role templates (AGT-001/002/003).
 

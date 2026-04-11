@@ -12,6 +12,8 @@ updated: 2026-04-11
 version: 1.1.0
 ---
 
+> **BLUF:** Convert inline ChatPanel to right-side slideover with pin-to-sidebar option and localStorage persistence. Add GitHub repo combobox with search-as-you-type for project creation. Feature-gate GitHub-dependent UI when no PAT is configured.
+
 # JOB-025 — Chat Slideover + GitHub Repo Picker
 
 ## Objective

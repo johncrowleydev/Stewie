@@ -12,9 +12,9 @@ updated: 2026-04-11
 version: 8.0.0
 ---
 
-# Architect Session Handoff
+> **BLUF:** Living snapshot of project state for Architect Agent session continuity. Updated at session end with completed work, open items, and environment config. Currently at Phase 7 (Design System Foundation).
 
-> **Purpose:** Snapshot of project state for the next Architect agent session. Written once at session end.
+# Architect Session Handoff
 
 ## Current State
 

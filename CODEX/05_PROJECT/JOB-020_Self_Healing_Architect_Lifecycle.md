@@ -1,7 +1,7 @@
 ---
 id: JOB-020
 title: "Self-Healing Architect Lifecycle"
-type: job
+type: how-to
 status: CLOSED
 owner: architect
 agents: [coder]
@@ -9,6 +9,7 @@ tags: [project-management, sprint, architecture, health-check, phase-5b]
 related: [BLU-001, CON-004, GOV-008]
 created: 2026-04-10
 updated: 2026-04-10
+version: 1.0.0
 ---
 
 # JOB-020: Self-Healing Architect Lifecycle

@@ -12,6 +12,8 @@ updated: 2026-04-11
 version: 1.1.0
 ---
 
+> **BLUF:** Build admin-only UI panels for invite code generation/revocation and user list/deletion. Extends SettingsPage with admin-only panels. New backend endpoints for invite management (DELETE /api/invites/{id}) and user management (GET /api/users, DELETE /api/users/{id}).
+
 # JOB-026 — Admin User Management + Invite UI
 
 ## Objective
