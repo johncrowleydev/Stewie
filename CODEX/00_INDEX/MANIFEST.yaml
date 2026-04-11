@@ -109,9 +109,10 @@ documents:
     tags: [project-management, roadmap, governance, agentic-development]
     agents: [all]
     summary: >
-      Project roadmap derived from the Stewie constitution. Defines 6 delivery
-      phases from Foundation (complete) through Real-Time Interaction. Phase 1
-      (Core Orchestration MVP) is the current target.
+      Project roadmap. Phases 0–5b complete (Foundation, Core Orchestration,
+      Real Repo, GitHub Integration, Governance Engine, Multi-Task DAG,
+      Chat + Real-Time UI, Message Bus + Agent Lifecycle). Phase 6 (AI Agent
+      Intelligence) is the current target.
 
   - id: BCK-001
     path: 05_PROJECT/BCK-001_Backlog.md
@@ -121,9 +122,9 @@ documents:
     tags: [project-management, backlog, agentic-development]
     agents: [all]
     summary: >
-      Prioritized development backlog for Stewie Phase 1 MVP. Covers entity
-      creation (Project, Event, Workspace), API endpoints, React dashboard,
-      and test infrastructure.
+      Prioritized development backlog for Stewie. Phases 1–5b complete
+      (110+ tasks across 20 jobs). Contains historical backlog items and
+      Phase 6 pending items.
 
   - id: BCK-002
     path: 05_PROJECT/BCK-002_Architect_Backlog.md
@@ -408,14 +409,15 @@ documents:
     title: "Coding Standard"
     type: reference
     status: APPROVED
-    tags: [coding, standards, governance, quality, safety]
+    tags: [coding, standards, governance, quality, safety, responsive-design]
     agents: [all]
     summary: >
       NASA/JPL-grade polyglot coding standard for Python, C/C++, and
       React/TypeScript. NASA Power of 10 backbone, MISRA C:2025, DO-178C
       code review mandates, dead code prohibition, boundary conditions,
       incident-readability enhancements (inline ADRs, panic breadcrumbs),
-      WCAG 2.1 AA accessibility, data-testid testability, static analysis
+      WCAG 2.1 AA accessibility, data-testid testability, §8.10 mandatory
+      responsive design (mobile/tablet/desktop breakpoints), static analysis
       profiles, and Disaster-Readability Principle.
 
   - id: GOV-004
@@ -851,6 +853,28 @@ documents:
       fetchContainerOutput client function, missing ContainerOutputResponse type,
       and implicit any on .map() params. Resolved by Dev B on second pass.
 
+  - id: DEF-002
+    path: 50_DEFECTS/DEF-002_AgentB_Missing_Test_Auth.md
+    title: "Agent B Failed to Update Integration Tests for Auth"
+    type: reference
+    status: CLOSED
+    tags: [defect, testing, auth]
+    agents: [coder]
+    summary: >
+      Agent B failed to update existing integration tests to include required
+      auth headers after JWT was introduced. CLOSED.
+
+  - id: DEF-003
+    path: 50_DEFECTS/DEF-003_Dark_Mode_Only.md
+    title: "Dashboard is Dark-Mode Only — No Light Theme Toggle"
+    type: reference
+    status: FIXED
+    tags: [defect, frontend, theming]
+    agents: [coder]
+    summary: >
+      Dashboard shipped with dark-mode only. No theme toggle existed.
+      FIXED with theme toggle in user menu.
+
   - id: VER-016
     path: 40_VERIFICATION/VER-016_JOB-016_Audit.md
     title: "JOB-016 Audit — RabbitMQ Infrastructure"
@@ -886,3 +910,40 @@ documents:
       Audit report for JOB-018. 209 tests pass. Backend DI configuration
       resolved. Frontend CSS @import fixed. Architect start/stop integration 
       with ChatPanel disabled input states successfully completed.
+
+  - id: VER-020
+    path: 40_VERIFICATION/VER-020_JOB-020_Audit.md
+    title: "JOB-020 Audit — Self-Healing Architect Lifecycle"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, phase-5b, health-check]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-020 (Self-Healing Architect Lifecycle). 203 tests
+      pass post-merge. Defensive 409 rejections, container state inspection
+      via Docker API, and session status endpoint verified.
+
+  # ---- 60_EVOLUTION ----
+  - id: EVO-001
+    path: 60_EVOLUTION/EVO-001_SafeCommand_FileRedirect_Pattern.md
+    title: "Safe Command File-Redirect Pattern for Long-Running Builds"
+    type: evolution
+    status: PROPOSED
+    tags: [governance, workflow, devex]
+    agents: [coder, architect]
+    summary: >
+      Proposes redirecting long-running build output to files instead of
+      capturing in terminal, to avoid agent context window overflow.
+
+  # ---- 05_PROJECT (misc) ----
+  - id: SESSION_HANDOFF
+    path: 05_PROJECT/SESSION_HANDOFF.md
+    title: "Session Handoff — Phase 5b Complete"
+    type: reference
+    status: CURRENT
+    tags: [project-management, handoff, context]
+    agents: [architect]
+    summary: >
+      Living document for session-to-session context handoff. Captures current
+      system state, environment config, and open items for the next Architect
+      session.

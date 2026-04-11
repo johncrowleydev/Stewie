@@ -1,5 +1,5 @@
 ---
-id: DEF-001
+id: DEF-002
 title: "Agent B failed to update existing integration tests for Auth"
 type: reference
 status: CLOSED

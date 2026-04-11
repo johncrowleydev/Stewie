@@ -1,5 +1,5 @@
 ---
-id: DEF-001
+id: DEF-003
 title: "Dashboard is dark-mode only — no light theme toggle"
 type: reference
 status: FIXED
