@@ -21,7 +21,7 @@
 
 schema_version: "1.0.0"
 project: "stewie"
-generated: "2026-04-09"
+generated: "2026-04-11"
 
 # ── Area Definitions ──────────────────────────────────────────────────────────
 areas:
@@ -109,10 +109,10 @@ documents:
     tags: [project-management, roadmap, governance, agentic-development]
     agents: [all]
     summary: >
-      Project roadmap. Phases 0–5b complete (Foundation, Core Orchestration,
-      Real Repo, GitHub Integration, Governance Engine, Multi-Task DAG,
-      Chat + Real-Time UI, Message Bus + Agent Lifecycle). Phase 6 (AI Agent
-      Intelligence) is the current target.
+      Project roadmap. Phases 1–6 complete. Phase 7 (Design System Foundation)
+      is IN PROGRESS — Tailwind CSS v4 migration, component library, cleanup.
+      Phases 8 (App Shell + Role-Based Architecture), 9 (Code Explorer + Polish),
+      and 10 (Production Hardening) are planned.
 
   - id: BCK-001
     path: 05_PROJECT/BCK-001_Backlog.md
@@ -122,9 +122,9 @@ documents:
     tags: [project-management, backlog, agentic-development]
     agents: [all]
     summary: >
-      Prioritized development backlog for Stewie. Phases 1–5b complete
-      (110+ tasks across 20 jobs). Contains historical backlog items and
-      Phase 6 pending items.
+      Prioritized development backlog for Stewie. Phases 1–6 complete
+      (110+ tasks across 23 jobs). Contains Phase 7–10 pending items
+      including Tailwind migration, app shell restructuring, and code explorer.
 
   - id: BCK-002
     path: 05_PROJECT/BCK-002_Architect_Backlog.md
@@ -437,6 +437,18 @@ documents:
       Admin UI for invite code generation/revocation and user list/deletion.
       Extends SettingsPage with admin-only panels. New backend endpoints for
       invite revocation and user management.
+
+  - id: JOB-027
+    path: 05_PROJECT/JOB-027_Tailwind_Migration.md
+    title: "Job 027 — Tailwind CSS v4 Migration"
+    type: how-to
+    status: OPEN
+    tags: [project-management, job, workflow, phase-7, frontend, design-system, tailwind, migration]
+    agents: [coder]
+    summary: >
+      Migrate entire frontend from 4,349-line vanilla CSS monolith to Tailwind
+      CSS v4 with brand design tokens, self-hosted Inter + JetBrains Mono fonts,
+      and dark mode support. Foundation for component library (JOB-028).
 
   # ── 10_GOVERNANCE ───────────────────────────────────────────────────────────
   - id: GOV-001
@@ -1059,12 +1071,12 @@ documents:
   # ---- 05_PROJECT (misc) ----
   - id: SESSION_HANDOFF
     path: 05_PROJECT/SESSION_HANDOFF.md
-    title: "Session Handoff — Phase 5b Complete"
+    title: "Architect Session Handoff"
     type: reference
-    status: CURRENT
+    status: ACTIVE
     tags: [project-management, handoff, context]
     agents: [architect]
     summary: >
       Living document for session-to-session context handoff. Captures current
-      system state, environment config, and open items for the next Architect
-      session.
+      system state, environment config, completed jobs, and open items for
+      the next Architect session. Currently at Phase 7.
