@@ -68,3 +68,23 @@ export function IconKey({ size = 16, className }: IconProps) {
     </svg>
   );
 }
+
+/** People group icon — represents users list. REF: JOB-026 */
+export function IconUsers({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-4.735 2.735A7.97 7.97 0 0 1 6 9c1.8 0 3.45.6 4.735 1.735A6.96 6.96 0 0 1 13 15H-1a6.96 6.96 0 0 1 2.265-4.265z" />
+      <path d="M11 4a2 2 0 1 1 4 0 2 2 0 0 1-4 0zm.332 5.024A8.032 8.032 0 0 1 14 9c.94 0 1.84.163 2.676.46A5.97 5.97 0 0 1 19 14h-3.5a7.95 7.95 0 0 0-1.168-2.976 5.98 5.98 0 0 0-3-2z" opacity="0.6" />
+    </svg>
+  );
+}
+
+/** Shield/security icon — represents admin / invite codes. REF: JOB-026 */
+export function IconShield({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M8 0L1.5 3v4.5c0 3.83 2.77 7.41 6.5 8.5 3.73-1.09 6.5-4.67 6.5-8.5V3L8 0zm-.5 11.32L4.76 8.58l1.06-1.06L7.5 9.2l2.68-2.68 1.06 1.06L7.5 11.32z" />
+    </svg>
+  );
+}
+

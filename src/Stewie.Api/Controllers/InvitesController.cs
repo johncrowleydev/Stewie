@@ -75,4 +75,38 @@ public class InvitesController : ControllerBase
             createdAt = c.CreatedAt.ToString("o")
         }));
     }
+
+    /// <summary>
+    /// Revoke (delete) an unused invite code. Admin only.
+    /// Returns 404 if code does not exist. Returns 409 if code was already used.
+    /// REF: CON-002 §4.0.2, JOB-026 T-313
+    /// </summary>
+    /// <param name="id">The invite code ID to revoke.</param>
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Revoke(Guid id)
+    {
+        var invite = await _inviteCodeRepository.GetByIdAsync(id);
+        if (invite is null)
+        {
+            return NotFound(new
+            {
+                error = new { code = "NOT_FOUND", message = "Invite code not found." }
+            });
+        }
+
+        if (invite.UsedByUserId.HasValue)
+        {
+            return Conflict(new
+            {
+                error = new { code = "ALREADY_USED", message = "Cannot revoke an invite code that has already been used." }
+            });
+        }
+
+        _unitOfWork.BeginTransaction();
+        await _inviteCodeRepository.DeleteAsync(invite);
+        await _unitOfWork.CommitAsync();
+
+        _logger.LogInformation("Invite code {Code} (ID: {Id}) revoked by admin", invite.Code, invite.Id);
+        return NoContent();
+    }
 }

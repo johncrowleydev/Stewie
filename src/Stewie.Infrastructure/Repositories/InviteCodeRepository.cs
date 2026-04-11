@@ -12,6 +12,8 @@ public class InviteCodeRepository : IInviteCodeRepository
     public async Task SaveAsync(InviteCode inviteCode) => await _uow.Session.SaveOrUpdateAsync(inviteCode);
     public async Task<InviteCode?> GetByCodeAsync(string code) =>
         await _uow.Session.Query<InviteCode>().FirstOrDefaultAsync(i => i.Code == code);
+    public async Task<InviteCode?> GetByIdAsync(Guid id) => await _uow.Session.GetAsync<InviteCode>(id);
     public async Task<IList<InviteCode>> GetAllAsync() =>
         await _uow.Session.Query<InviteCode>().OrderByDescending(i => i.CreatedAt).ToListAsync();
+    public async Task DeleteAsync(InviteCode inviteCode) => await _uow.Session.DeleteAsync(inviteCode);
 }
