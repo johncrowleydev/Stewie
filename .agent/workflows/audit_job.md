@@ -256,7 +256,7 @@ echo "Record the Passed/Failed/Skipped counts in the VER-NNN audit report."
 
 ---
 
-### 10.5 README (manual but MANDATORY)
+### 10.5 CODEX README (manual but MANDATORY)
 
 > [!IMPORTANT]
 > Open CODEX/00_INDEX/README.md and verify EACH of these. If any is stale, fix it NOW.
@@ -268,6 +268,76 @@ echo "Record the Passed/Failed/Skipped counts in the VER-NNN audit report."
 - [ ] DEFECTS, EVOLUTION, RESEARCH sections current
 - [ ] Job count accurate
 - [ ] No emoji in titles or content
+
+---
+
+### 10.5b Root README.md — Staleness Check (automated + manual)
+
+> [!IMPORTANT]
+> The project root `README.md` is the public face of the project. It MUST reflect
+> current state. If any automated check below fails, update `README.md` before committing.
+
+// turbo
+**Contract versions in root README vs actual contract frontmatter:**
+```bash
+echo "=== Root README Contract Version Check ==="
+ERRORS=0
+for con in CODEX/20_BLUEPRINTS/CON-*.md; do
+  CON_ID=$(head -20 "$con" | grep '^id:' | sed 's/id: *//' | tr -d '"')
+  CON_VER=$(head -20 "$con" | grep '^version:' | sed 's/version: *//' | tr -d '"')
+  if [ -n "$CON_ID" ] && [ -n "$CON_VER" ]; then
+    README_VER=$(grep "$CON_ID" README.md | grep -o 'v[0-9.]*' | head -1)
+    if [ -n "$README_VER" ] && [ "$README_VER" != "v$CON_VER" ]; then
+      echo "  ❌ $CON_ID: README.md says $README_VER, actual is v$CON_VER"
+      ERRORS=$((ERRORS + 1))
+    elif [ -z "$README_VER" ]; then
+      echo "  ❌ $CON_ID: not mentioned in README.md at all"
+      ERRORS=$((ERRORS + 1))
+    fi
+  fi
+done
+[ "$ERRORS" -eq 0 ] && echo "  ✅ All contract versions match" || echo "  ⚠️  $ERRORS mismatch(es) — update README.md Contracts table"
+```
+
+// turbo
+**Test count in root README vs actual test results:**
+```bash
+echo "=== Root README Test Count Check ==="
+ACTUAL=$(dotnet test src/Stewie.Tests/Stewie.Tests.csproj --verbosity quiet 2>&1 | grep -oP 'Passed:\s*\K[0-9]+')
+README_COUNT=$(grep -oP '\(\K[0-9]+(?= (tests |passing))' README.md | head -1)
+if [ -n "$ACTUAL" ] && [ -n "$README_COUNT" ]; then
+  if [ "$ACTUAL" != "$README_COUNT" ]; then
+    echo "  ❌ README says $README_COUNT tests, actual is $ACTUAL"
+  else
+    echo "  ✅ Test count matches ($ACTUAL)"
+  fi
+else
+  echo "  ⚠️  Could not parse test counts (actual=$ACTUAL, readme=$README_COUNT)"
+fi
+```
+
+// turbo
+**Roadmap phase accuracy — README vs PRJ-001:**
+```bash
+echo "=== Root README Roadmap Check ==="
+# Count completed phases in PRJ-001 vs README
+PRJ_COMPLETE=$(grep -c '✅ COMPLETE' CODEX/05_PROJECT/PRJ-001_Roadmap.md || true)
+README_COMPLETE=$(grep -c '✅ Complete' README.md || true)
+PRJ_PROGRESS=$(grep -c '🔄 IN PROGRESS\|IN PROGRESS' CODEX/05_PROJECT/PRJ-001_Roadmap.md || true)
+README_PROGRESS=$(grep -c '🔄 In Progress\|In Progress' README.md || true)
+if [ "$PRJ_COMPLETE" != "$README_COMPLETE" ] || [ "$PRJ_PROGRESS" != "$README_PROGRESS" ]; then
+  echo "  ❌ Roadmap mismatch: PRJ-001 has $PRJ_COMPLETE complete/$PRJ_PROGRESS active, README has $README_COMPLETE complete/$README_PROGRESS active"
+else
+  echo "  ✅ Roadmap phase counts match"
+fi
+```
+
+**Manual README checks:**
+- [ ] Architecture diagram reflects current system components (SignalR, RabbitMQ, agent containers)
+- [ ] "How It Works" section describes the chat-driven flow, not manual job creation
+- [ ] Project Structure section lists all top-level directories (`src/`, `workers/`, `docker/`, `CODEX/`)
+- [ ] API Overview table covers all controller endpoints
+- [ ] Configuration table includes all required environment variables
 
 ---
 
@@ -302,7 +372,8 @@ HOUSEKEEPING GATE:
 - [ ] 10.2 Contract versions — PASS
 - [ ] 10.3 Test count recorded — PASS
 - [ ] 10.4 Roadmap phase state — PASS
-- [ ] 10.5 README accuracy — PASS
+- [ ] 10.5 CODEX README accuracy — PASS
+- [ ] 10.5b Root README.md staleness — PASS
 - [ ] 10.6 Backlog updated — PASS
 ```
 ```

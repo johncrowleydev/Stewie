@@ -72,6 +72,54 @@ For each doc that has entries in its `related` field:
 - [ ] Every referenced ID actually exists in another doc's `id` field
 - [ ] Flag any broken cross-references
 
+### 2.5 Root README.md Staleness (automated)
+
+> [!IMPORTANT]
+> The root `README.md` is the public face of the project. Run these checks to detect drift.
+> If any check fails, flag it as a violation in the Phase 4 report.
+
+// turbo
+**Contract versions — README.md vs actual contract frontmatter:**
+```bash
+echo "=== Root README Contract Version Check ==="
+ERRORS=0
+for con in CODEX/20_BLUEPRINTS/CON-*.md; do
+  CON_ID=$(head -20 "$con" | grep '^id:' | sed 's/id: *//' | tr -d '"')
+  CON_VER=$(head -20 "$con" | grep '^version:' | sed 's/version: *//' | tr -d '"')
+  if [ -n "$CON_ID" ] && [ -n "$CON_VER" ]; then
+    README_VER=$(grep "$CON_ID" README.md | grep -o 'v[0-9.]*' | head -1)
+    if [ -n "$README_VER" ] && [ "$README_VER" != "v$CON_VER" ]; then
+      echo "  ❌ $CON_ID: README.md says $README_VER, actual is v$CON_VER"
+      ERRORS=$((ERRORS + 1))
+    elif [ -z "$README_VER" ]; then
+      echo "  ❌ $CON_ID: not mentioned in README.md at all"
+      ERRORS=$((ERRORS + 1))
+    fi
+  fi
+done
+[ "$ERRORS" -eq 0 ] && echo "  ✅ All contract versions match" || echo "  ⚠️  $ERRORS mismatch(es) — update README.md Contracts table"
+```
+
+// turbo
+**Roadmap phase accuracy — README.md vs PRJ-001:**
+```bash
+echo "=== Root README Roadmap Check ==="
+PRJ_COMPLETE=$(grep -c '✅ COMPLETE' CODEX/05_PROJECT/PRJ-001_Roadmap.md || true)
+README_COMPLETE=$(grep -c '✅ Complete' README.md || true)
+PRJ_PROGRESS=$(grep -c '🔄 IN PROGRESS\|IN PROGRESS' CODEX/05_PROJECT/PRJ-001_Roadmap.md || true)
+README_PROGRESS=$(grep -c '🔄 In Progress\|In Progress' README.md || true)
+if [ "$PRJ_COMPLETE" != "$README_COMPLETE" ] || [ "$PRJ_PROGRESS" != "$README_PROGRESS" ]; then
+  echo "  ❌ Roadmap mismatch: PRJ-001 has $PRJ_COMPLETE complete/$PRJ_PROGRESS active, README has $README_COMPLETE complete/$README_PROGRESS active"
+else
+  echo "  ✅ Roadmap phase counts match"
+fi
+```
+
+**Manual README checks (flag if stale):**
+- [ ] Architecture diagram reflects current system components
+- [ ] API Overview table covers all controller endpoints
+- [ ] Project Structure section lists all top-level directories
+
 ---
 
 ## Phase 3: Regenerate MANIFEST.yaml
@@ -124,9 +172,13 @@ Passing: [N] documents
 Violations: [N] total across [N] documents
 
 MANIFEST.yaml: [UPDATED | NO CHANGES NEEDED]
+Root README.md: [CURRENT | STALE — list issues]
 
 --- Violations ---
 [List each violation with file path, field, and issue]
+
+--- Root README.md Staleness ---
+[List any contract version, roadmap, or structural mismatches]
 
 --- New Documents Added to MANIFEST ---
 [List any docs that were in the filesystem but not in MANIFEST]
