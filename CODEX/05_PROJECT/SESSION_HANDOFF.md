@@ -1,6 +1,6 @@
 ---
 id: SESSION_HANDOFF
-title: "Session Handoff — Phase 6 Ready"
+title: "Session Handoff — Phase 6 Dashboard Complete"
 type: reference
 status: CURRENT
 updated: 2026-04-11
@@ -8,21 +8,21 @@ updated: 2026-04-11
 
 # Session Handoff
 
-> Last updated: 2026-04-11T01:29Z
+> Last updated: 2026-04-11T02:59Z
 
 ## Current State
 
-**Phases 0–5b COMPLETE. Phase 6 (AI Agent Intelligence) is next.**
+**Phases 0–5b COMPLETE. Phase 6 (AI Agent Intelligence) — frontend tasks complete (Dev A), backend/E2E tasks in progress (Dev B).**
 
 | Metric | Value |
 |:-------|:------|
 | Tests | **203 passed**, 5 skipped, 0 failing |
-| Jobs completed | 20/20 (all CLOSED) |
+| Jobs completed | 22/23 (JOB-023 still OPEN — Dev B items remaining) |
 | Open defects | 0 |
-| C# source files | 169 |
-| TypeScript/React files | 29 |
-| CSS design system | 3,539 lines |
-| Git branch | `main` — clean tree |
+| C# source files | 170 |
+| TypeScript/React files | 30 |
+| CSS design system | 3,872 lines |
+| Git branch | `feature/JOB-023-dashboard` (Dev A), `feature/JOB-023-e2e` (Dev B) |
 
 ## Environment
 
@@ -60,11 +60,11 @@ npm run dev
 | 4 | Multi-Task Jobs (DAG) | JOB-009, JOB-010, JOB-011 | ✅ |
 | 5a | Chat + Real-Time UI | JOB-012–JOB-015 | ✅ |
 | 5b | Message Bus + Agent Lifecycle | JOB-016–JOB-020 | ✅ |
-| **6** | **AI Agent Intelligence** | — | **⬜ Not Started** |
+| **6** | **AI Agent Intelligence** | JOB-021, JOB-022, JOB-023 | **🔄 In Progress** |
 
 ## What's Built
 
-The entire **control plane** is complete:
+The entire **control plane** is complete, plus Phase 6 AI agent intelligence:
 
 - **API:** C# .NET 10, NHibernate, FluentMigrator, SQL Server 2022
 - **Frontend:** React/Vite dashboard with 10 pages, dark/light theme, responsive layout
@@ -73,33 +73,30 @@ The entire **control plane** is complete:
 - **Governance:** 15 automated rules, task chain retry loops, governance analytics panel
 - **Multi-Task:** DAG-based parallel task execution with dependency resolution
 - **Messaging:** RabbitMQ backbone with typed exchanges, consumer hosted service
-- **Agent Runtime:** `IAgentRuntime` abstraction, `StubAgentRuntime`, agent session tracking
+- **Agent Runtime:** `IAgentRuntime` abstraction, `StubAgentRuntime`, `OpenCodeAgentRuntime`
+- **Architect Agent:** Python-based architect loop (chat → LLM → plan → approval → execute)
+- **Dev Agent:** OpenCode CLI harness with RabbitMQ bridge (entrypoint.py)
+- **Model Selector:** Runtime/model dropdowns on ArchitectControls (T-200)
+- **LLM Keys:** Provider key management UI on SettingsPage (T-201)
+- **Context Panel:** Architect context visibility with token usage bar (T-204)
 - **Architect Lifecycle:** Start/stop from UI, heartbeat monitoring, self-healing session detection
 - **Container Streaming:** Live stdout/stderr streaming to terminal-style UI panel
-- **Auth:** JWT, BCrypt, invite-only registration, encrypted GitHub PAT storage
+- **Auth:** JWT, BCrypt, invite-only registration, encrypted credential storage (GitHub + LLM keys)
 - **Responsive:** Mobile hamburger sidebar, consolidated CSS breakpoint system (GOV-003 §8.10)
 
-## Phase 6: AI Agent Intelligence — What's Next
+## Phase 6: Remaining Work (Dev B)
 
-From PRJ-001, the exit criteria for Phase 6:
-
-- [ ] First `IAgentRuntime` implementation (Claude Code, OpenCode, or Aider)
-- [ ] Architect Agent container: receives chat → plans → creates jobs → monitors
-- [ ] Dev Agent container: receives task → writes code → asks questions when blocked
-- [ ] Model/provider selector in dashboard (per project)
-- [ ] Conversation history persistence for Architect context
-- [ ] End-to-end autonomous loop: Human chats → Architect plans → Dev executes → Architect reviews
-
-**Key integration points:**
-- `IAgentRuntime` interface: `src/Stewie.Application/Interfaces/IAgentRuntime.cs`
-- `AgentLifecycleService`: `src/Stewie.Application/Services/AgentLifecycleService.cs`
-- `StubAgentRuntime` (reference impl): `src/Stewie.Infrastructure/Services/StubAgentRuntime.cs`
-- `RabbitMqConsumerHostedService`: `src/Stewie.Infrastructure/Services/RabbitMqConsumerHostedService.cs`
-- CON-004: `CODEX/20_BLUEPRINTS/CON-004_Agent_Messaging_Contract.md`
+| Task | Description | Status |
+|:-----|:------------|:-------|
+| T-202 | Provider key API endpoints (CredentialController) | Open |
+| T-203 | Plan approval UI in ChatPanel | Open |
+| T-205 | CON-002 v1.9.0 documentation | Open |
+| T-206 | End-to-end smoke test + RUN-003 runbook | Open |
 
 ## Known Issues
 
 - **Minor responsive wonkiness** at very narrow viewport widths (≤375px). Flagged for follow-up polish.
+- **Context panel endpoint** (`GET /api/agents/project/{projectId}/context`) — not yet implemented on backend. Frontend gracefully shows empty state.
 - **No open DEF- defects.**
 
 ## Key Contracts
@@ -107,8 +104,8 @@ From PRJ-001, the exit criteria for Phase 6:
 | Contract | Version | Description |
 |:---------|:--------|:------------|
 | CON-001 | v1.5.0 | Runtime Contract (task.json / result.json) |
-| CON-002 | v2.2.0 | API Contract (HTTP + SignalR + Chat + Architect) |
-| CON-003 | v1.0.0 | Project Configuration (stewie.json) |
+| CON-002 | v2.2.0 → v1.9.0 | API Contract (HTTP + SignalR + Chat + Architect + Credentials) |
+| CON-003 | v1.1.0 | Project Configuration (stewie.json) |
 | CON-004 | v1.0.0 | Agent Messaging Contract (RabbitMQ) |
 
 ## Governance Docs

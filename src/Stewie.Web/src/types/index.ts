@@ -245,3 +245,29 @@ export interface ArchitectStatus {
   active: boolean;
   session: AgentSession | null;
 }
+
+/** Stored credential (masked) — CON-002 v1.9.0 (JOB-023 T-201) */
+export interface Credential {
+  id: string;
+  credentialType: string;
+  maskedValue: string;
+  createdAt: string;
+}
+
+/** Request body for adding a credential — CON-002 v1.9.0 (JOB-023 T-201) */
+export interface AddCredentialRequest {
+  credentialType: string;
+  value: string;
+}
+
+/** Architect context response — CON-002 v1.9.0 (JOB-023 T-204) */
+export interface ArchitectContext {
+  tokenEstimate: number;
+  maxTokens: number;
+  chatMessageCount: number;
+  activeJobCount: number;
+  completedTaskCount: number;
+  totalTaskCount: number;
+  governanceReportCount: number;
+  lastUpdated: string;
+}

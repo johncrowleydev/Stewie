@@ -13,6 +13,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchProject } from "../api/client";
 import { ArchitectControls } from "../components/ArchitectControls";
+import { ConversationContextPanel } from "../components/ConversationContextPanel";
 import { ChatPanel } from "../components/ChatPanel";
 import type { Project } from "../types";
 
@@ -126,6 +127,12 @@ export function ProjectDetailPage() {
       <ArchitectControls
         projectId={project.id}
         onStatusChange={handleArchitectStatusChange}
+      />
+
+      {/* Architect context panel */}
+      <ConversationContextPanel
+        projectId={project.id}
+        architectActive={architectActive}
       />
 
       {/* Chat panel */}

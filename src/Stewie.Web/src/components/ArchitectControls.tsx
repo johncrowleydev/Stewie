@@ -1,10 +1,11 @@
 /**
  * ArchitectControls — Start/stop panel for the Architect Agent.
  *
- * Displays Architect status (online/offline), session metadata, and
- * provides start/stop controls. Polls the status endpoint every 10s.
+ * Displays Architect status (online/offline), session metadata,
+ * runtime/model selectors, and start/stop controls.
+ * Polls the status endpoint every 10s.
  *
- * REF: JOB-018 T-174
+ * REF: JOB-018 T-174, JOB-023 T-200
  */
 import { useState, useEffect, useCallback, useRef } from "react";
 import { startArchitect, stopArchitect, getArchitectStatus } from "../api/client";
@@ -12,6 +13,20 @@ import type { ArchitectStatus } from "../types";
 
 /** Polling interval (ms) — status refresh cycle */
 const POLL_INTERVAL_MS = 10_000;
+
+/** Available agent runtimes (static list per JOB-023 spec) */
+const RUNTIMES = ["stub", "opencode"] as const;
+
+/** Models available per runtime */
+const MODELS_BY_RUNTIME: Record<string, string[]> = {
+  stub: [],
+  opencode: [
+    "google/gemini-2.0-flash",
+    "google/gemini-2.5-pro",
+    "anthropic/claude-3-haiku",
+    "openai/gpt-4o-mini",
+  ],
+};
 
 interface ArchitectControlsProps {
   /** The project this architect belongs to */
@@ -25,6 +40,7 @@ interface ArchitectControlsProps {
  *
  * Renders a card with:
  * - Online/offline status badge
+ * - Runtime and model selector dropdowns
  * - Start or stop button
  * - Runtime, session ID, and uptime metadata when active
  */
@@ -35,6 +51,9 @@ export function ArchitectControls({ projectId, onStatusChange }: ArchitectContro
   const [actionInFlight, setActionInFlight] = useState(false);
   const [confirmStop, setConfirmStop] = useState(false);
 
+  const [selectedRuntime, setSelectedRuntime] = useState<string>("stub");
+  const [selectedModel, setSelectedModel] = useState<string>("");
+
   /** Track the last notified active state to avoid redundant callbacks */
   const lastNotifiedRef = useRef<boolean | null>(null);
 
@@ -44,6 +63,11 @@ export function ArchitectControls({ projectId, onStatusChange }: ArchitectContro
       const result = await getArchitectStatus(projectId);
       setStatus(result);
       setError(null);
+
+      // Sync selector state from an active session
+      if (result.active && result.session) {
+        setSelectedRuntime(result.session.runtimeName || "stub");
+      }
 
       // Notify parent only on change
       if (onStatusChange && lastNotifiedRef.current !== result.active) {
@@ -64,12 +88,26 @@ export function ArchitectControls({ projectId, onStatusChange }: ArchitectContro
     return () => clearInterval(interval);
   }, [fetchStatus]);
 
+  // Reset model when runtime changes
+  useEffect(() => {
+    const models = MODELS_BY_RUNTIME[selectedRuntime] ?? [];
+    if (models.length > 0 && !models.includes(selectedModel)) {
+      setSelectedModel(models[0]);
+    } else if (models.length === 0) {
+      setSelectedModel("");
+    }
+  }, [selectedRuntime]); // eslint-disable-line react-hooks/exhaustive-deps
+
   /** Start the Architect Agent */
   const handleStart = useCallback(async () => {
     setActionInFlight(true);
     setError(null);
     try {
-      await startArchitect(projectId);
+      await startArchitect(
+        projectId,
+        selectedRuntime,
+        selectedModel || undefined,
+      );
       // Re-fetch to get the updated session info
       await fetchStatus();
     } catch (err) {
@@ -77,7 +115,7 @@ export function ArchitectControls({ projectId, onStatusChange }: ArchitectContro
     } finally {
       setActionInFlight(false);
     }
-  }, [projectId, fetchStatus]);
+  }, [projectId, selectedRuntime, selectedModel, fetchStatus]);
 
   /** Stop the Architect Agent (requires confirmation) */
   const handleStop = useCallback(async () => {
@@ -125,6 +163,7 @@ export function ArchitectControls({ projectId, onStatusChange }: ArchitectContro
 
   const isActive = status?.active ?? false;
   const session = status?.session ?? null;
+  const availableModels = MODELS_BY_RUNTIME[selectedRuntime] ?? [];
 
   if (loading) {
     return (
@@ -150,6 +189,47 @@ export function ArchitectControls({ projectId, onStatusChange }: ArchitectContro
           {isActive ? "Online" : "Offline"}
         </span>
       </div>
+
+      {/* Runtime / Model selectors — only when agent is offline */}
+      {!isActive && (
+        <div className="architect-selectors" id="architect-selectors">
+          <div className="architect-selector-group">
+            <label className="architect-selector-label" htmlFor="architect-runtime-select">
+              Runtime
+            </label>
+            <select
+              id="architect-runtime-select"
+              className="form-input"
+              value={selectedRuntime}
+              onChange={(e) => setSelectedRuntime(e.target.value)}
+              disabled={actionInFlight}
+            >
+              {RUNTIMES.map((rt) => (
+                <option key={rt} value={rt}>{rt}</option>
+              ))}
+            </select>
+          </div>
+
+          {availableModels.length > 0 && (
+            <div className="architect-selector-group">
+              <label className="architect-selector-label" htmlFor="architect-model-select">
+                Model
+              </label>
+              <select
+                id="architect-model-select"
+                className="form-input"
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                disabled={actionInFlight}
+              >
+                {availableModels.map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Error */}
       {error && (
@@ -208,7 +288,7 @@ export function ArchitectControls({ projectId, onStatusChange }: ArchitectContro
       <div className="architect-meta">
         <div className="architect-meta-item">
           <span className="architect-meta-label">Runtime</span>
-          <span className="architect-meta-value">{session?.runtimeName ?? "stub"}</span>
+          <span className="architect-meta-value">{session?.runtimeName ?? selectedRuntime}</span>
         </div>
         {isActive && session && (
           <>
