@@ -414,6 +414,30 @@ documents:
       plan approval UI in ChatPanel, conversation context panel. End-to-end
       validation of the full autonomous loop with runbook documentation.
 
+  - id: JOB-025
+    path: 05_PROJECT/JOB-025_Chat_Slideover_GitHub.md
+    title: "Job 025 — Chat Slideover + GitHub Repo Picker"
+    type: how-to
+    status: OPEN
+    tags: [project-management, job, workflow, phase-7, chat, github, frontend, backend]
+    agents: [coder]
+    summary: >
+      Convert inline ChatPanel to right-side slideover with pin-to-sidebar option.
+      Add GitHub repo combobox for project creation. Feature-gate GitHub-dependent
+      UI when no token is configured.
+
+  - id: JOB-026
+    path: 05_PROJECT/JOB-026_Admin_User_Management.md
+    title: "Job 026 — Admin User Management + Invite UI"
+    type: how-to
+    status: OPEN
+    tags: [project-management, job, workflow, phase-7, admin, users, invites, frontend, backend]
+    agents: [coder]
+    summary: >
+      Admin UI for invite code generation/revocation and user list/deletion.
+      Extends SettingsPage with admin-only panels. New backend endpoints for
+      invite revocation and user management.
+
   # ── 10_GOVERNANCE ───────────────────────────────────────────────────────────
   - id: GOV-001
     path: 10_GOVERNANCE/GOV-001_DocumentationStandard.md
