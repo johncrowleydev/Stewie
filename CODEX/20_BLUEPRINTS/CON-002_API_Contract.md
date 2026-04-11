@@ -9,7 +9,7 @@ tags: [standards, specification, project-management, governance]
 related: [BLU-001, CON-001, GOV-004]
 created: 2026-04-09
 updated: 2026-04-10
-version: 1.8.0
+version: 2.0.0
 ---
 
 > **BLUF:** This contract defines the HTTP API surface of Stewie.Api. All frontend and external consumers MUST conform to these routes, request/response shapes, and error formats. No deviation without Human approval.
@@ -46,7 +46,7 @@ version: 1.8.0
 
 | Field | Value |
 |:------|:------|
-| Contract version | `1.8.0` |
+| Contract version | `2.0.0` |
 | Stability | `EXPERIMENTAL` |
 | Base URL | `http://localhost:5275` |
 | Content-Type | `application/json` |
@@ -144,6 +144,8 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
 | `PUT` | `/api/users/me/github-token` | Store encrypted GitHub PAT |
 | `DELETE` | `/api/users/me/github-token` | Remove GitHub PAT |
 | `GET` | `/api/users/me/github-status` | Check GitHub connection status |
+| `GET` | `/api/users` | List all users (admin only, v2.0.0) |
+| `DELETE` | `/api/users/{id}` | Delete a user (admin only, v2.0.0) |
 
 **PUT /api/users/me/github-token** request body:
 ```json
@@ -152,12 +154,42 @@ Triggers a test run: creates a Run, creates a Task, launches the dummy worker, i
 }
 ```
 
+**GET /api/users** response (200 OK, admin only, v2.0.0):
+```json
+[
+  {
+    "id": "uuid",
+    "username": "string",
+    "role": "admin | user",
+    "createdAt": "ISO 8601 datetime"
+  }
+]
+```
+
+**DELETE /api/users/{id}** (admin only, v2.0.0):
+
+| Status | Condition |
+|:-------|:---------|
+| 204 | User deleted |
+| 400 | Cannot delete self |
+| 403 | Cannot delete another admin |
+| 404 | User not found |
+
 ### 4.0.2 Invite Codes (admin only)
 
 | Method | Path | Description |
 |:-------|:-----|:------------|
 | `POST` | `/api/invites` | Generate a new invite code |
 | `GET` | `/api/invites` | List invite codes |
+| `DELETE` | `/api/invites/{id}` | Revoke an unused invite code (v2.0.0) |
+
+**DELETE /api/invites/{id}** (admin only, v2.0.0):
+
+| Status | Condition |
+|:-------|:---------|
+| 204 | Invite code deleted |
+| 404 | Invite code not found |
+| 409 | Invite code already used |
 
 ### 4.1 Projects
 

@@ -13,6 +13,9 @@ public class UserRepository : IUserRepository
     public async Task<User?> GetByIdAsync(Guid id) => await _uow.Session.GetAsync<User>(id);
     public async Task<User?> GetByUsernameAsync(string username) =>
         await _uow.Session.Query<User>().FirstOrDefaultAsync(u => u.Username == username);
+    public async Task<IList<User>> GetAllAsync() =>
+        await _uow.Session.Query<User>().OrderBy(u => u.Username).ToListAsync();
+    public async Task DeleteAsync(User user) => await _uow.Session.DeleteAsync(user);
     public async Task<bool> ExistsAsync() =>
         await _uow.Session.Query<User>().AnyAsync();
 }

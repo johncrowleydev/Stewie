@@ -2660,6 +2660,200 @@ textarea.form-input {
   color: var(--color-text-muted);
 }
 
+/* Responsive — mobile breakpoint */
+@media (max-width: 768px) {
+  .architect-selectors {
+    flex-direction: column;
+  }
+
+  .credential-configured {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+
+  .admin-generated-code {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-inline-confirm {
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+}
+
+/* ===================================================================
+   Admin Panel Styles — Invite Code + User Management (JOB-026)
+   =================================================================== */
+
+.admin-panel {
+  /* Inherits .card styles — subtle admin border accent */
+}
+
+.admin-panel .card-header {
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* ── Generated Code Inline Display ── */
+
+.admin-generated-code {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--color-primary-muted);
+  border: 1px solid rgba(111, 172, 80, 0.25);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-lg);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.admin-code-value {
+  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-primary);
+  letter-spacing: 0.08em;
+  user-select: all;
+}
+
+.admin-copy-btn {
+  font-size: var(--font-size-sm) !important;
+  padding: 4px var(--space-md) !important;
+  color: var(--color-primary) !important;
+  white-space: nowrap;
+}
+
+/* ── Table Overrides for Admin Tables ── */
+
+.admin-table {
+  margin-top: 0;
+}
+
+.admin-table th {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.admin-table td {
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-sm);
+  vertical-align: middle;
+}
+
+.admin-code-cell {
+  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  background: var(--color-surface-elevated);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.03em;
+}
+
+.admin-date-cell {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* ── Invite Status Badge ── */
+
+.admin-invite-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.admin-invite-status.available {
+  background: rgba(111, 172, 80, 0.12);
+  color: var(--color-completed);
+}
+
+.admin-invite-status.used {
+  background: rgba(139, 141, 147, 0.12);
+  color: var(--color-text-muted);
+}
+
+/* ── User Management ── */
+
+.admin-username {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-weight: 500;
+}
+
+.admin-you-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--color-primary-muted);
+  color: var(--color-primary);
+}
+
+.admin-role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+}
+
+.admin-role-badge.admin {
+  background: rgba(245, 166, 35, 0.12);
+  color: var(--color-warning);
+}
+
+.admin-role-badge.user {
+  background: rgba(139, 141, 147, 0.12);
+  color: var(--color-text-muted);
+}
+
+.admin-delete-disabled {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ── Inline Confirm Pattern ── */
+
+.admin-inline-confirm {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  animation: fadeIn 0.15s ease-out;
+}
+
+/* ── Empty State ── */
+
+.admin-empty {
+  padding: var(--space-lg);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+}
+
 /* Suggestion cards */
 .suggestion-list {
   display: flex;

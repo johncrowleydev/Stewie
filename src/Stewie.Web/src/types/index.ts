@@ -245,3 +245,35 @@ export interface ArchitectStatus {
   active: boolean;
   session: AgentSession | null;
 }
+
+/** Stored credential (masked) — CON-002 v1.9.0 (JOB-023 T-201) */
+export interface Credential {
+  id: string;
+  credentialType: string;
+  maskedValue: string;
+  createdAt: string;
+}
+
+/** Request body for adding a credential — CON-002 v1.9.0 (JOB-023 T-201) */
+export interface AddCredentialRequest {
+  credentialType: string;
+  value: string;
+}
+
+/** Invite code entity — CON-002 §4.0.2 (JOB-026 T-312) */
+export interface InviteCode {
+  id: string;
+  code: string;
+  usedByUserId: string | null;
+  usedAt: string | null;
+  expiresAt: string | null;
+  createdAt: string;
+}
+
+/** User info for admin management — CON-002 §4.0.1 (JOB-026 T-312) */
+export interface UserInfo {
+  id: string;
+  username: string;
+  role: "admin" | "user";
+  createdAt: string;
+}

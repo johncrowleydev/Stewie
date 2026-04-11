@@ -10,7 +10,7 @@ import type {
   Job, Project, CreateProjectRequest, CreateJobRequest,
   ApiError, Event, LoginRequest, RegisterRequest, AuthResponse, GitHubStatus,
   GovernanceReport, GovernanceAnalytics, ChatMessage, ChatMessagesResponse, ContainerOutputResponse,
-  AgentSession, ArchitectStatus
+  AgentSession, ArchitectStatus, Credential, InviteCode, UserInfo
 } from "../types";
 
 /** Base URL is proxied via Vite config — no absolute URL needed. */
@@ -281,11 +281,76 @@ async function requestVoid(path: string, options?: RequestInit): Promise<void> {
 }
 
 /** Start the Architect Agent — POST /api/projects/{projectId}/architect/start */
-export async function startArchitect(projectId: string): Promise<AgentSession> {
+export async function startArchitect(
+  projectId: string,
+  runtimeName?: string,
+  modelName?: string
+): Promise<AgentSession> {
+  const body: Record<string, string> = {};
+  if (runtimeName) body.runtimeName = runtimeName;
+  if (modelName) body.modelName = modelName;
   return request<AgentSession>(
     `/api/projects/${encodeURIComponent(projectId)}/architect/start`,
-    { method: "POST", body: "{}" }
+    { method: "POST", body: JSON.stringify(body) }
   );
+}
+
+// --- Credential endpoints (JOB-023 T-201) ---
+
+/** List stored credentials (masked) — GET /api/settings/credentials */
+export async function fetchCredentials(): Promise<Credential[]> {
+  return request<Credential[]>("/api/settings/credentials");
+}
+
+/** Add a new credential — POST /api/settings/credentials */
+export async function addCredential(
+  credentialType: string,
+  value: string
+): Promise<Credential> {
+  return request<Credential>("/api/settings/credentials", {
+    method: "POST",
+    body: JSON.stringify({ credentialType, value }),
+  });
+}
+
+/** Delete a credential — DELETE /api/settings/credentials/{id} */
+export async function deleteCredential(id: string): Promise<void> {
+  await requestVoid(`/api/settings/credentials/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+// --- Admin: Invite code management (JOB-026 T-312) ---
+
+/** Generate a new invite code — POST /api/invites (admin only) */
+export async function generateInviteCode(): Promise<InviteCode> {
+  return request<InviteCode>("/api/invites", { method: "POST" });
+}
+
+/** Fetch all invite codes — GET /api/invites (admin only) */
+export async function fetchInviteCodes(): Promise<InviteCode[]> {
+  return request<InviteCode[]>("/api/invites");
+}
+
+/** Revoke an unused invite code — DELETE /api/invites/{id} (admin only) */
+export async function revokeInviteCode(id: string): Promise<void> {
+  await requestVoid(`/api/invites/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+// --- Admin: User management (JOB-026 T-312) ---
+
+/** Fetch all users — GET /api/users (admin only) */
+export async function fetchUsers(): Promise<UserInfo[]> {
+  return request<UserInfo[]>("/api/users");
+}
+
+/** Delete a user — DELETE /api/users/{id} (admin only) */
+export async function deleteUser(id: string): Promise<void> {
+  await requestVoid(`/api/users/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
 }
 
 /** Stop the Architect Agent — DELETE /api/projects/{projectId}/architect */
