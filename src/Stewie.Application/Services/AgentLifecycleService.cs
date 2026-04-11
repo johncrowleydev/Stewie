@@ -2,7 +2,7 @@
 /// AgentLifecycleService — orchestrates agent container launch, termination,
 /// and status queries. Creates AgentSession records, delegates to IAgentRuntime
 /// implementations, and emits events/SignalR notifications.
-/// REF: JOB-017 T-165
+/// REF: JOB-017 T-165, JOB-021 T-184
 /// </summary>
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -28,8 +28,20 @@ public class AgentLifecycleService
     private readonly IEnumerable<IAgentRuntime> _runtimes;
     private readonly RabbitMqOptions _mqOptions;
     private readonly ILogger<AgentLifecycleService> _logger;
+    private readonly IUserCredentialRepository? _credentialRepo;
+    private readonly IEncryptionService? _encryptionService;
 
     /// <summary>Creates a new AgentLifecycleService instance.</summary>
+    /// <param name="sessionRepo">Agent session repository.</param>
+    /// <param name="eventRepo">Event repository.</param>
+    /// <param name="notifier">Real-time notification service (SignalR).</param>
+    /// <param name="rabbitMq">RabbitMQ messaging service.</param>
+    /// <param name="unitOfWork">Unit of work for transactions.</param>
+    /// <param name="runtimes">All registered agent runtime implementations.</param>
+    /// <param name="mqOptions">RabbitMQ configuration options.</param>
+    /// <param name="logger">Logger instance.</param>
+    /// <param name="credentialRepo">Optional credential repository for LLM API key resolution. REF: JOB-021 T-184.</param>
+    /// <param name="encryptionService">Optional encryption service for credential decryption. REF: JOB-021 T-184.</param>
     public AgentLifecycleService(
         IAgentSessionRepository sessionRepo,
         IEventRepository eventRepo,
@@ -38,7 +50,9 @@ public class AgentLifecycleService
         IUnitOfWork unitOfWork,
         IEnumerable<IAgentRuntime> runtimes,
         IOptions<RabbitMqOptions> mqOptions,
-        ILogger<AgentLifecycleService> logger)
+        ILogger<AgentLifecycleService> logger,
+        IUserCredentialRepository? credentialRepo = null,
+        IEncryptionService? encryptionService = null)
     {
         _sessionRepo = sessionRepo;
         _eventRepo = eventRepo;
@@ -48,17 +62,25 @@ public class AgentLifecycleService
         _runtimes = runtimes;
         _mqOptions = mqOptions.Value;
         _logger = logger;
+        _credentialRepo = credentialRepo;
+        _encryptionService = encryptionService;
     }
 
     /// <summary>
     /// Launches a new agent container for the specified project and role.
     /// Creates an AgentSession record, resolves the runtime, and delegates the launch.
+    /// For LLM-backed runtimes (e.g. "opencode"), resolves the API key from the
+    /// credential store and injects it via file-based secret mounting.
+    /// REF: JOB-021 T-184.
     /// </summary>
     /// <param name="projectId">Project ID the agent will work on.</param>
     /// <param name="agentRole">Role: "architect", "developer", "tester".</param>
     /// <param name="runtimeName">Name of the IAgentRuntime to use (e.g. "stub").</param>
     /// <param name="taskId">Optional task ID for task-scoped agents.</param>
     /// <param name="workspacePath">Workspace path to mount into the container.</param>
+    /// <param name="userId">Optional user ID for credential resolution. REF: JOB-021 T-184.</param>
+    /// <param name="llmProvider">Optional LLM provider name (e.g. "google", "anthropic"). REF: JOB-021 T-184.</param>
+    /// <param name="modelName">Optional model name (e.g. "gemini-2.0-flash"). REF: JOB-021 T-184.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>The created AgentSession with ContainerId populated on success.</returns>
     /// <exception cref="InvalidOperationException">Thrown if an active session already exists for the same project+role, or if the runtime is not registered.</exception>
@@ -68,6 +90,9 @@ public class AgentLifecycleService
         string runtimeName,
         Guid? taskId = null,
         string? workspacePath = null,
+        Guid? userId = null,
+        string? llmProvider = null,
+        string? modelName = null,
         CancellationToken ct = default)
     {
         // Prevent duplicate active sessions for the same project + role
@@ -115,6 +140,15 @@ public class AgentLifecycleService
 
         try
         {
+            // Resolve LLM API key for LLM-backed runtimes (JOB-021 T-184)
+            string? secretsMountPath = null;
+            if (userId.HasValue && !string.IsNullOrWhiteSpace(llmProvider)
+                && _credentialRepo is not null && _encryptionService is not null)
+            {
+                secretsMountPath = await ResolveLlmSecretAsync(
+                    userId.Value, llmProvider, session.Id);
+            }
+
             // Build launch request
             var request = new AgentLaunchRequest
             {
@@ -128,7 +162,10 @@ public class AgentLifecycleService
                 RabbitMqVHost = _mqOptions.VirtualHost,
                 RabbitMqUser = _mqOptions.UserName,
                 RabbitMqPassword = _mqOptions.Password,
-                CommandQueueName = $"agent.{session.Id}.commands"
+                CommandQueueName = $"agent.{session.Id}.commands",
+                LlmProvider = llmProvider ?? string.Empty,
+                ModelName = modelName ?? string.Empty,
+                SecretsMountPath = secretsMountPath ?? string.Empty
             };
 
             // Delegate to runtime
@@ -318,5 +355,65 @@ public class AgentLifecycleService
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Resolves the LLM API key from the credential store and writes it to a temp file.
+    /// REF: JOB-021 T-184.
+    /// </summary>
+    /// <param name="userId">User ID to look up credentials for.</param>
+    /// <param name="llmProvider">LLM provider name (e.g. "google", "anthropic").</param>
+    /// <param name="sessionId">Session ID for unique secret directory naming.</param>
+    /// <returns>Path to the secrets directory, or null if no credential found.</returns>
+    private async Task<string?> ResolveLlmSecretAsync(Guid userId, string llmProvider, Guid sessionId)
+    {
+        var credentialType = MapProviderToCredentialType(llmProvider);
+        if (credentialType is null)
+        {
+            _logger.LogWarning("Unknown LLM provider '{Provider}' — skipping credential resolution", llmProvider);
+            return null;
+        }
+
+        var credential = await _credentialRepo!.GetByTypeAsync(userId, credentialType.Value);
+        if (credential is null)
+        {
+            _logger.LogWarning(
+                "No {Provider} API key configured for user {UserId}. Add one in Settings.",
+                llmProvider, userId);
+            return null;
+        }
+
+        try
+        {
+            var decryptedKey = _encryptionService!.Decrypt(credential.EncryptedToken);
+            var secretsDir = Path.Combine(Path.GetTempPath(), $"stewie-secrets-{sessionId:N}");
+            Directory.CreateDirectory(secretsDir);
+            await File.WriteAllTextAsync(Path.Combine(secretsDir, "llm_api_key"), decryptedKey);
+
+            _logger.LogInformation(
+                "LLM API key written to secrets directory for session {SessionId}", sessionId);
+
+            return secretsDir;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to decrypt/write LLM API key for session {SessionId}", sessionId);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Maps an LLM provider name to the corresponding <see cref="CredentialType"/>.
+    /// Returns null for unknown providers.
+    /// </summary>
+    private static CredentialType? MapProviderToCredentialType(string provider)
+    {
+        return provider.ToLowerInvariant() switch
+        {
+            "anthropic" => CredentialType.AnthropicApiKey,
+            "openai" => CredentialType.OpenAiApiKey,
+            "google" => CredentialType.GoogleAiApiKey,
+            _ => null
+        };
     }
 }

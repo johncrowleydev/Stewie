@@ -51,4 +51,17 @@ public class AgentLaunchRequest
     /// Additional key-value configuration passed as environment variables to the container.
     /// </summary>
     public Dictionary<string, string> EnvironmentVariables { get; init; } = new();
+
+    /// <summary>LLM provider identifier (e.g., "google", "anthropic", "openai"). REF: JOB-021 T-185.</summary>
+    public string LlmProvider { get; init; } = string.Empty;
+
+    /// <summary>Model name (e.g., "gemini-2.0-flash", "claude-3-haiku"). REF: JOB-021 T-185.</summary>
+    public string ModelName { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Host path to the secrets directory to mount at /run/secrets/ inside the container.
+    /// When empty, the runtime should fall back to environment variables.
+    /// REF: JOB-021 T-185.
+    /// </summary>
+    public string SecretsMountPath { get; init; } = string.Empty;
 }

@@ -1,6 +1,7 @@
 using NHibernate.Linq;
 using Stewie.Application.Interfaces;
 using Stewie.Domain.Entities;
+using Stewie.Domain.Enums;
 
 namespace Stewie.Infrastructure.Repositories;
 
@@ -13,5 +14,12 @@ public class UserCredentialRepository : IUserCredentialRepository
     public async Task<UserCredential?> GetByUserAndProviderAsync(Guid userId, string provider) =>
         await _uow.Session.Query<UserCredential>()
             .FirstOrDefaultAsync(c => c.UserId == userId && c.Provider == provider);
+
+    /// <inheritdoc/>
+    public async Task<UserCredential?> GetByTypeAsync(Guid userId, CredentialType type) =>
+        await _uow.Session.Query<UserCredential>()
+            .FirstOrDefaultAsync(c => c.UserId == userId && c.CredentialType == type);
+
     public async Task DeleteAsync(UserCredential credential) => await _uow.Session.DeleteAsync(credential);
 }
+

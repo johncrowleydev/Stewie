@@ -168,6 +168,7 @@ builder.Services.AddSingleton<ContainerOutputBuffer>();
 // AgentLifecycleService resolves all registered runtimes via IEnumerable<IAgentRuntime>.
 builder.Services.AddScoped<AgentLifecycleService>();
 builder.Services.AddSingleton<IAgentRuntime, Stewie.Infrastructure.AgentRuntimes.StubAgentRuntime>();
+builder.Services.AddSingleton<IAgentRuntime, Stewie.Infrastructure.AgentRuntimes.OpenCodeAgentRuntime>();
 
 // Health checks — T-157
 // Base health check services always registered (required by MapHealthChecks).

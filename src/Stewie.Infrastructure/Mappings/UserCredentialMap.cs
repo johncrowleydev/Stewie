@@ -13,7 +13,9 @@ public class UserCredentialMap : ClassMap<UserCredential>
         Map(x => x.UserId);
         Map(x => x.Provider).Not.Nullable();
         Map(x => x.EncryptedToken).Length(4000).Not.Nullable();
+        Map(x => x.CredentialType).CustomType<Stewie.Domain.Enums.CredentialType>().Not.Nullable();
         Map(x => x.CreatedAt);
         Map(x => x.UpdatedAt);
     }
 }
+
