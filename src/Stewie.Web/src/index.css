@@ -190,6 +190,7 @@ a:hover {
 
 .sidebar-brand {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: var(--space-lg);
@@ -200,6 +201,20 @@ a:hover {
   width: 100%;
   padding: 0 var(--space-lg);
   border-radius: var(--radius-sm);
+}
+
+/* Brand wordmark — appears below logo in sidebar and auth pages */
+.brand-wordmark {
+  font-family: var(--font-family);
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-primary);
+  margin-top: var(--space-xs);
+}
+
+[data-theme="light"] .brand-wordmark {
+  color: #767573;
 }
 
 .sidebar-nav {
@@ -1523,6 +1538,7 @@ textarea.form-input {
   justify-content: center;
   gap: var(--space-sm);
   margin-bottom: var(--space-xl);
+  flex-direction: column;
 }
 
 .auth-logo {

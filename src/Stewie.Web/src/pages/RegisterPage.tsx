@@ -67,6 +67,7 @@ export function RegisterPage() {
       <div className="auth-card">
         <div className="auth-brand">
           <img src="/stewie-logo.png" alt="Stewie" className="auth-logo" />
+          <span className="brand-wordmark">stewie</span>
         </div>
 
         <h2 className="auth-heading">Create account</h2>

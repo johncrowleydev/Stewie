@@ -111,6 +111,7 @@ export function Layout() {
       <aside className={`sidebar ${mobileSidebarOpen ? "open" : ""}`} id="main-sidebar">
         <div className="sidebar-brand">
           <img src="/stewie-logo.png" alt="Stewie" />
+          <span className="brand-wordmark">stewie</span>
         </div>
 
         <nav className="sidebar-nav" id="main-nav">
