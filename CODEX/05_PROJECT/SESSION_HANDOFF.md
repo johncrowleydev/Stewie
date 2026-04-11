@@ -1,124 +1,163 @@
 ---
 id: SESSION_HANDOFF
-title: "Session Handoff — Phase 6 Dashboard Complete"
+title: "Phase 7 Developer Agent Handoff"
 type: reference
-status: CURRENT
+status: ACTIVE
+owner: architect
+agents: [coder]
+tags: [handoff, phase-7]
+created: 2026-04-11
 updated: 2026-04-11
+version: 1.0.0
 ---
 
-# Session Handoff
+# Phase 7 Developer Agent Handoff
 
-> Last updated: 2026-04-11T02:59Z
+Two parallel jobs starting from commit `684ebd5` on `main`. JOB-024 (emoji purge) is already merged.
 
-## Current State
+---
 
-**Phases 0–5b COMPLETE. Phase 6 (AI Agent Intelligence) — frontend tasks complete (Dev A), backend/E2E tasks in progress (Dev B).**
+## Dev Agent A — JOB-025: Chat Slideover + GitHub Repo Picker
 
-| Metric | Value |
-|:-------|:------|
-| Tests | **203 passed**, 5 skipped, 0 failing |
-| Jobs completed | 22/23 (JOB-023 still OPEN — Dev B items remaining) |
-| Open defects | 0 |
-| C# source files | 170 |
-| TypeScript/React files | 30 |
-| CSS design system | 3,872 lines |
-| Git branch | `feature/JOB-023-dashboard` (Dev A), `feature/JOB-023-e2e` (Dev B) |
+**Branch:** `feature/JOB-025-chat-github`
+**Sprint doc:** `CODEX/05_PROJECT/JOB-025_Chat_Slideover_GitHub.md`
 
-## Environment
+### Context
 
-| Component | Value |
-|:----------|:------|
-| Backend URL | `http://localhost:5275` |
-| Frontend URL | `http://localhost:5173` |
-| Database | SQL Server 2022 (Docker: `stewie-sqlserver`) |
-| Message Bus | RabbitMQ (Docker: `stewie-rabbitmq`) |
-| Admin password | `admin` (env: `Stewie__AdminPassword`) |
-| JWT secret | `super-secret-jwt-key-that-is-at-least-32-bytes-long` (env: `Stewie__JwtSecret`) |
-| Encryption key | `GkLUVANEsbyw1TnDCFvj5ZJ9BFmi3AlX9zMKvp5vHM4=` (env: `Stewie__EncryptionKey`) |
+You're converting the inline ChatPanel on the ProjectDetailPage to a right-side slideover panel, inspired by the Azure Portal's detail panels. The slideover should support two modes:
 
-**To start the app:** Use the `/run_app` workflow, or manually:
-```bash
-# Terminal 1 — API
-cd src/Stewie.Api
-Stewie__AdminPassword=admin Stewie__JwtSecret="super-secret-jwt-key-that-is-at-least-32-bytes-long" Stewie__EncryptionKey="GkLUVANEsbyw1TnDCFvj5ZJ9BFmi3AlX9zMKvp5vHM4=" dotnet run
+1. **Slideover** (default) — overlays content from the right, closes on click-outside/Escape
+2. **Pinned sidebar** — locks to the right, content area shrinks, resizable via drag handle
 
-# Terminal 2 — Frontend
-cd src/Stewie.Web
-npm run dev
-```
+The user's mode choice and pinned width must persist to `localStorage`.
 
-## Phase History
+You're also adding a searchable repo combobox on the ProjectsPage that queries `GET /api/github/repos` (being built by Dev Agent B in parallel on `feature/JOB-025-github-api`). When GitHub isn't connected, the "Create New Repository" mode should be disabled with a hint.
 
-| Phase | Name | Jobs | Status |
-|:------|:-----|:-----|:-------|
-| 0 | Foundation | JOB-001 | ✅ |
-| 1 | Core Orchestration (MVP) | JOB-001, JOB-002 | ✅ |
-| 2 | Real Repo Interaction | JOB-003 | ✅ |
-| 2.5 | GitHub Integration + Auth | JOB-004 | ✅ |
-| 2.75 | Repository Automation | JOB-005, JOB-006 | ✅ |
-| 3 | Governance Engine | JOB-007, JOB-008 | ✅ |
-| 4 | Multi-Task Jobs (DAG) | JOB-009, JOB-010, JOB-011 | ✅ |
-| 5a | Chat + Real-Time UI | JOB-012–JOB-015 | ✅ |
-| 5b | Message Bus + Agent Lifecycle | JOB-016–JOB-020 | ✅ |
-| **6** | **AI Agent Intelligence** | JOB-021, JOB-022, JOB-023 | **🔄 In Progress** |
+### Key Files You'll Touch
 
-## What's Built
+- **NEW** `src/Stewie.Web/src/components/ChatSlideover.tsx`
+- **NEW** `src/Stewie.Web/src/components/RepoCombobox.tsx`
+- **MODIFY** `src/Stewie.Web/src/pages/ProjectDetailPage.tsx` — replace `<ChatPanel>` with `<ChatSlideover>`
+- **MODIFY** `src/Stewie.Web/src/pages/ProjectsPage.tsx` — add feature gating + combobox
+- **MODIFY** `src/Stewie.Web/src/index.css` — slideover, backdrop, resize handle styles
+- **MODIFY** `src/Stewie.Web/src/api/client.ts` — add `fetchGitHubRepos()` function
+- **MODIFY** `src/Stewie.Web/src/types/index.ts` — add `GitHubRepo` type
 
-The entire **control plane** is complete, plus Phase 6 AI agent intelligence:
+### Design Decisions Already Made
 
-- **API:** C# .NET 10, NHibernate, FluentMigrator, SQL Server 2022
-- **Frontend:** React/Vite dashboard with 10 pages, dark/light theme, responsive layout
-- **Real-Time:** SignalR WebSocket hub with polling fallback, global live indicator
-- **Chat:** Per-project Human ↔ Architect chat with persistence and real-time push
-- **Governance:** 15 automated rules, task chain retry loops, governance analytics panel
-- **Multi-Task:** DAG-based parallel task execution with dependency resolution
-- **Messaging:** RabbitMQ backbone with typed exchanges, consumer hosted service
-- **Agent Runtime:** `IAgentRuntime` abstraction, `StubAgentRuntime`, `OpenCodeAgentRuntime`
-- **Architect Agent:** Python-based architect loop (chat → LLM → plan → approval → execute)
-- **Dev Agent:** OpenCode CLI harness with RabbitMQ bridge (entrypoint.py)
-- **Model Selector:** Runtime/model dropdowns on ArchitectControls (T-200)
-- **LLM Keys:** Provider key management UI on SettingsPage (T-201)
-- **Context Panel:** Architect context visibility with token usage bar (T-204)
-- **Architect Lifecycle:** Start/stop from UI, heartbeat monitoring, self-healing session detection
-- **Container Streaming:** Live stdout/stderr streaming to terminal-style UI panel
-- **Auth:** JWT, BCrypt, invite-only registration, encrypted credential storage (GitHub + LLM keys)
-- **Responsive:** Mobile hamburger sidebar, consolidated CSS breakpoint system (GOV-003 §8.10)
+- Raw inline SVGs for icons (see `Icons.tsx` — add new icons there if needed)
+- No emoji anywhere
+- CSS custom properties for all values (see existing design system in `index.css`)
+- Chat panel width: 440px default, 320px min, 600px max
+- localStorage keys: `stewie:chatMode`, `stewie:chatWidth`
 
-## Phase 6: Remaining Work (Dev B)
+### What NOT to Touch
 
-| Task | Description | Status |
-|:-----|:------------|:-------|
-| T-202 | Provider key API endpoints (CredentialController) | Open |
-| T-203 | Plan approval UI in ChatPanel | Open |
-| T-205 | CON-002 v1.9.0 documentation | Open |
-| T-206 | End-to-end smoke test + RUN-003 runbook | Open |
+- `ChatPanel.tsx` — wrap it, don't modify it
+- Backend code — Dev B handles `GitHubController.cs`
+- `SettingsPage.tsx` — JOB-026 is modifying that
 
-## Known Issues
+---
 
-- **Minor responsive wonkiness** at very narrow viewport widths (≤375px). Flagged for follow-up polish.
-- **Context panel endpoint** (`GET /api/agents/project/{projectId}/context`) — not yet implemented on backend. Frontend gracefully shows empty state.
-- **No open DEF- defects.**
+## Dev Agent B — JOB-025: GitHub Repos API
 
-## Key Contracts
+**Branch:** `feature/JOB-025-github-api`
+**Sprint doc:** `CODEX/05_PROJECT/JOB-025_Chat_Slideover_GitHub.md`
 
-| Contract | Version | Description |
-|:---------|:--------|:------------|
-| CON-001 | v1.5.0 | Runtime Contract (task.json / result.json) |
-| CON-002 | v2.2.0 → v1.9.0 | API Contract (HTTP + SignalR + Chat + Architect + Credentials) |
-| CON-003 | v1.1.0 | Project Configuration (stewie.json) |
-| CON-004 | v1.0.0 | Agent Messaging Contract (RabbitMQ) |
+### Context
 
-## Governance Docs
+You're building a `GitHubController.cs` with a `GET /api/github/repos` endpoint that proxies the user's stored GitHub PAT to the GitHub API. The frontend (being built by Dev A) will consume this to populate a searchable repo combobox.
 
-All 8 GOV docs in `CODEX/10_GOVERNANCE/` are current and enforced:
-- GOV-001 Documentation, GOV-002 Testing, GOV-003 Coding (incl. §8.10 responsive design),
-  GOV-004 Error Handling, GOV-005 Dev Lifecycle, GOV-006 Logging,
-  GOV-007 Project Management, GOV-008 Infrastructure
+### Key Files You'll Touch
 
-## CODEX Health
+- **NEW** `src/Stewie.Api/Controllers/GitHubController.cs`
+- **MODIFY** `CODEX/20_BLUEPRINTS/CON-002_API_Contract.md` — document new endpoint
+- **NEW** `src/Stewie.Tests/Integration/GitHubControllerTests.cs`
 
-As of last sync (2026-04-11):
-- **MANIFEST orphans:** 0
-- **MANIFEST phantoms:** 0
-- **ID collisions:** 0
-- All doc summaries current
+### Requirements
+
+- `GET /api/github/repos` — `[Authorize]`, proxies to `GET https://api.github.com/user/repos?per_page=100&sort=updated`
+- Response: `{ name, fullName, htmlUrl, isPrivate }[]`
+- 5-minute in-memory cache per user (`IMemoryCache`)
+- 401 if no PAT configured, 502 if GitHub API fails
+- Use `IHttpClientFactory` for the outbound GitHub call
+- Set `User-Agent: Stewie` header on GitHub requests (required by GitHub API)
+
+### What NOT to Touch
+
+- Frontend code — Dev A handles that
+- `SettingsPage.tsx` — JOB-026 is modifying that
+- `InvitesController.cs` — JOB-026 handles that
+
+---
+
+## Dev Agent C — JOB-026: Admin User Management (Frontend)
+
+**Branch:** `feature/JOB-026-admin-ui`
+**Sprint doc:** `CODEX/05_PROJECT/JOB-026_Admin_User_Management.md`
+
+### Context
+
+You're adding admin-only panels to the SettingsPage for invite code management and user management. The backend endpoints (being built by Dev D) already partially exist — `POST /api/invites` and `GET /api/invites` work. You need to build the UI and connect to both existing and new endpoints.
+
+### Key Files You'll Touch
+
+- **MODIFY** `src/Stewie.Web/src/pages/SettingsPage.tsx` — add admin-only sections
+- **MODIFY** `src/Stewie.Web/src/api/client.ts` — add invite/user CRUD functions
+- **MODIFY** `src/Stewie.Web/src/types/index.ts` — add `InviteCode`, `UserInfo` types
+- **MODIFY** `src/Stewie.Web/src/index.css` — styles for invite/user panels
+
+### Design Decisions
+
+- Admin sections only visible when `user.role === "admin"` (check AuthContext)
+- Copy-to-clipboard on generated invite codes
+- Confirmation step before user deletion (inline confirm, not a modal)
+- Use existing card/form patterns from the design system
+- Use `Icons.tsx` for any icons needed (add new SVGs there)
+
+### What NOT to Touch
+
+- `ChatPanel.tsx` or `ProjectDetailPage.tsx` — JOB-025 handles those
+- Backend controllers — Dev D handles those
+
+---
+
+## Dev Agent D — JOB-026: Admin User Management (Backend)
+
+**Branch:** `feature/JOB-026-admin-api`
+**Sprint doc:** `CODEX/05_PROJECT/JOB-026_Admin_User_Management.md`
+
+### Context
+
+You're adding admin-only endpoints for invite revocation and user management. `InvitesController` already has `POST` (generate) and `GET` (list). `UsersController` exists but only has a `GET /me` endpoint.
+
+### Key Files You'll Touch
+
+- **MODIFY** `src/Stewie.Api/Controllers/InvitesController.cs` — add `DELETE /api/invites/{id}`
+- **MODIFY** `src/Stewie.Api/Controllers/UsersController.cs` — add `GET /api/users`, `DELETE /api/users/{id}`
+- **MODIFY** `CODEX/20_BLUEPRINTS/CON-002_API_Contract.md` — document new endpoints
+- **NEW** `src/Stewie.Tests/Integration/UserManagementTests.cs`
+
+### Requirements
+
+- `DELETE /api/invites/{id}` — admin-only, 404 if not found, 409 if already used
+- `GET /api/users` — admin-only, returns `{ id, username, role, createdAt }[]`
+- `DELETE /api/users/{id}` — admin-only, 400 if self-delete, 403 if target is admin
+- Check if `IInviteCodeRepository.GetAllAsync()` exists — you may need to add it
+- Check if `IUserRepository` needs a `GetAllAsync()` method
+
+### What NOT to Touch
+
+- Frontend code — Dev C handles that
+- `GitHubController` — JOB-025 handles that
+- `ChatPanel` or `ProjectDetailPage` — JOB-025 handles those
+
+---
+
+## Infrastructure Notes
+
+- SQL Server: `stewie-sqlserver` container on port 1433
+- RabbitMQ: `stewie-rabbitmq` container on port 5672
+- Backend env vars: `Stewie__AdminPassword=admin`, `Stewie__JwtSecret`, `Stewie__EncryptionKey`
+- Test count baseline: 247 passed, 0 failed, 5 skipped
+- Current commit: `684ebd5` on `main`
