@@ -256,6 +256,9 @@ public class StartArchitectRequest
     /// <summary>Runtime to use for the Architect container (default: "stub").</summary>
     public string RuntimeName { get; set; } = "stub";
 
+    /// <summary>LLM model identifier (e.g. "google/gemini-2.0-flash"). Optional.</summary>
+    public string? ModelName { get; set; }
+
     /// <summary>Optional workspace path to mount into the container.</summary>
     public string? WorkspacePath { get; set; }
 }

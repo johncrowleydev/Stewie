@@ -8,8 +8,8 @@ agents: [all]
 tags: [project-management, backlog, agentic-development]
 related: [PRJ-001, BCK-002, GOV-007]
 created: 2026-04-09
-updated: 2026-04-10
-version: 1.2.0
+updated: 2026-04-11
+version: 1.3.0
 ---
 
 > **BLUF:** Prioritized development backlog for Stewie. Items are pulled from here into sprint documents. Two developer agents execute against this backlog. Items are ordered by dependency and priority. Phases 1–4 are complete (110 tests passing).
@@ -277,14 +277,14 @@ version: 1.2.0
 
 | ID | Task | Description | Priority | Status |
 |:---|:-----|:------------|:---------|:-------|
-| B-720 | Model/provider selector | Dropdown on ArchitectControls for runtime + model | P1 | Open |
-| B-721 | Provider key management UI | Settings page section for LLM API keys | P1 | Open |
+| B-720 | ~~Model/provider selector~~ | ✅ Done (JOB-023 T-200) — Dropdown on ArchitectControls for runtime + model | P1 | Done |
+| B-721 | ~~Provider key management UI~~ | ✅ Done (JOB-023 T-201) — Settings page section for LLM API keys | P1 | Done |
 | B-722 | Provider key API endpoints | CRUD for LLM provider credentials | P1 | Open |
 | B-723 | Plan approval UI | Approve/reject buttons on plan proposals in ChatPanel | P1 | Open |
-| B-724 | Conversation context panel | Shows Architect context window state | P2 | Open |
+| B-724 | ~~Conversation context panel~~ | ✅ Done (JOB-023 T-204) — Shows Architect context window state | P2 | Done |
 | B-725 | CON-002 v1.9.0 | Document new endpoints | P1 | Open |
 | B-726 | End-to-end smoke test | Full autonomous loop validation + RUN-003 runbook | P1 | Open |
-| B-727 | Update PRJ-001 roadmap | Mark Phase 6 complete | P2 | Open |
+| B-727 | ~~Update PRJ-001 roadmap~~ | ✅ Done (JOB-023 T-207) — Mark Phase 6 complete | P2 | Done |
 
 ---
 
@@ -314,4 +314,5 @@ version: 1.2.0
 | 2026-04-10 | Phase 5b started. JOB-016 and JOB-017 CLOSED. JOB-018 OPEN. B-600 through B-615 done. |
 | 2026-04-10 | Phase 5b COMPLETE. JOB-018 CLOSED. B-620 through B-624 done. |
 | 2026-04-11 | Phase 6 started. JOB-021/022/023 created. B-700 through B-727 added. |
+| 2026-04-11 | JOB-021/022 CLOSED (merged to main). JOB-023 Dev A items done: B-720, B-721, B-724, B-727. |
 

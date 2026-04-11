@@ -1,16 +1,46 @@
 /**
- * SettingsPage — GitHub PAT management and connection status.
- * Allows users to connect/disconnect their GitHub account.
- * Shows green/gray connection indicator.
+ * SettingsPage — GitHub PAT management, LLM provider key management, and connection status.
+ * Allows users to connect/disconnect GitHub, and manage LLM API keys
+ * for Google AI, Anthropic, and OpenAI providers.
  *
- * REF: CON-002 §4.0.1
+ * REF: CON-002 §4.0.1, JOB-023 T-201
  */
-import { useEffect, useState } from "react";
-import { getGitHubStatus, saveGitHubToken, removeGitHubToken } from "../api/client";
-import type { GitHubStatus } from "../types";
+import { useEffect, useState, useCallback } from "react";
+import {
+  getGitHubStatus,
+  saveGitHubToken,
+  removeGitHubToken,
+  fetchCredentials,
+  addCredential,
+  deleteCredential,
+} from "../api/client";
+import type { GitHubStatus, Credential } from "../types";
+
+/** LLM provider definitions — maps credential types to display info */
+const LLM_PROVIDERS = [
+  {
+    credentialType: "GoogleAiApiKey",
+    name: "Google AI (Gemini)",
+    icon: "🔮",
+    placeholder: "AIza...",
+  },
+  {
+    credentialType: "AnthropicApiKey",
+    name: "Anthropic (Claude)",
+    icon: "🧠",
+    placeholder: "sk-ant-...",
+  },
+  {
+    credentialType: "OpenAiApiKey",
+    name: "OpenAI (GPT)",
+    icon: "⚡",
+    placeholder: "sk-...",
+  },
+] as const;
 
 /** GitHub settings page */
 export function SettingsPage() {
+  // GitHub state
   const [status, setStatus] = useState<GitHubStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [patInput, setPatInput] = useState("");
@@ -18,6 +48,17 @@ export function SettingsPage() {
   const [disconnecting, setDisconnecting] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // LLM credentials state
+  const [credentials, setCredentials] = useState<Credential[]>([]);
+  const [credLoading, setCredLoading] = useState(true);
+  const [credMessage, setCredMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [addingKey, setAddingKey] = useState<string | null>(null); // credentialType being added
+  const [keyInput, setKeyInput] = useState("");
+  const [savingKey, setSavingKey] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Load GitHub status
   useEffect(() => {
     let cancelled = false;
     async function loadStatus() {
@@ -34,6 +75,25 @@ export function SettingsPage() {
     void loadStatus();
     return () => { cancelled = true; };
   }, []);
+
+  // Load LLM credentials
+  const loadCredentials = useCallback(async () => {
+    try {
+      const creds = await fetchCredentials();
+      setCredentials(creds);
+    } catch {
+      // Endpoint may not exist yet — show empty
+      setCredentials([]);
+    } finally {
+      setCredLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadCredentials();
+  }, [loadCredentials]);
+
+  // --- GitHub handlers ---
 
   async function handleConnect() {
     if (!patInput.trim()) {
@@ -78,6 +138,77 @@ export function SettingsPage() {
     }
   }
 
+  // --- LLM credential handlers ---
+
+  /** Start adding a key for a specific provider */
+  function handleStartAddKey(credentialType: string) {
+    setAddingKey(credentialType);
+    setKeyInput("");
+    setCredMessage(null);
+  }
+
+  /** Cancel adding a key */
+  function handleCancelAddKey() {
+    setAddingKey(null);
+    setKeyInput("");
+  }
+
+  /** Save a new credential */
+  async function handleSaveKey() {
+    if (!addingKey || !keyInput.trim()) {
+      setCredMessage({ type: "error", text: "Please enter an API key." });
+      return;
+    }
+
+    setSavingKey(true);
+    setCredMessage(null);
+
+    try {
+      await addCredential(addingKey, keyInput.trim());
+      await loadCredentials();
+      setAddingKey(null);
+      setKeyInput("");
+      setCredMessage({ type: "success", text: "API key saved successfully." });
+    } catch (err) {
+      setCredMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : "Failed to save key",
+      });
+    } finally {
+      setSavingKey(false);
+    }
+  }
+
+  /** Delete a credential */
+  async function handleDeleteKey(id: string) {
+    if (confirmDeleteId !== id) {
+      setConfirmDeleteId(id);
+      return;
+    }
+
+    setDeletingId(id);
+    setConfirmDeleteId(null);
+    setCredMessage(null);
+
+    try {
+      await deleteCredential(id);
+      await loadCredentials();
+      setCredMessage({ type: "success", text: "API key removed." });
+    } catch (err) {
+      setCredMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : "Failed to remove key",
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  /** Find a stored credential by type */
+  function getCredentialByType(credentialType: string): Credential | undefined {
+    return credentials.find((c) => c.credentialType === credentialType);
+  }
+
   if (loading) {
     return (
       <div>
@@ -93,6 +224,7 @@ export function SettingsPage() {
         
       </div>
 
+      {/* GitHub Integration */}
       <div className="card" style={{ maxWidth: 600 }}>
         <div className="card-header">
           <span className="card-title">GitHub Integration</span>
@@ -170,6 +302,127 @@ export function SettingsPage() {
               style={{ marginTop: "var(--space-md)" }}
             >
               {message.text}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* LLM Provider Keys — T-201 */}
+      <div className="card credential-card" style={{ maxWidth: 600, marginTop: "var(--space-lg)" }} id="llm-credentials">
+        <div className="card-header">
+          <span className="card-title">🔑 LLM Provider Keys</span>
+        </div>
+
+        <div style={{ padding: "var(--space-md)" }}>
+          {credLoading ? (
+            <div className="skeleton skeleton-row" style={{ height: 60 }} />
+          ) : (
+            <div className="credential-list">
+              {LLM_PROVIDERS.map((provider) => {
+                const cred = getCredentialByType(provider.credentialType);
+                const isAddingThis = addingKey === provider.credentialType;
+
+                return (
+                  <div
+                    key={provider.credentialType}
+                    className="credential-provider"
+                    id={`credential-${provider.credentialType}`}
+                  >
+                    <div className="credential-provider-header">
+                      <span className="credential-provider-icon">{provider.icon}</span>
+                      <span className="credential-provider-name">{provider.name}</span>
+                    </div>
+
+                    {cred ? (
+                      /* Key is configured — show masked value + remove */
+                      <div className="credential-configured">
+                        <span className="credential-masked-value">{cred.maskedValue}</span>
+                        <div className="credential-actions">
+                          {confirmDeleteId === cred.id ? (
+                            <>
+                              <button
+                                className="btn btn-ghost credential-delete-btn"
+                                onClick={() => { void handleDeleteKey(cred.id); }}
+                                disabled={deletingId === cred.id}
+                              >
+                                {deletingId === cred.id ? "Removing…" : "Confirm"}
+                              </button>
+                              <button
+                                className="btn btn-ghost"
+                                onClick={() => setConfirmDeleteId(null)}
+                                disabled={deletingId === cred.id}
+                              >
+                                Cancel
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              className="btn btn-ghost credential-delete-btn"
+                              onClick={() => { void handleDeleteKey(cred.id); }}
+                              disabled={deletingId === cred.id}
+                            >
+                              ✕ Remove
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : isAddingThis ? (
+                      /* Adding a key — inline input */
+                      <div className="credential-add-form">
+                        <input
+                          className="form-input"
+                          type="password"
+                          placeholder={provider.placeholder}
+                          value={keyInput}
+                          onChange={(e) => setKeyInput(e.target.value)}
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") void handleSaveKey();
+                            if (e.key === "Escape") handleCancelAddKey();
+                          }}
+                        />
+                        <div className="credential-add-actions">
+                          <button
+                            className="btn btn-primary"
+                            onClick={() => { void handleSaveKey(); }}
+                            disabled={savingKey}
+                          >
+                            {savingKey ? "Saving…" : "Save"}
+                          </button>
+                          <button
+                            className="btn btn-ghost"
+                            onClick={handleCancelAddKey}
+                            disabled={savingKey}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Not configured — show add button */
+                      <div className="credential-not-configured">
+                        <span className="credential-empty-text">Not configured</span>
+                        <button
+                          className="btn btn-ghost credential-add-btn"
+                          onClick={() => handleStartAddKey(provider.credentialType)}
+                        >
+                          + Add Key
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Feedback Message */}
+          {credMessage && (
+            <div
+              className={`form-message ${credMessage.type}`}
+              style={{ marginTop: "var(--space-md)" }}
+            >
+              {credMessage.text}
             </div>
           )}
         </div>

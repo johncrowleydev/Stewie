@@ -3595,3 +3595,334 @@ textarea.form-input {
   padding: var(--space-xs) 0;
   font-style: italic;
 }
+
+
+/* ===================================================================
+   Architect Selectors — Runtime/Model Dropdowns (T-200)
+   =================================================================== */
+
+.architect-selectors {
+  display: flex;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.architect-selector-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.architect-selector-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.architect-selectors select.form-input {
+  font-size: var(--font-size-sm);
+  padding: 6px var(--space-md);
+  padding-right: 32px;
+}
+
+/* ===================================================================
+   LLM Provider Key Management (T-201)
+   =================================================================== */
+
+.credential-card {
+  /* Inherits .card styles */
+}
+
+.credential-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.credential-provider {
+  padding: var(--space-md);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast);
+}
+
+.credential-provider:hover {
+  border-color: var(--color-border-hover);
+}
+
+.credential-provider-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.credential-provider-icon {
+  font-size: 1.1rem;
+}
+
+.credential-provider-name {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.credential-configured {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.credential-masked-value {
+  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  background: var(--color-surface-elevated);
+  padding: 4px var(--space-sm);
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.02em;
+}
+
+.credential-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.credential-delete-btn {
+  color: var(--color-failed) !important;
+  font-size: var(--font-size-sm) !important;
+  padding: 4px var(--space-sm) !important;
+}
+
+.credential-delete-btn:hover {
+  background: rgba(229, 72, 77, 0.08) !important;
+}
+
+.credential-not-configured {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.credential-empty-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.credential-add-btn {
+  font-size: var(--font-size-sm) !important;
+  padding: 4px var(--space-sm) !important;
+  color: var(--color-primary) !important;
+}
+
+.credential-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.credential-add-form .form-input {
+  font-size: var(--font-size-sm);
+}
+
+.credential-add-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.credential-add-actions .btn {
+  font-size: var(--font-size-sm);
+  padding: 4px var(--space-md);
+}
+
+
+/* ===================================================================
+   Conversation Context Panel (T-204)
+   =================================================================== */
+
+.context-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-lg);
+  transition: border-color var(--transition-fast);
+}
+
+.context-panel:hover {
+  border-color: var(--color-border-hover);
+}
+
+.context-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.context-panel-title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.context-panel-icon {
+  font-size: 1.25rem;
+}
+
+.context-panel-title {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.context-panel-updated {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* Token usage bar */
+.context-usage {
+  margin-bottom: var(--space-lg);
+}
+
+.context-usage-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-xs);
+}
+
+.context-usage-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.context-usage-percent {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.context-progress-bar {
+  height: 8px;
+  background: var(--color-bg);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.context-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.context-progress-fill--normal {
+  background: linear-gradient(90deg, var(--color-primary), #8ecf6e);
+}
+
+.context-progress-fill--warning {
+  background: linear-gradient(90deg, var(--color-warning), #f0c060);
+}
+
+.context-progress-fill--critical {
+  background: linear-gradient(90deg, var(--color-failed), #f07070);
+}
+
+.context-usage-detail {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--space-xs);
+}
+
+/* Stats grid */
+.context-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-md);
+}
+
+.context-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-sm);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  transition: border-color var(--transition-fast);
+}
+
+.context-stat-item:hover {
+  border-color: var(--color-border-hover);
+}
+
+.context-stat-icon {
+  font-size: 1.1rem;
+  margin-bottom: 2px;
+}
+
+.context-stat-value {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.context-stat-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Empty state */
+.context-panel--empty .context-panel-header {
+  margin-bottom: 0;
+}
+
+.context-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-lg) 0;
+}
+
+.context-empty-icon {
+  font-size: 1.5rem;
+  opacity: 0.4;
+}
+
+.context-empty-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Responsive — mobile breakpoint */
+@media (max-width: 768px) {
+  .architect-selectors {
+    flex-direction: column;
+  }
+
+  .context-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .credential-configured {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+}

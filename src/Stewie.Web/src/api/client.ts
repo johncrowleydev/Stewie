@@ -10,7 +10,7 @@ import type {
   Job, Project, CreateProjectRequest, CreateJobRequest,
   ApiError, Event, LoginRequest, RegisterRequest, AuthResponse, GitHubStatus,
   GovernanceReport, GovernanceAnalytics, ChatMessage, ChatMessagesResponse, ContainerOutputResponse,
-  AgentSession, ArchitectStatus
+  AgentSession, ArchitectStatus, Credential, ArchitectContext
 } from "../types";
 
 /** Base URL is proxied via Vite config — no absolute URL needed. */
@@ -281,10 +281,17 @@ async function requestVoid(path: string, options?: RequestInit): Promise<void> {
 }
 
 /** Start the Architect Agent — POST /api/projects/{projectId}/architect/start */
-export async function startArchitect(projectId: string): Promise<AgentSession> {
+export async function startArchitect(
+  projectId: string,
+  runtimeName?: string,
+  modelName?: string
+): Promise<AgentSession> {
+  const body: Record<string, string> = {};
+  if (runtimeName) body.runtimeName = runtimeName;
+  if (modelName) body.modelName = modelName;
   return request<AgentSession>(
     `/api/projects/${encodeURIComponent(projectId)}/architect/start`,
-    { method: "POST", body: "{}" }
+    { method: "POST", body: JSON.stringify(body) }
   );
 }
 
@@ -307,5 +314,41 @@ export async function getArchitectStatus(projectId: string): Promise<ArchitectSt
 export async function getAgentSessions(projectId: string): Promise<AgentSession[]> {
   return request<AgentSession[]>(
     `/api/projects/${encodeURIComponent(projectId)}/agents`
+  );
+}
+
+// --- Credential endpoints (JOB-023 T-201) ---
+
+/** List stored credentials (masked) — GET /api/settings/credentials */
+export async function fetchCredentials(): Promise<Credential[]> {
+  return request<Credential[]>("/api/settings/credentials");
+}
+
+/** Add a new credential — POST /api/settings/credentials */
+export async function addCredential(
+  credentialType: string,
+  value: string
+): Promise<Credential> {
+  return request<Credential>("/api/settings/credentials", {
+    method: "POST",
+    body: JSON.stringify({ credentialType, value }),
+  });
+}
+
+/** Delete a credential — DELETE /api/settings/credentials/{id} */
+export async function deleteCredential(id: string): Promise<void> {
+  await requestVoid(`/api/settings/credentials/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+}
+
+// --- Architect context endpoint (JOB-023 T-204) ---
+
+/** Fetch Architect context stats — GET /api/agents/project/{projectId}/context */
+export async function fetchArchitectContext(
+  projectId: string
+): Promise<ArchitectContext> {
+  return request<ArchitectContext>(
+    `/api/agents/project/${encodeURIComponent(projectId)}/context`
   );
 }
