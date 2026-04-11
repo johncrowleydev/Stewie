@@ -9,7 +9,7 @@ tags: [project-management, job, workflow, phase-7, chat, github, frontend, backe
 related: [JOB-024, PRJ-001, CON-002]
 created: 2026-04-11
 updated: 2026-04-11
-version: 1.0.0
+version: 1.1.0
 ---
 
 # JOB-025 — Chat Slideover + GitHub Repo Picker
@@ -18,18 +18,13 @@ version: 1.0.0
 
 Convert the inline ChatPanel on ProjectDetailPage to a right-side slideover panel with a pin-to-sidebar option (Azure Portal style). Add a GitHub repo combobox that replaces manual URL input when a GitHub token is configured.
 
-## Branch Strategy
+## Branch
 
-| Agent | Branch | Territory |
-|:------|:-------|:----------|
-| Dev A | `feature/JOB-025-chat-github` | Frontend: ChatSlideover, RepoCombobox, ProjectsPage gating, ProjectDetailPage integration |
-| Dev B | `feature/JOB-025-github-api` | Backend: GitHubController, repo list endpoint, CON-002 update, integration tests |
+`feature/JOB-025-chat-github` — single developer agent owns all frontend + backend work.
 
 ## Tasks
 
-### Dev A — Frontend
-
-#### T-300: Chat Slideover Component
+### T-300: Chat Slideover Component
 - Create `ChatSlideover.tsx` wrapping existing `ChatPanel`
 - Two modes: **slideover** (overlays content) and **pinned sidebar** (shrinks content area)
 - Toggle between modes with a pin/unpin button in the chat header
@@ -41,17 +36,17 @@ Convert the inline ChatPanel on ProjectDetailPage to a right-side slideover pane
 - Full-screen on mobile (≤768px), always slideover on mobile
 - Floating trigger button on ProjectDetailPage when in slideover mode
 
-#### T-301: ProjectDetailPage Integration
+### T-301: ProjectDetailPage Integration
 - Replace inline `<ChatPanel>` with `<ChatSlideover>` on ProjectDetailPage
 - Add floating chat trigger button (bottom-right or header area)
 - Pass `projectId` and `architectActive` through to inner ChatPanel
 
-#### T-302: GitHub Feature Gating
+### T-302: GitHub Feature Gating
 - On ProjectsPage, check `gitHubStatus.connected` before enabling creation modes
 - When disconnected: disable "Create New Repository" mode, show hint "Connect GitHub in Settings to create repos"
 - "Link Existing" mode still works (manual URL input)
 
-#### T-303: Repo Combobox Component
+### T-303: Repo Combobox Component
 - Create `RepoCombobox.tsx` — searchable dropdown
 - Queries `GET /api/github/repos` on mount (or on focus)
 - Type-to-filter with debounce (300ms)
@@ -60,9 +55,7 @@ Convert the inline ChatPanel on ProjectDetailPage to a right-side slideover pane
 - Fallback: if API call fails, fall back to manual URL input with error hint
 - Only rendered when GitHub is connected
 
-### Dev B — Backend
-
-#### T-304: GitHub Repos Endpoint
+### T-304: GitHub Repos Endpoint
 - Create `GitHubController.cs` with `GET /api/github/repos`
 - Proxies the user's stored GitHub PAT to GitHub API (`GET /user/repos?per_page=100&sort=updated`)
 - Returns `{ name, fullName, htmlUrl, isPrivate }[]`
@@ -71,12 +64,12 @@ Convert the inline ChatPanel on ProjectDetailPage to a right-side slideover pane
 - Full XML doc on all methods
 - Require `[Authorize]` attribute
 
-#### T-305: CON-002 Update
+### T-305: CON-002 Update
 - Document `GET /api/github/repos` endpoint in CON-002
 - Request/response schemas
 - Error codes (401 no PAT, 502 GitHub unavailable)
 
-#### T-306: Integration Tests
+### T-306: Integration Tests
 - Test repos endpoint with mock HTTP handler
 - Test 401 when no PAT
 - Test caching behavior (second call hits cache)
@@ -95,6 +88,6 @@ Convert the inline ChatPanel on ProjectDetailPage to a right-side slideover pane
 
 ## Dependencies
 
-- JOB-024 must be merged first (emoji cleanup, context panel removal)
+- JOB-024 must be merged first (emoji cleanup, context panel removal) ✅
 - Existing `ChatPanel.tsx` component (not modified, wrapped by new slideover)
 - Existing GitHub PAT storage (`/api/users/me/github-token`)
