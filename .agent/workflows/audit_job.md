@@ -160,10 +160,75 @@ If the audit **passed**, update all project-level documents before committing:
 - [ ] Current phase exit criteria checked off
 - [ ] Phase marked `✅ COMPLETE` with completion date if all criteria met
 
-### MANIFEST.yaml
-- [ ] Job status updated (ACTIVE → CLOSED)
-- [ ] VER-NNN audit report entry added
-- [ ] Any new CON-NNN or BLU-NNN documents registered
+### MANIFEST.yaml — Full Sync Check (MANDATORY)
+
+> [!CAUTION]
+> Do NOT skip this. Run all three checks. Drift accumulates silently.
+
+// turbo
+**1. Orphan detection** — docs on disk but NOT registered in MANIFEST:
+```bash
+echo "=== Orphan Check (on-disk but not in MANIFEST) ==="
+ORPHANS=0
+for f in $(find CODEX -name '*.md' -not -path '*_templates*' -not -path '*/README.md' -not -path '*90_ARCHIVE*' | sort); do
+  basename_no_ext=$(basename "$f" .md)
+  if ! grep -q "$basename_no_ext" CODEX/00_INDEX/MANIFEST.yaml 2>/dev/null; then
+    echo "  ❌ ORPHAN: $f"
+    ORPHANS=$((ORPHANS + 1))
+  fi
+done
+[ "$ORPHANS" -eq 0 ] && echo "  ✅ No orphans" || echo "  ⚠️  $ORPHANS orphan(s) found — add to MANIFEST"
+```
+
+// turbo
+**2. Phantom detection** — entries in MANIFEST pointing to files that don't exist:
+```bash
+echo "=== Phantom Check (in MANIFEST but not on disk) ==="
+PHANTOMS=0
+grep '^\s*path:' CODEX/00_INDEX/MANIFEST.yaml | sed 's/.*path: //' | while read p; do
+  if [ ! -f "CODEX/$p" ]; then
+    echo "  ❌ PHANTOM: CODEX/$p"
+    PHANTOMS=$((PHANTOMS + 1))
+  fi
+done
+[ "$PHANTOMS" -eq 0 ] && echo "  ✅ No phantoms" || echo "  ⚠️  Phantom(s) found — remove from MANIFEST or restore file"
+```
+
+// turbo
+**3. ID collision detection** — duplicate document IDs in MANIFEST:
+```bash
+echo "=== ID Collision Check ==="
+DUPES=$(grep '^\s*- id:' CODEX/00_INDEX/MANIFEST.yaml | sed 's/.*id: //' | sort | uniq -d)
+if [ -n "$DUPES" ]; then
+  echo "  ❌ DUPLICATE IDs:"
+  echo "$DUPES" | sed 's/^/    /'
+else
+  echo "  ✅ No duplicate IDs"
+fi
+```
+
+// turbo
+**4. Frontmatter ID vs filename consistency** — the `id:` in each file's frontmatter should match the filename prefix:
+```bash
+echo "=== Frontmatter ID vs Filename Check ==="
+MISMATCHES=0
+for f in $(find CODEX -name '*.md' -not -path '*_templates*' -not -path '*/README.md' -not -path '*90_ARCHIVE*' -not -name 'SESSION_HANDOFF*' | sort); do
+  FILE_PREFIX=$(basename "$f" .md | sed 's/_.*//')
+  FRONTMATTER_ID=$(head -20 "$f" | grep '^id:' | sed 's/id: *//' | tr -d '"' | head -1)
+  if [ -n "$FRONTMATTER_ID" ] && [ "$FILE_PREFIX" != "$FRONTMATTER_ID" ]; then
+    echo "  ❌ MISMATCH: $f (file=$FILE_PREFIX, frontmatter=$FRONTMATTER_ID)"
+    MISMATCHES=$((MISMATCHES + 1))
+  fi
+done
+[ "$MISMATCHES" -eq 0 ] && echo "  ✅ All IDs match" || echo "  ⚠️  $MISMATCHES mismatch(es) — fix frontmatter or rename files"
+```
+
+**Manual checks:**
+- [ ] Job status updated (ACTIVE → CLOSED) in MANIFEST entry
+- [ ] VER-NNN audit report entry added to MANIFEST
+- [ ] Any new CON-NNN, BLU-NNN, DEF-NNN, or EVO-NNN documents registered
+- [ ] MANIFEST summaries for PRJ-001 and BCK-001 still accurate (not stale)
+- [ ] GOV-003 summary updated if new sections were added (e.g., §8.10)
 
 ### SESSION_HANDOFF.md
 - [ ] Updated with current state, completed phases, and next phase context
@@ -171,7 +236,7 @@ If the audit **passed**, update all project-level documents before committing:
 ### Commit
 Commit all housekeeping changes in a single commit:
 ```
-docs: housekeeping — update README, backlog, roadmap for JOB-NNN closure
+docs: housekeeping — update manifest and JOB-NNN closure
 ```
 
 ---
