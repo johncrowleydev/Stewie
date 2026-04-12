@@ -474,6 +474,51 @@ documents:
       hardcoded hex colors to tw.ts (DEF-012), responsive smoke test at
       375px and 768px. Closes Phase 7.
 
+  - id: JOB-030
+    path: 05_PROJECT/JOB-030_Route_Restructuring.md
+    title: "Job 030 — Route Restructuring + ProjectContext"
+    type: how-to
+    status: OPEN
+    tags: [project-management, job, workflow, phase-8, frontend, routing, architecture]
+    agents: [coder]
+    summary: >
+      Restructure flat routes into hierarchical layout: /p/:projectId/* for
+      project pages, /admin/* for admin pages. Add ProjectContext provider
+      and AdminRoute guard. 6 tasks.
+
+  - id: JOB-031
+    path: 05_PROJECT/JOB-031_Sidebar_Switcher.md
+    title: "Job 031 — Data-Driven Sidebar + Project Switcher"
+    type: how-to
+    status: OPEN
+    tags: [project-management, job, workflow, phase-8, frontend, navigation]
+    agents: [coder]
+    summary: >
+      Replace hardcoded sidebar with data-driven nav config. Add project
+      switcher dropdown and chat FAB. Depends on JOB-030. 4 tasks.
+
+  - id: JOB-032
+    path: 05_PROJECT/JOB-032_Admin_Dashboard.md
+    title: "Job 032 — Admin System Dashboard"
+    type: how-to
+    status: OPEN
+    tags: [project-management, job, workflow, phase-8, frontend, admin, dashboard]
+    agents: [coder]
+    summary: >
+      Build admin system dashboard at /admin/system with health panel,
+      agent sessions table, and activity feed. 4 tasks.
+
+  - id: JOB-033
+    path: 05_PROJECT/JOB-033_Admin_Extraction.md
+    title: "Job 033 — Admin User Management Extraction"
+    type: how-to
+    status: OPEN
+    tags: [project-management, job, workflow, phase-8, frontend, admin]
+    agents: [coder]
+    summary: >
+      Extract invite codes and user management from SettingsPage into
+      dedicated admin pages. Clean SettingsPage to personal prefs. 4 tasks.
+
   # ── 10_GOVERNANCE ───────────────────────────────────────────────────────────
   - id: GOV-001
     path: 10_GOVERNANCE/GOV-001_DocumentationStandard.md
