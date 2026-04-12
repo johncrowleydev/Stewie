@@ -41,7 +41,7 @@ import type { Column } from "../../components/ui";
 
 import {
   HEALTH_REFRESH_MS, SESSIONS_REFRESH_MS, ACTIVITY_FEED_LIMIT,
-  STAT_STYLES, EVENT_TYPE_VARIANT,
+  STAT_STYLES, EVENT_TYPE_VARIANT, DEFAULT_EVENT_CONFIG,
   formatTimestamp, formatDuration, describeEvent,
   relativeTime, variantToStatStyle,
 } from "./systemDashboardUtils";
@@ -441,7 +441,7 @@ export function SystemDashboardPage() {
 
             <div className="space-y-md">
               {events.map((event) => {
-                const config = EVENT_TYPE_VARIANT[event.eventType];
+                const config = EVENT_TYPE_VARIANT[event.eventType] ?? DEFAULT_EVENT_CONFIG;
                 const styleKey = variantToStatStyle(config.variant);
                 return (
                   <div

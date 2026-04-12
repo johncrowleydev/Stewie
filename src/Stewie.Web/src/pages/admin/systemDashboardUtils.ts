@@ -16,7 +16,7 @@
  * REF: JOB-032 T-540, T-541, T-542
  */
 
-import type { Event, EventType, AgentSession } from "../../types";
+import type { Event, AgentSession } from "../../types";
 import type { BadgeVariant } from "../../components/ui/Badge";
 import type { Column } from "../../components/ui";
 
@@ -59,11 +59,12 @@ export interface EventTypeConfig {
 /**
  * Event type → Badge variant mapping.
  *
- * DECISION: Using a Record instead of a switch statement for O(1) lookup
- * and exhaustive type coverage via TypeScript's index signature.
- * TRADEOFF: Slightly more memory, but far cleaner than nested conditionals.
+ * Uses a plain object rather than Record<EventType, ...> because the API
+ * may return event types not yet in the frontend TypeScript union
+ * (e.g. AgentStarted, AgentTerminated). Partial + fallback prevents
+ * runtime crashes on unknown event types.
  */
-export const EVENT_TYPE_VARIANT: Record<EventType, EventTypeConfig> = {
+export const EVENT_TYPE_VARIANT: Record<string, EventTypeConfig> = {
   JobCreated: { variant: "info", icon: "+" },
   JobStarted: { variant: "running", icon: "▶" },
   JobCompleted: { variant: "completed", icon: "✓" },
@@ -76,7 +77,12 @@ export const EVENT_TYPE_VARIANT: Record<EventType, EventTypeConfig> = {
   GovernancePassed: { variant: "completed", icon: "✓" },
   GovernanceFailed: { variant: "failed", icon: "✕" },
   GovernanceRetry: { variant: "warning", icon: "↻" },
+  AgentStarted: { variant: "running", icon: "▶" },
+  AgentTerminated: { variant: "pending", icon: "■" },
 } as const;
+
+/** Fallback config for unknown event types — prevents crash on API mismatch. */
+export const DEFAULT_EVENT_CONFIG: EventTypeConfig = { variant: "pending", icon: "?" };
 
 // ── Types ──
 
@@ -131,7 +137,7 @@ export function formatDuration(startedAt: string): string {
  */
 export function describeEvent(event: Event): string {
   const entityLabel = `${event.entityType} ${event.entityId.slice(0, 8)}…`;
-  const descriptions: Record<EventType, string> = {
+  const descriptions: Record<string, string> = {
     JobCreated: `${entityLabel} was created`,
     JobStarted: `${entityLabel} started executing`,
     JobCompleted: `${entityLabel} completed successfully`,
@@ -144,8 +150,10 @@ export function describeEvent(event: Event): string {
     GovernancePassed: `Governance check passed for ${entityLabel}`,
     GovernanceFailed: `Governance check failed for ${entityLabel}`,
     GovernanceRetry: `Governance retry for ${entityLabel}`,
+    AgentStarted: `Agent started for ${entityLabel}`,
+    AgentTerminated: `Agent terminated for ${entityLabel}`,
   };
-  return descriptions[event.eventType] ?? event.eventType;
+  return descriptions[event.eventType] ?? `${event.eventType} — ${entityLabel}`;
 }
 
 /**

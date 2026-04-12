@@ -44,10 +44,13 @@ function decodeUser(token: string): AuthUser | null {
   try {
     const payload = token.split(".")[1];
     const decoded = JSON.parse(atob(payload)) as Record<string, string>;
+    // .NET serializes the role claim as a full URI key, not just "role"
+    const ROLE_CLAIM = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
+    const rawRole = decoded.role ?? decoded[ROLE_CLAIM] ?? "user";
     return {
       id: decoded.sub ?? decoded.id ?? "",
       username: decoded.username ?? decoded.unique_name ?? "",
-      role: (decoded.role ?? "user") as "admin" | "user",
+      role: rawRole.toLowerCase() as "admin" | "user",
     };
   } catch {
     return null;

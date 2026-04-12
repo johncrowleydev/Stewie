@@ -5,43 +5,41 @@
  * dropdown. Changing the selection navigates to `/p/:newProjectId/`.
  * When no project is active, displays a "Select project…" placeholder.
  *
+ * DECISION: Reads projectId directly from the URL pathname, not from
+ * ProjectContext, because Layout (which renders this) sits above
+ * ProjectProvider in the component tree.
+ *
  * DECISION: Fetch projects directly via API rather than using a shared context
  * because the project list is lightweight and rarely changes. Avoids coupling
  * the sidebar to a global projects provider.
  *
- * FAILURE MODE: If the fetch fails, the dropdown shows a single "…" option
- * to avoid a blank/broken sidebar. The user can still navigate via /projects.
+ * FAILURE MODE: If the fetch fails, the dropdown shows nothing.
+ * The user can still navigate via other means.
  *
  * Used by: Layout.tsx (sidebar, between logo and nav)
  * REF: JOB-031 T-532
- *
- * @example
- * ```tsx
- * <ProjectSwitcher projectId={projectCtx?.projectId ?? null} />
- * ```
  */
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Select } from "../ui";
 import type { SelectOption } from "../ui";
 import { fetchProjects } from "../../api/client";
 
-/** Props for the ProjectSwitcher component */
-interface ProjectSwitcherProps {
-  /** Currently active project ID from context, or null if on a global page */
-  projectId: string | null;
-}
-
 /**
  * Renders a project dropdown in the sidebar for quick project switching.
  *
- * PRECONDITION: Must be rendered inside a Router (uses useNavigate).
+ * PRECONDITION: Must be inside a Router (uses useNavigate).
  * POSTCONDITION: Selecting a project navigates to /p/:id/ dashboard.
  */
-export function ProjectSwitcher({ projectId }: ProjectSwitcherProps) {
+export function ProjectSwitcher() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [options, setOptions] = useState<SelectOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Extract projectId from URL — Layout sits above ProjectProvider
+  const projectMatch = location.pathname.match(/^\/p\/([^/]+)/);
+  const projectId = projectMatch ? projectMatch[1] : null;
 
   // Fetch project list on mount
   useEffect(() => {
@@ -114,3 +112,4 @@ export function ProjectSwitcher({ projectId }: ProjectSwitcherProps) {
     </div>
   );
 }
+

@@ -16,11 +16,10 @@
  *
  * REF: JOB-030 T-523, JOB-031 T-531, JOB-031 T-532, JOB-031 T-533
  */
-import { useState, useRef, useEffect, useContext, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useTheme } from "../hooks/useTheme";
 import { useAuth } from "../contexts/AuthContext";
-import { ProjectContext } from "../contexts/ProjectContext";
 import { useSignalR } from "../hooks/useSignalR";
 import {
   NAV_ITEMS,
@@ -136,15 +135,17 @@ export function Layout() {
   const { state: signalRState } = useSignalR();
   const isLive = signalRState === "connected";
 
-  // Optional project context — null on global pages (/projects, /settings)
-  const projectCtx = useContext(ProjectContext);
+  // Extract projectId directly from the URL — Layout sits above ProjectProvider
+  // in the component tree, so useContext(ProjectContext) is always null here.
+  const projectMatch = location.pathname.match(/^\/p\/([^/]+)/);
+  const projectId = projectMatch ? projectMatch[1] : null;
+  const hasProject = projectId !== null;
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const userRole = user?.role ?? "user";
-  const hasProject = projectCtx !== null;
-  const projectId = projectCtx?.projectId ?? null;
 
   // Filter nav items by current context — memoized to avoid re-filtering on every render
   const visibleItems = useMemo(
@@ -194,7 +195,7 @@ export function Layout() {
         </div>
 
         {/* Project switcher dropdown — between logo and nav */}
-        <ProjectSwitcher projectId={projectId} />
+        <ProjectSwitcher />
 
         <nav className="flex-1 p-md flex flex-col gap-xs overflow-y-auto" id="main-nav">
           {/* Global links — always visible at top */}
