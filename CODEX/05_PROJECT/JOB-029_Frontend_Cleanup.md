@@ -2,7 +2,7 @@
 id: JOB-029
 title: "Frontend Cleanup — Dead Features + Visual Fixes"
 type: planning
-status: OPEN
+status: CLOSED
 owner: architect
 agents: [developer]
 tags: [frontend, cleanup, phase-7]

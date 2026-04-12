@@ -94,3 +94,26 @@ export const sectionHeading = "text-base font-semibold text-ds-text mb-md flex i
 
 /** Page title row */
 export const pageTitleRow = "flex items-center justify-between mb-xl";
+
+// --- Terminal chrome colors (ContainerOutputPanel) ---
+// REF: JOB-029 T-511, DEF-012
+// These are intentional "terminal emulator" colors — not part of the ds-* design tokens.
+// Traffic light dots (#ff5f57, #febc2e, #28c840) stay inline as one-off UI chrome.
+
+/** Terminal body background — GitHub dark theme */
+export const termBg = "#0d1117";
+
+/** Terminal header/footer background */
+export const termHeaderBg = "#161b22";
+
+/** Terminal stdout text */
+export const termText = "#c9d1d9";
+
+/** Terminal muted text (labels, status, empty state) */
+export const termMuted = "#8b949e";
+
+/** Terminal line numbers */
+export const termLineNum = "#484f58";
+
+/** Terminal stderr text and highlight */
+export const termError = "#f97583";

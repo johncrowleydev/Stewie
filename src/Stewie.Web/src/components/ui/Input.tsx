@@ -16,7 +16,7 @@
  *   access the underlying `<input>` DOM node for focus management.
  * - `data-testid` ensures deterministic test selectors (GOV-003 §8.4).
  *
- * Used by: LoginPage, RegisterPage, CreateJobPage, SettingsPage
+ * Used by: LoginPage, RegisterPage, SettingsPage
  * Related: tw.ts (formInput), FormGroup component, GOV-003 §8
  *
  * REF: JOB-028 T-502

@@ -103,7 +103,7 @@ export function ProjectsPage() {
     return (
       <div>
         <div className={pageTitleRow} />
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-lg">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-lg">
           {[1, 2, 3].map((i) => <div key={i} className={`${skeleton} h-[120px] rounded-lg`} />)}
         </div>
       </div>
@@ -224,7 +224,7 @@ export function ProjectsPage() {
           <p className="text-md max-w-[400px] mx-auto">Create a project to organize your orchestration runs.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-lg">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-lg">
           {projects.map((project) => (
             <div
               className="bg-ds-surface border border-ds-border rounded-lg p-lg transition-all duration-150 cursor-pointer hover:border-ds-primary hover:shadow-ds-md hover:-translate-y-0.5"

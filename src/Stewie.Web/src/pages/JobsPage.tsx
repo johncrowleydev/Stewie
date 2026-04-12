@@ -3,13 +3,13 @@
  * REF: JOB-012 T-127, CON-002 §4.2, JOB-027 T-404
  */
 import { useCallback, useEffect, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { fetchJobs } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
 import type { Job } from "../types";
 import { usePolling } from "../hooks/usePolling";
 import { useSignalR } from "../hooks/useSignalR";
-import { btnPrimary } from "../tw";
+
 
 const FALLBACK_POLL_MS = 5000;
 
@@ -68,12 +68,7 @@ export function JobsPage() {
     <div id="jobs-page">
       <div className="flex items-center justify-between mb-xl">
         <div />
-        <div className="flex items-center gap-md">
-          <span className="text-s text-ds-text-muted">{jobList.length} total</span>
-          <Link to="/jobs/new" className={`${btnPrimary} no-underline`} id="jobs-new-job">
-            + New Job
-          </Link>
-        </div>
+        <span className="text-s text-ds-text-muted">{jobList.length} total</span>
       </div>
 
       {jobList.length === 0 ? (
