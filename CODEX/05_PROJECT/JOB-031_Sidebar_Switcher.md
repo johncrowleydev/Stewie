@@ -2,7 +2,7 @@
 id: JOB-031
 title: "Data-Driven Sidebar + Project Switcher"
 type: planning
-status: OPEN
+status: CLOSED
 owner: architect
 agents: [developer]
 tags: [frontend, navigation, architecture, phase-8]

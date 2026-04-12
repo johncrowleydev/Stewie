@@ -4,61 +4,32 @@
  * Responsive: hamburger menu on mobile, overlay sidebar.
  * User menu with theme toggle and logout in the top-right header.
  *
- * REF: JOB-030 T-523
+ * DECISION: Sidebar nav is data-driven via navConfig.ts. Items are filtered
+ * by scope (project/global/admin) and user role at render time. Section
+ * headers visually group items by scope.
+ *
+ * READING GUIDE FOR INCIDENT RESPONDERS:
+ * 1. If sidebar links are missing → check filterNavItems() and user role
+ * 2. If wrong project in sidebar → check ProjectContext read
+ * 3. If header title is wrong → check getPageTitle()
+ * 4. If user menu doesn't close → check handleClickOutside effect
+ *
+ * REF: JOB-030 T-523, JOB-031 T-531, JOB-031 T-532, JOB-031 T-533
  */
-import { useState, useRef, useEffect, useContext } from "react";
+import { useState, useRef, useEffect, useContext, useMemo } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useTheme } from "../hooks/useTheme";
 import { useAuth } from "../contexts/AuthContext";
 import { ProjectContext } from "../contexts/ProjectContext";
 import { useSignalR } from "../hooks/useSignalR";
-
-/** SVG icon components for sidebar navigation */
-function DashboardIcon() {
-  return (
-    <svg className="w-5 h-5 opacity-70 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1" />
-      <rect x="14" y="3" width="7" height="7" rx="1" />
-      <rect x="3" y="14" width="7" height="7" rx="1" />
-      <rect x="14" y="14" width="7" height="7" rx="1" />
-    </svg>
-  );
-}
-
-function JobsIcon() {
-  return (
-    <svg className="w-5 h-5 opacity-70 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-    </svg>
-  );
-}
-
-function ProjectsIcon() {
-  return (
-    <svg className="w-5 h-5 opacity-70 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-    </svg>
-  );
-}
-
-function EventsIcon() {
-  return (
-    <svg className="w-5 h-5 opacity-70 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
-    </svg>
-  );
-}
-
-/** Settings gear icon */
-function SettingsIcon() {
-  return (
-    <svg className="w-5 h-5 opacity-70 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  );
-}
+import {
+  NAV_ITEMS,
+  filterNavItems,
+  resolveNavPath,
+} from "./sidebar/navConfig";
+import type { NavItem, NavScope } from "./sidebar/navConfig";
+import { ProjectSwitcher } from "./sidebar/ProjectSwitcher";
+import { ChatFab } from "./ChatFab";
 
 /** Maps route paths to page titles for the header bar */
 function getPageTitle(pathname: string): string {
@@ -95,6 +66,67 @@ function navLinkClass(isActive: boolean): string {
     : `${base} text-ds-text-muted hover:bg-ds-surface-hover hover:text-ds-text`;
 }
 
+/**
+ * Section header labels for each nav scope.
+ * Rendered as small uppercase dividers between scope groups.
+ */
+const SCOPE_LABELS: Record<NavScope, string> = {
+  project: "Project",
+  global: "General",
+  admin: "Admin",
+} as const;
+
+/**
+ * Renders a group of nav items for a single scope with an optional header.
+ *
+ * @param items - Nav items belonging to this scope (already filtered)
+ * @param scope - The scope being rendered (for section header label)
+ * @param projectId - Active project ID for path resolution (null if none)
+ * @param showHeader - Whether to render the section header
+ */
+function NavSection({
+  items,
+  scope,
+  projectId,
+  showHeader,
+}: {
+  items: NavItem[];
+  scope: NavScope;
+  projectId: string | null;
+  showHeader: boolean;
+}) {
+  if (items.length === 0) return null;
+
+  return (
+    <>
+      {showHeader && (
+        <span
+          className="text-[10px] font-semibold uppercase tracking-wider text-ds-text-muted mt-md mb-xs px-md select-none"
+          aria-hidden="true"
+        >
+          {SCOPE_LABELS[scope]}
+        </span>
+      )}
+      {items.map((item) => {
+        const Icon = item.icon;
+        const resolvedPath = resolveNavPath(item.path, projectId);
+        return (
+          <NavLink
+            key={item.id}
+            to={resolvedPath}
+            end={item.end}
+            className={({ isActive }) => navLinkClass(isActive)}
+            data-testid={`nav-${item.id}`}
+          >
+            <Icon />
+            {item.label}
+          </NavLink>
+        );
+      })}
+    </>
+  );
+}
+
 /** App shell — sidebar + header + main content outlet */
 export function Layout() {
   const location = useLocation();
@@ -109,6 +141,21 @@ export function Layout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const userRole = user?.role ?? "user";
+  const hasProject = projectCtx !== null;
+  const projectId = projectCtx?.projectId ?? null;
+
+  // Filter nav items by current context — memoized to avoid re-filtering on every render
+  const visibleItems = useMemo(
+    () => filterNavItems(NAV_ITEMS, hasProject, userRole),
+    [hasProject, userRole],
+  );
+
+  // Group visible items by scope for sectioned rendering
+  const projectItems = useMemo(() => visibleItems.filter((i) => i.scope === "project"), [visibleItems]);
+  const globalItems = useMemo(() => visibleItems.filter((i) => i.scope === "global"), [visibleItems]);
+  const adminItems = useMemo(() => visibleItems.filter((i) => i.scope === "admin"), [visibleItems]);
 
   // Close user menu on outside click
   useEffect(() => {
@@ -146,36 +193,18 @@ export function Layout() {
           <span className="font-sans text-2xl font-bold tracking-wide text-ds-primary mt-xs">stewie</span>
         </div>
 
-        <nav className="flex-1 p-md flex flex-col gap-xs" id="main-nav">
-          {/* Global links — always visible */}
-          <NavLink to="/projects" className={({ isActive }) => navLinkClass(isActive)}>
-            <ProjectsIcon />
-            Projects
-          </NavLink>
+        {/* Project switcher dropdown — between logo and nav */}
+        <ProjectSwitcher projectId={projectId} />
 
-          {/* Project-scoped links — only visible when inside a project */}
-          {projectCtx && (
-            <>
-              <NavLink to={`/p/${projectCtx.projectId}/`} end className={({ isActive }) => navLinkClass(isActive)}>
-                <DashboardIcon />
-                Dashboard
-              </NavLink>
-              <NavLink to={`/p/${projectCtx.projectId}/jobs`} className={({ isActive }) => navLinkClass(isActive)}>
-                <JobsIcon />
-                Jobs
-              </NavLink>
-              <NavLink to={`/p/${projectCtx.projectId}/events`} className={({ isActive }) => navLinkClass(isActive)}>
-                <EventsIcon />
-                Events
-              </NavLink>
-            </>
-          )}
+        <nav className="flex-1 p-md flex flex-col gap-xs overflow-y-auto" id="main-nav">
+          {/* Global links — always visible at top */}
+          <NavSection items={globalItems} scope="global" projectId={projectId} showHeader={false} />
 
-          {/* Global links — bottom */}
-          <NavLink to="/settings" className={({ isActive }) => navLinkClass(isActive)}>
-            <SettingsIcon />
-            Settings
-          </NavLink>
+          {/* Project-scoped links — only when a project is active */}
+          <NavSection items={projectItems} scope="project" projectId={projectId} showHeader={hasProject} />
+
+          {/* Admin links — only for admin users */}
+          <NavSection items={adminItems} scope="admin" projectId={projectId} showHeader={adminItems.length > 0} />
         </nav>
       </aside>
 
@@ -266,6 +295,9 @@ export function Layout() {
         <div className="p-xl max-w-[1200px] max-md:p-md">
           <Outlet />
         </div>
+
+        {/* Chat FAB — only renders on project-scoped pages */}
+        <ChatFab />
       </main>
     </div>
   );
