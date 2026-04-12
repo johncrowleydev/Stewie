@@ -10,7 +10,7 @@
  * When GitHub is connected, "Link Existing" mode shows a RepoCombobox for
  * searchable repo selection (T-303).
  *
- * REF: JOB-025 T-302, T-303
+ * REF: JOB-025 T-302, T-303, JOB-027 T-405
  */
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -38,7 +38,10 @@ function ProviderBadge({ provider }: { provider: string | null }) {
   const isGitHub = provider.toLowerCase() === "github";
 
   return (
-    <span className="provider-badge" title={`Hosted on ${label}`}>
+    <span
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[var(--font-size-xs)] font-medium bg-[var(--color-primary-muted)] text-[var(--color-primary)] whitespace-nowrap [&_svg]:w-3 [&_svg]:h-3"
+      title={`Hosted on ${label}`}
+    >
       {isGitHub && <GitHubIcon />}
       {label}
     </span>
@@ -185,7 +188,7 @@ export function ProjectsPage() {
         <div className="page-title-row">
           
         </div>
-        <div className="projects-grid">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-[var(--space-lg)]">
           {[1, 2, 3].map((i) => (
             <div key={i} className="skeleton skeleton-card" />
           ))}
@@ -232,10 +235,17 @@ export function ProjectsPage() {
           <h3>Create New Project</h3>
 
           {/* Mode Toggle */}
-          <div className="mode-toggle" id="creation-mode-toggle">
+          <div
+            className="grid grid-cols-2 gap-[var(--space-sm)] mb-[var(--space-lg)] bg-[var(--color-bg)] rounded-[var(--radius-md)] p-[var(--space-xs)]"
+            id="creation-mode-toggle"
+          >
             <button
               type="button"
-              className={`mode-toggle-btn ${creationMode === "link" ? "active" : ""}`}
+              className={`flex items-center justify-center gap-[var(--space-sm)] py-[var(--space-sm)] px-[var(--space-md)] border rounded-[var(--radius-sm)] text-[var(--font-size-sm)] font-medium font-[var(--font-family)] cursor-pointer transition-all duration-150 ${
+                creationMode === "link"
+                  ? "bg-[var(--color-surface)] text-[var(--color-primary)] border-[var(--color-primary)] shadow-[var(--shadow-sm)]"
+                  : "bg-transparent text-[var(--color-text-muted)] border-transparent hover:text-[var(--color-text)] hover:bg-[var(--color-surface-hover)]"
+              }`}
               onClick={() => { setCreationMode("link"); setFormError(null); }}
               id="mode-link"
             >
@@ -244,7 +254,11 @@ export function ProjectsPage() {
             </button>
             <button
               type="button"
-              className={`mode-toggle-btn ${creationMode === "create" ? "active" : ""} ${!isGitHubConnected ? "disabled" : ""}`}
+              className={`flex items-center justify-center gap-[var(--space-sm)] py-[var(--space-sm)] px-[var(--space-md)] border rounded-[var(--radius-sm)] text-[var(--font-size-sm)] font-medium font-[var(--font-family)] cursor-pointer transition-all duration-150 ${
+                creationMode === "create"
+                  ? "bg-[var(--color-surface)] text-[var(--color-primary)] border-[var(--color-primary)] shadow-[var(--shadow-sm)]"
+                  : "bg-transparent text-[var(--color-text-muted)] border-transparent hover:text-[var(--color-text)] hover:bg-[var(--color-surface-hover)]"
+              } ${!isGitHubConnected ? "opacity-50 cursor-not-allowed" : ""}`}
               onClick={() => {
                 if (!isGitHubConnected) return;
                 setCreationMode("create");
@@ -257,7 +271,7 @@ export function ProjectsPage() {
               
               Create New Repository
               {!isGitHubConnected && (
-                <span className="mode-toggle-hint">No GitHub</span>
+                <span className="text-[10px] font-medium text-[var(--color-warning)] ml-[var(--space-xs)]">No GitHub</span>
               )}
             </button>
           </div>
@@ -403,20 +417,20 @@ export function ProjectsPage() {
           <p>Create a project to organize your orchestration runs.</p>
         </div>
       ) : (
-        <div className="projects-grid">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-[var(--space-lg)]">
           {projects.map((project) => (
             <div
-              className="project-card clickable"
+              className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-lg)] p-[var(--space-lg)] transition-all duration-150 cursor-pointer hover:border-[var(--color-primary)] hover:shadow-[var(--shadow-md)] hover:-translate-y-0.5"
               key={project.id}
               id={`project-${project.id}`}
               onClick={() => { void navigate(`/projects/${project.id}`); }}
             >
-              <div className="project-card-header">
-                <h3>{project.name}</h3>
+              <div className="flex items-center justify-between gap-[var(--space-sm)] mb-[var(--space-sm)]">
+                <h3 className="text-[var(--font-size-lg)] font-semibold m-0">{project.name}</h3>
                 <ProviderBadge provider={project.repoProvider} />
               </div>
-              <div className="repo-url">{project.repoUrl}</div>
-              <div className="project-date">
+              <div className="text-[var(--font-size-sm)] text-[var(--color-text-muted)] break-all mb-[var(--space-md)]">{project.repoUrl}</div>
+              <div className="text-[var(--font-size-xs)] text-[var(--color-text-muted)]">
                 Created {formatDate(project.createdAt)}
               </div>
             </div>

@@ -5,6 +5,8 @@
  *
  * Soft dependency on Agent A's T-020 (Events endpoint).
  * Renders gracefully if the endpoint is not yet available.
+ *
+ * REF: JOB-027 T-406
  */
 import { useEffect, useState } from "react";
 import { fetchEvents } from "../api/client";
@@ -132,7 +134,7 @@ export function EventsPage() {
     <div id="events-page">
       <div className="page-title-row">
         
-        <div className="event-filters">
+        <div className="flex gap-[var(--space-xs)]">
           {FILTER_OPTIONS.map((opt) => (
             <button
               key={opt.value}
@@ -153,32 +155,37 @@ export function EventsPage() {
           <p>Events will appear here as orchestration actions occur.</p>
         </div>
       ) : (
-        <div className="timeline" id="events-timeline">
-          {filteredEvents.map((event) => (
+        <div className="relative pl-7" id="events-timeline">
+          {filteredEvents.map((event, idx) => (
             <div
-              className="timeline-item"
+              className={`relative ${idx < filteredEvents.length - 1 ? "pb-[var(--space-lg)]" : "pb-0"}`}
               key={event.id}
               id={`event-${event.id}`}
             >
+              {/* Timeline dot */}
               <div
-                className="timeline-dot"
+                className="absolute -left-7 top-1 w-3 h-3 rounded-full border-2 border-[var(--color-bg)] z-[2]"
                 style={{ background: EVENT_COLORS[event.eventType] }}
               />
-              <div className="timeline-connector" />
-              <div className="timeline-content">
-                <div className="timeline-header">
+              {/* Timeline connector */}
+              {idx < filteredEvents.length - 1 && (
+                <div className="absolute -left-[23px] top-4 bottom-0 w-0.5 bg-[var(--color-border)]" />
+              )}
+              {/* Content card */}
+              <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-md)] p-[var(--space-md)] transition-[border-color] duration-150 hover:border-[var(--color-border-hover)]">
+                <div className="flex items-center justify-between mb-[var(--space-xs)]">
                   <span
-                    className="timeline-type"
+                    className="text-[var(--font-size-md)] font-semibold"
                     style={{ color: EVENT_COLORS[event.eventType] }}
                   >
                     {EVENT_LABELS[event.eventType]}
                   </span>
-                  <span className="timeline-time">
+                  <span className="text-[var(--font-size-xs)] text-[var(--color-text-muted)]">
                     {formatTimestamp(event.timestamp)}
                   </span>
                 </div>
-                <div className="timeline-meta">
-                  <span className="timeline-entity-badge">
+                <div className="flex items-center gap-[var(--space-sm)] mt-[var(--space-xs)]">
+                  <span className="inline-block px-2 py-px rounded-full text-[var(--font-size-xs)] font-medium bg-[var(--color-primary-muted)] text-[var(--color-primary)]">
                     {event.entityType}
                   </span>
                   <span className="mono" style={{ fontSize: "var(--font-size-xs)" }}>
@@ -186,7 +193,7 @@ export function EventsPage() {
                   </span>
                 </div>
                 {event.payload && event.payload !== "{}" && (
-                  <div className="timeline-payload">
+                  <div className="mt-[var(--space-sm)] p-[var(--space-sm)] bg-[var(--color-bg)] rounded-[var(--radius-sm)] font-mono text-[var(--font-size-xs)] text-[var(--color-text-muted)] break-all max-h-[100px] overflow-y-auto">
                     {event.payload}
                   </div>
                 )}
