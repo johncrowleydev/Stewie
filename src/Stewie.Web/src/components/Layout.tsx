@@ -3,11 +3,14 @@
  * Provides consistent structure across all pages with Stewie branding.
  * Responsive: hamburger menu on mobile, overlay sidebar.
  * User menu with theme toggle and logout in the top-right header.
+ *
+ * REF: JOB-030 T-523
  */
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useTheme } from "../hooks/useTheme";
 import { useAuth } from "../contexts/AuthContext";
+import { ProjectContext } from "../contexts/ProjectContext";
 import { useSignalR } from "../hooks/useSignalR";
 
 /** SVG icon components for sidebar navigation */
@@ -59,12 +62,28 @@ function SettingsIcon() {
 
 /** Maps route paths to page titles for the header bar */
 function getPageTitle(pathname: string): string {
-  if (pathname === "/") return "Dashboard";
-  if (pathname === "/jobs") return "Jobs";
-  if (pathname.startsWith("/jobs/")) return "Job Details";
-  if (pathname === "/projects") return "Projects";
-  if (pathname === "/events") return "Events";
+  if (pathname === "/" || pathname === "/projects") return "Projects";
   if (pathname === "/settings") return "Settings";
+
+  // Project-scoped routes: /p/:projectId/*
+  const projectMatch = pathname.match(/^\/p\/[^/]+(\/.*)?$/);
+  if (projectMatch) {
+    const sub = projectMatch[1] ?? "";
+    if (sub === "" || sub === "/") return "Dashboard";
+    if (sub === "/jobs") return "Jobs";
+    if (sub.startsWith("/jobs/")) return "Job Details";
+    if (sub === "/events") return "Events";
+    return "Dashboard";
+  }
+
+  // Admin routes: /admin/*
+  if (pathname.startsWith("/admin")) {
+    if (pathname === "/admin/users") return "User Management";
+    if (pathname === "/admin/invites") return "Invite Codes";
+    if (pathname === "/admin/system") return "System Dashboard";
+    return "Admin";
+  }
+
   return "Stewie";
 }
 
@@ -84,6 +103,9 @@ export function Layout() {
   const { user, logout } = useAuth();
   const { state: signalRState } = useSignalR();
   const isLive = signalRState === "connected";
+
+  // Optional project context — null on global pages (/projects, /settings)
+  const projectCtx = useContext(ProjectContext);
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -125,22 +147,31 @@ export function Layout() {
         </div>
 
         <nav className="flex-1 p-md flex flex-col gap-xs" id="main-nav">
-          <NavLink to="/" end className={({ isActive }) => navLinkClass(isActive)}>
-            <DashboardIcon />
-            Dashboard
-          </NavLink>
-          <NavLink to="/jobs" className={({ isActive }) => navLinkClass(isActive)}>
-            <JobsIcon />
-            Jobs
-          </NavLink>
+          {/* Global links — always visible */}
           <NavLink to="/projects" className={({ isActive }) => navLinkClass(isActive)}>
             <ProjectsIcon />
             Projects
           </NavLink>
-          <NavLink to="/events" className={({ isActive }) => navLinkClass(isActive)}>
-            <EventsIcon />
-            Events
-          </NavLink>
+
+          {/* Project-scoped links — only visible when inside a project */}
+          {projectCtx && (
+            <>
+              <NavLink to={`/p/${projectCtx.projectId}/`} end className={({ isActive }) => navLinkClass(isActive)}>
+                <DashboardIcon />
+                Dashboard
+              </NavLink>
+              <NavLink to={`/p/${projectCtx.projectId}/jobs`} className={({ isActive }) => navLinkClass(isActive)}>
+                <JobsIcon />
+                Jobs
+              </NavLink>
+              <NavLink to={`/p/${projectCtx.projectId}/events`} className={({ isActive }) => navLinkClass(isActive)}>
+                <EventsIcon />
+                Events
+              </NavLink>
+            </>
+          )}
+
+          {/* Global links — bottom */}
           <NavLink to="/settings" className={({ isActive }) => navLinkClass(isActive)}>
             <SettingsIcon />
             Settings
