@@ -14,7 +14,7 @@
  * 3. If header title is wrong → check getPageTitle()
  * 4. If user menu doesn't close → check handleClickOutside effect
  *
- * REF: JOB-030 T-523, JOB-031 T-531, JOB-031 T-532
+ * REF: JOB-030 T-523, JOB-031 T-531, JOB-031 T-532, JOB-031 T-533
  */
 import { useState, useRef, useEffect, useContext, useMemo } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
@@ -29,6 +29,7 @@ import {
 } from "./sidebar/navConfig";
 import type { NavItem, NavScope } from "./sidebar/navConfig";
 import { ProjectSwitcher } from "./sidebar/ProjectSwitcher";
+import { ChatFab } from "./ChatFab";
 
 /** Maps route paths to page titles for the header bar */
 function getPageTitle(pathname: string): string {
@@ -294,6 +295,9 @@ export function Layout() {
         <div className="p-xl max-w-[1200px] max-md:p-md">
           <Outlet />
         </div>
+
+        {/* Chat FAB — only renders on project-scoped pages */}
+        <ChatFab />
       </main>
     </div>
   );
