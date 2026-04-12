@@ -3,6 +3,7 @@
  * REF: JOB-012 T-126, JOB-027 T-404, JOB-030 T-525
  */
 import { useCallback, useEffect, useRef } from "react";
+import type { ReactNode } from "react";
 
 import { fetchJobs } from "../api/client";
 import type { Job } from "../types";
@@ -10,6 +11,7 @@ import { usePolling } from "../hooks/usePolling";
 import { useSignalR } from "../hooks/useSignalR";
 import { StatusBadge } from "../components/StatusBadge";
 import { useProject } from "../contexts/ProjectContext";
+import { IconBolt, IconCheck, IconX, IconCircle } from "../components/Icons";
 
 
 const FALLBACK_POLL_MS = 5000;
@@ -22,11 +24,11 @@ const statIconStyles: Record<string, { bg: string; text: string }> = {
   gray:  { bg: "rgba(139, 141, 147, 0.15)", text: "var(--color-pending)" },
 };
 
-function StatCard({ icon, value, label, color }: { icon: string; value: string | number; label: string; color: keyof typeof statIconStyles }) {
+function StatCard({ icon, value, label, color }: { icon: ReactNode; value: string | number; label: string; color: keyof typeof statIconStyles }) {
   const s = statIconStyles[color];
   return (
     <div className="bg-ds-surface border border-ds-border rounded-lg p-lg transition-all duration-150 hover:border-ds-border-hover hover:-translate-y-0.5 hover:shadow-ds-md">
-      <div className="w-10 h-10 rounded-md flex items-center justify-center mb-md text-[1.2rem]" style={{ background: s.bg, color: s.text }}>
+      <div className="w-10 h-10 rounded-md flex items-center justify-center mb-md" style={{ background: s.bg, color: s.text }}>
         {icon}
       </div>
       <div className="text-3xl font-bold text-ds-text mb-xs">{value}</div>
@@ -88,10 +90,10 @@ export function DashboardPage() {
 
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-lg mb-xl">
-        <StatCard icon="B" value={totalJobs} label="Total Jobs" color="blue" />
-        <StatCard icon="✓" value={`${passRate}%`} label="Pass Rate" color="green" />
-        <StatCard icon="✕" value={failedJobs} label="Failed" color="red" />
-        <StatCard icon="◉" value={runningJobs} label="In Progress" color="gray" />
+        <StatCard icon={<IconBolt size={20} />} value={totalJobs} label="Total Jobs" color="blue" />
+        <StatCard icon={<IconCheck size={20} />} value={`${passRate}%`} label="Pass Rate" color="green" />
+        <StatCard icon={<IconX size={20} />} value={failedJobs} label="Failed" color="red" />
+        <StatCard icon={<IconCircle size={20} />} value={runningJobs} label="In Progress" color="gray" />
       </div>
 
       {jobList.length > 0 && (

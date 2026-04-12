@@ -9,6 +9,7 @@ import { fetchJob, fetchEventsByEntity, fetchTaskGovernance } from "../api/clien
 import { StatusBadge } from "../components/StatusBadge";
 import { GovernanceReportPanel } from "../components/GovernanceReportPanel";
 import { ContainerOutputPanel } from "../components/ContainerOutputPanel";
+import { IconChevronRight, IconChevronDown, IconBeaker, IconBranch } from "../components/Icons";
 import { backButton, card, skeleton, btnGhost, sectionHeading } from "../tw";
 import type { Job, Event, EventType, Artifact, DiffContent, GovernanceReport, WorkTask } from "../types";
 import { useSignalR } from "../hooks/useSignalR";
@@ -29,7 +30,7 @@ const EVENT_SHORT_LABELS: Record<EventType, string> = {
   GovernanceStarted: "Gov Started", GovernancePassed: "Gov Passed", GovernanceFailed: "Gov Failed", GovernanceRetry: "Gov Retry",
 };
 
-const ROLE_ICONS: Record<string, string> = { developer: "D", tester: "T", researcher: "🔬" };
+const ROLE_LABELS: Record<string, string> = { developer: "D", tester: "T", researcher: "R" };
 
 /* Status-specific dot styles */
 const dotStatusStyles: Record<string, string> = {
@@ -102,7 +103,7 @@ function TaskChainTimeline({ tasks, jobId }: { tasks: WorkTask[]; jobId: string 
           <div className="relative flex gap-md pb-lg last:pb-0" key={task.id} id={`chain-node-${task.id}`}>
             {!isLast && <div className="absolute left-[19px] top-10 bottom-0 w-0.5 bg-ds-border opacity-50" />}
             <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center border-2 bg-ds-surface z-[1] transition-all duration-200 ${dotStatusStyles[statusClass] ?? dotStatusStyles.pending}`}>
-              <span className="text-[18px] leading-none">{ROLE_ICONS[task.role] || "?"}</span>
+              <span className="text-[18px] leading-none">{task.role === "researcher" ? <IconBeaker size={18} /> : (ROLE_LABELS[task.role] || "?")}</span>
             </div>
             <div
               className={`flex-1 bg-ds-surface border border-ds-border rounded-md p-md transition-all duration-200 ${isTester ? "cursor-pointer hover:border-ds-primary hover:shadow-[0_2px_8px_rgba(111,172,80,0.1)]" : ""}`}
@@ -118,7 +119,7 @@ function TaskChainTimeline({ tasks, jobId }: { tasks: WorkTask[]; jobId: string 
                   <span className="text-xs py-px px-2 rounded-full bg-[rgba(245,166,35,0.15)] text-ds-warning font-semibold">Attempt {task.attemptNumber}</span>
                 )}
                 {isTester && (
-                  <span className="text-xs text-ds-text-secondary ml-auto">{isExpanded ? "▼ Hide Report" : "▶ View Report"}</span>
+                  <span className="text-xs text-ds-text-secondary ml-auto flex items-center gap-1">{isExpanded ? <><IconChevronDown size={12} /> Hide Report</> : <><IconChevronRight size={12} /> View Report</>}</span>
                 )}
               </div>
               <div className="flex items-center gap-md mt-xs text-s text-ds-text-secondary flex-wrap">
@@ -143,7 +144,7 @@ function TaskChainTimeline({ tasks, jobId }: { tasks: WorkTask[]; jobId: string 
                   onClick={() => setExpandedOutput(prev => ({ ...prev, [task.id]: !prev[task.id] }))}
                   id={`toggle-output-${task.id}`}
                 >
-                  <span className={`transition-transform duration-150 ${expandedOutput[task.id] ? "rotate-90" : ""}`}>▶</span>
+                  <span className={`transition-transform duration-150 flex ${expandedOutput[task.id] ? "rotate-90" : ""}`}><IconChevronRight size={14} /></span>
                   {expandedOutput[task.id] ? "Hide output" : "Show output"}
                 </button>
                 {expandedOutput[task.id] && <ContainerOutputPanel taskId={task.id} jobId={jobId} isActive={false} />}
@@ -242,7 +243,7 @@ export function JobDetailPage() {
         <StatusBadge status={job.status} />
         {job.branch && (
           <span className="inline-flex items-center gap-1.5 py-px px-2.5 rounded-full text-xs font-medium bg-ds-surface-elevated text-ds-text-muted border border-ds-border" id="job-branch-badge">
-            🌿 {job.branch}
+            <IconBranch size={12} /> {job.branch}
           </span>
         )}
         {job.pullRequestUrl && (
@@ -284,7 +285,7 @@ export function JobDetailPage() {
       ) : (
         <div className={`${card} mb-xl`}>
           <div className="flex items-center gap-md p-md">
-            <span className="text-[18px] leading-none">{ROLE_ICONS[job.tasks[0].role] || "?"}</span>
+            <span className="text-[18px] leading-none">{job.tasks[0].role === "researcher" ? <IconBeaker size={18} /> : (ROLE_LABELS[job.tasks[0].role] || "?")}</span>
             <StatusBadge status={job.tasks[0].status} />
             <span className="font-semibold text-md">{job.tasks[0].role.charAt(0).toUpperCase() + job.tasks[0].role.slice(1)}</span>
             <span className="font-mono text-xs">{job.tasks[0].id.slice(0, 8)}…</span>
@@ -306,8 +307,8 @@ export function JobDetailPage() {
             )}
             {diffContent?.diffPatch && (
               <div>
-                <button className={`${btnGhost} mt-sm`} onClick={() => setDiffExpanded(!diffExpanded)} id="toggle-diff-btn">
-                  {diffExpanded ? "▼ Hide full diff" : "▶ Show full diff"}
+                <button className={`${btnGhost} mt-sm flex items-center gap-1`} onClick={() => setDiffExpanded(!diffExpanded)} id="toggle-diff-btn">
+                  {diffExpanded ? <><IconChevronDown size={14} /> Hide full diff</> : <><IconChevronRight size={14} /> Show full diff</>}
                 </button>
                 {diffExpanded && <DiffViewer patch={diffContent.diffPatch} />}
               </div>

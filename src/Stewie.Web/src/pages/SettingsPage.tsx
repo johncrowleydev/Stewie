@@ -7,7 +7,7 @@
  * REF: JOB-025 T-302, T-201, JOB-027 T-406, JOB-033 T-552
  */
 import { useEffect, useState, useCallback } from "react";
-import { IconKey } from "../components/Icons";
+import { IconKey, IconX } from "../components/Icons";
 import {
   getGitHubStatus, saveGitHubToken, removeGitHubToken,
   fetchCredentials, addCredential, deleteCredential,
@@ -180,7 +180,7 @@ export function SettingsPage() {
                             <button className={`${btnGhost} text-xs py-xs px-sm`} onClick={() => setConfirmDeleteId(null)} disabled={deletingId === cred.id}>Cancel</button>
                           </>
                         ) : (
-                          <button className={`${btnDanger} text-xs py-xs px-sm`} onClick={() => { void handleDeleteKey(cred.id); }} disabled={deletingId === cred.id}>✕ Remove</button>
+                          <button className={`${btnDanger} text-xs py-xs px-sm flex items-center gap-1`} onClick={() => { void handleDeleteKey(cred.id); }} disabled={deletingId === cred.id}><IconX size={12} /> Remove</button>
                         )}
                       </div>
                     </div>

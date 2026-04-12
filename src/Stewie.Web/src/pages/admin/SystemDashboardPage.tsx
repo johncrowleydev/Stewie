@@ -11,6 +11,7 @@
  * - `data-testid` attributes on all interactive/data elements (GOV-003 §8.4).
  * - Semantic `<article>` and `<section>` elements for accessibility (GOV-003 §8.3).
  * - Constants and helpers extracted to `systemDashboardUtils.ts` (GOV-003 §4.1).
+ * - All icons are SVG components from Icons.tsx — no emoji.
  *
  * READING GUIDE FOR INCIDENT RESPONDERS:
  * 1. If health panel shows stale data     → check useEffect fetch in loadHealthData
@@ -30,11 +31,17 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import {
   fetchHealth, fetchProjects, fetchJobs,
   getAgentSessions, fetchEvents,
 } from "../../api/client";
 import { Card, Badge, DataTable } from "../../components/ui";
+import {
+  IconHeart, IconTag, IconFolder, IconBolt, IconWrench,
+  IconBot, IconClipboard, IconAlertTriangle, IconCheck, IconX,
+  IconPlay, IconStop, IconRefresh, IconPlus, IconQuestion, IconGear,
+} from "../../components/Icons";
 import { skeleton } from "../../tw";
 import type { HealthResponse, Project, Event } from "../../types";
 import type { Column } from "../../components/ui";
@@ -45,14 +52,28 @@ import {
   formatTimestamp, formatDuration, describeEvent,
   relativeTime, variantToStatStyle,
 } from "./systemDashboardUtils";
-import type { SessionRow } from "./systemDashboardUtils";
+import type { SessionRow, EventIconId } from "./systemDashboardUtils";
+
+// ── Icon resolution map ──
+
+/** Maps EventIconId strings to actual SVG icon components (size 12 for timeline dots). */
+const EVENT_ICON_MAP: Record<EventIconId, ReactNode> = {
+  plus: <IconPlus size={12} />,
+  play: <IconPlay size={12} />,
+  check: <IconCheck size={12} />,
+  x: <IconX size={12} />,
+  gear: <IconGear size={12} />,
+  refresh: <IconRefresh size={12} />,
+  stop: <IconStop size={12} />,
+  question: <IconQuestion size={12} />,
+};
 
 // ── Sub-components ──
 
 /** Props for the internal StatTile component. */
 interface StatTileProps {
-  /** Display icon (emoji or text). */
-  icon: string;
+  /** SVG icon element to display. */
+  icon: ReactNode;
   /** Formatted display value. */
   value: string | number;
   /** Label below the value. */
@@ -79,7 +100,7 @@ function StatTile({ icon, value, label, color }: StatTileProps) {
     >
       <div
         className="w-10 h-10 rounded-md flex items-center justify-center
-                   mb-md text-[1.2rem]"
+                   mb-md"
         style={{ background: style.bg, color: style.text }}
         aria-hidden="true"
       >
@@ -310,7 +331,7 @@ export function SystemDashboardPage() {
         <Card className="mb-xl">
           <Card.Header>
             <span className="flex items-center gap-sm">
-              <span aria-hidden="true">⚠</span>
+              <IconAlertTriangle size={16} />
               Health Check Failed
             </span>
           </Card.Header>
@@ -327,21 +348,21 @@ export function SystemDashboardPage() {
             data-testid="health-metrics"
           >
             <StatTile
-              icon="♥"
+              icon={<IconHeart size={20} />}
               value={health.status === "healthy" ? "Healthy" : "Unhealthy"}
               label="API Status"
               color={health.status === "healthy" ? "green" : "red"}
             />
-            <StatTile icon="⌘" value={health.version} label="API Version" color="blue" />
-            <StatTile icon="📁" value={totalProjects} label="Total Projects" color="gray" />
-            <StatTile icon="⚡" value={totalJobs} label="Total Jobs" color="blue" />
+            <StatTile icon={<IconTag size={20} />} value={health.version} label="API Version" color="blue" />
+            <StatTile icon={<IconFolder size={20} />} value={totalProjects} label="Total Projects" color="gray" />
+            <StatTile icon={<IconBolt size={20} />} value={totalJobs} label="Total Jobs" color="blue" />
           </section>
 
           {/* Health details card */}
           <Card className="mb-xl">
             <Card.Header>
               <span className="flex items-center gap-sm">
-                <span aria-hidden="true">🔧</span>
+                <IconWrench size={16} />
                 System Details
               </span>
             </Card.Header>
@@ -361,7 +382,7 @@ export function SystemDashboardPage() {
                 <div className="text-xs text-ds-text-muted uppercase tracking-wider mb-xs">
                   Version
                 </div>
-                <div className="text-md text-ds-text font-mono">{health.version}</div>
+                <div className="text-md text-ds-text font-mono truncate" title={health.version}>{health.version}</div>
               </div>
               <div data-testid="health-detail-timestamp">
                 <div className="text-xs text-ds-text-muted uppercase tracking-wider mb-xs">
@@ -386,7 +407,7 @@ export function SystemDashboardPage() {
       <Card className="mb-xl">
         <Card.Header>
           <span className="flex items-center gap-sm">
-            <span aria-hidden="true">🤖</span>
+            <IconBot size={16} />
             Active Agent Sessions
           </span>
         </Card.Header>
@@ -403,7 +424,7 @@ export function SystemDashboardPage() {
       <Card className="mb-xl">
         <Card.Header>
           <span className="flex items-center gap-sm">
-            <span aria-hidden="true">📋</span>
+            <IconClipboard size={16} />
             Recent Activity
           </span>
         </Card.Header>
@@ -429,7 +450,9 @@ export function SystemDashboardPage() {
 
         {!eventsLoading && events.length === 0 && (
           <div className="text-center p-xl text-ds-text-muted" data-testid="activity-empty">
-            <div className="text-[2rem] mb-sm opacity-30" aria-hidden="true">📋</div>
+            <div className="flex justify-center mb-sm opacity-30" aria-hidden="true">
+              <IconClipboard size={32} />
+            </div>
             <p className="text-md">No recent activity</p>
           </div>
         )}
@@ -453,7 +476,7 @@ export function SystemDashboardPage() {
                     {/* Timeline dot */}
                     <div
                       className="w-8 h-8 rounded-full flex items-center justify-center
-                                 text-xs font-bold shrink-0 z-10
+                                 shrink-0 z-10
                                  transition-transform duration-150
                                  group-hover:scale-110"
                       style={{
@@ -462,7 +485,7 @@ export function SystemDashboardPage() {
                       }}
                       aria-hidden="true"
                     >
-                      {config.icon}
+                      {EVENT_ICON_MAP[config.icon]}
                     </div>
 
                     {/* Event content */}

@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchProjects, createProject, getGitHubStatus } from "../api/client";
 import { RepoCombobox } from "../components/RepoCombobox";
+import { IconCheck, IconX } from "../components/Icons";
 import { btnPrimary, btnGhost, formInput, formLabel, formGroup, formHint, card, pageTitleRow, skeleton } from "../tw";
 import type { Project, CreateProjectRequest, GitHubStatus } from "../types";
 
@@ -131,7 +132,7 @@ export function ProjectsPage() {
         </button>
       </div>
 
-      {formSuccess && <div className="text-ds-completed text-s mt-sm mb-md">✓ {formSuccess}</div>}
+      {formSuccess && <div className="text-ds-completed text-s mt-sm mb-md flex items-center gap-1"><IconCheck size={14} /> {formSuccess}</div>}
 
       {showForm && (
         <form className={`${card} mb-xl`} onSubmit={(e) => { void handleSubmit(e); }} id="create-project-form">
@@ -207,7 +208,7 @@ export function ProjectsPage() {
             </>
           )}
 
-          {formError && <div className="text-ds-failed text-s mt-sm" id="form-error-message">✕ {formError}</div>}
+          {formError && <div className="text-ds-failed text-s mt-sm flex items-center gap-1" id="form-error-message"><IconX size={14} /> {formError}</div>}
           <div className="flex gap-sm mt-md">
             <button type="submit" className={btnPrimary} disabled={submitting} id="submit-create-project">
               {submitting ? "Creating…" : creationMode === "link" ? "Link Repository" : "Create Repository"}

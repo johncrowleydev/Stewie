@@ -48,12 +48,19 @@ export const STAT_STYLES = {
   gray: { bg: "rgba(139, 141, 147, 0.15)", text: "var(--color-pending)" },
 } as const;
 
+/**
+ * Identifier for which SVG icon component to render for an event type.
+ * The actual React component is resolved in SystemDashboardPage.tsx
+ * to keep this file free of JSX/React imports.
+ */
+export type EventIconId = "plus" | "play" | "check" | "x" | "gear" | "refresh" | "stop" | "question";
+
 /** Configuration for an event type's visual representation. */
 export interface EventTypeConfig {
   /** Badge variant to use. */
   variant: BadgeVariant;
-  /** Icon character to display in the timeline dot. */
-  icon: string;
+  /** Icon identifier to render in the timeline dot. Resolved to SVG in SystemDashboardPage. */
+  icon: EventIconId;
 }
 
 /**
@@ -65,24 +72,24 @@ export interface EventTypeConfig {
  * runtime crashes on unknown event types.
  */
 export const EVENT_TYPE_VARIANT: Record<string, EventTypeConfig> = {
-  JobCreated: { variant: "info", icon: "+" },
-  JobStarted: { variant: "running", icon: "▶" },
-  JobCompleted: { variant: "completed", icon: "✓" },
-  JobFailed: { variant: "failed", icon: "✕" },
-  TaskCreated: { variant: "info", icon: "+" },
-  TaskStarted: { variant: "running", icon: "▶" },
-  TaskCompleted: { variant: "completed", icon: "✓" },
-  TaskFailed: { variant: "failed", icon: "✕" },
-  GovernanceStarted: { variant: "warning", icon: "⚙" },
-  GovernancePassed: { variant: "completed", icon: "✓" },
-  GovernanceFailed: { variant: "failed", icon: "✕" },
-  GovernanceRetry: { variant: "warning", icon: "↻" },
-  AgentStarted: { variant: "running", icon: "▶" },
-  AgentTerminated: { variant: "pending", icon: "■" },
+  JobCreated: { variant: "info", icon: "plus" },
+  JobStarted: { variant: "running", icon: "play" },
+  JobCompleted: { variant: "completed", icon: "check" },
+  JobFailed: { variant: "failed", icon: "x" },
+  TaskCreated: { variant: "info", icon: "plus" },
+  TaskStarted: { variant: "running", icon: "play" },
+  TaskCompleted: { variant: "completed", icon: "check" },
+  TaskFailed: { variant: "failed", icon: "x" },
+  GovernanceStarted: { variant: "warning", icon: "gear" },
+  GovernancePassed: { variant: "completed", icon: "check" },
+  GovernanceFailed: { variant: "failed", icon: "x" },
+  GovernanceRetry: { variant: "warning", icon: "refresh" },
+  AgentStarted: { variant: "running", icon: "play" },
+  AgentTerminated: { variant: "pending", icon: "stop" },
 } as const;
 
 /** Fallback config for unknown event types — prevents crash on API mismatch. */
-export const DEFAULT_EVENT_CONFIG: EventTypeConfig = { variant: "pending", icon: "?" };
+export const DEFAULT_EVENT_CONFIG: EventTypeConfig = { variant: "pending", icon: "question" };
 
 // ── Types ──
 

@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { skeleton } from "../tw";
 import type { GovernanceReport, GovernanceCheckResult } from "../types";
+import { IconCheck, IconX, IconChevronRight, IconChevronDown } from "./Icons";
 
 interface GovernanceReportPanelProps {
   report: GovernanceReport | null;
@@ -88,7 +89,7 @@ export function GovernanceReportPanel({ report, loading, error }: GovernanceRepo
         return (
           <div className="mb-md last:mb-0" key={category} id={`gov-cat-${category}`}>
             <div className="flex items-center gap-sm mb-sm">
-              <span className={`text-s font-bold ${allPassed ? "text-ds-completed" : "text-ds-failed"}`}>{allPassed ? "✓" : "✗"}</span>
+              <span className={`text-s font-bold ${allPassed ? "text-ds-completed" : "text-ds-failed"}`}>{allPassed ? <IconCheck size={14} /> : <IconX size={14} />}</span>
               <span className="text-s font-semibold text-ds-text">{CATEGORY_LABELS[category] || category}</span>
               <span className="text-xs text-ds-text-muted font-mono">{category}</span>
               <span className="ml-auto text-xs text-ds-text-muted">{catPassed}/{checks.length}</span>
@@ -102,12 +103,12 @@ export function GovernanceReportPanel({ report, loading, error }: GovernanceRepo
                     role={!check.passed && check.details ? "button" : undefined}
                     tabIndex={!check.passed && check.details ? 0 : undefined}
                   >
-                    <span className={`text-xs font-bold ${check.passed ? "text-ds-completed" : "text-ds-failed"}`}>{check.passed ? "✓" : "✗"}</span>
+                    <span className={`text-xs font-bold ${check.passed ? "text-ds-completed" : "text-ds-failed"}`}>{check.passed ? <IconCheck size={12} /> : <IconX size={12} />}</span>
                     <span className="text-ds-text flex-1">{check.ruleName}</span>
                     <span className="font-mono text-xs text-ds-text-muted">{check.ruleId}</span>
                     <span className={`text-[10px] py-px px-1.5 rounded-full font-medium ${check.severity === "error" ? "bg-[rgba(229,72,77,0.12)] text-ds-failed" : "bg-[rgba(245,166,35,0.12)] text-ds-warning"}`}>{check.severity}</span>
                     {!check.passed && check.details && (
-                      <span className="text-xs text-ds-text-muted">{expandedRules.has(check.ruleId) ? "▼" : "▶"}</span>
+                      <span className="text-xs text-ds-text-muted">{expandedRules.has(check.ruleId) ? <IconChevronDown size={12} /> : <IconChevronRight size={12} />}</span>
                     )}
                   </div>
                   {!check.passed && check.details && expandedRules.has(check.ruleId) && (

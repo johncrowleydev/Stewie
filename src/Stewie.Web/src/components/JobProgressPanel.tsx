@@ -3,9 +3,10 @@
  * REF: JOB-011 T-102, CON-002 v1.7.0, JOB-027 T-407
  */
 import { StatusBadge } from "./StatusBadge";
+import { IconBeaker } from "./Icons";
 import type { WorkTask } from "../types";
 
-const ROLE_ICONS: Record<string, string> = { developer: "D", tester: "T", researcher: "🔬" };
+const ROLE_LABELS: Record<string, string> = { developer: "D", tester: "T", researcher: "R" };
 
 const DOT_COLORS: Record<string, string> = {
   completed: "bg-ds-completed", failed: "bg-ds-failed", running: "bg-ds-running",
@@ -34,7 +35,7 @@ export function JobProgressPanel({ tasks, onTaskClick }: JobProgressPanelProps) 
     return (
       <div className="bg-ds-surface border border-ds-border rounded-md p-md" id="job-progress-single">
         <div className="flex items-center gap-sm">
-          <span className="text-[18px] leading-none">{ROLE_ICONS[task.role] || "?"}</span>
+          <span className="text-[18px] leading-none">{task.role === "researcher" ? <IconBeaker size={18} /> : (ROLE_LABELS[task.role] || "?")}</span>
           <span className="font-semibold text-s">{task.role.charAt(0).toUpperCase() + task.role.slice(1)}</span>
           <StatusBadge status={task.status} />
           <span className="text-s text-ds-text-muted truncate">{task.objective}</span>
@@ -88,7 +89,7 @@ export function JobProgressPanel({ tasks, onTaskClick }: JobProgressPanelProps) 
             id={`progress-task-${task.id}`}
             onClick={() => onTaskClick?.(task.id)}
           >
-            <span className="text-[18px] leading-none">{ROLE_ICONS[task.role] || "?"}</span>
+            <span className="text-[18px] leading-none">{task.role === "researcher" ? <IconBeaker size={18} /> : (ROLE_LABELS[task.role] || "?")}</span>
             <span className="font-semibold text-xs w-16">{task.role.charAt(0).toUpperCase() + task.role.slice(1)}</span>
             <StatusBadge status={task.status} />
             <span className="text-xs text-ds-text-muted truncate flex-1">{task.objective || `Task ${task.id.slice(0, 8)}…`}</span>

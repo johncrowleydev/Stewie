@@ -4,9 +4,10 @@
  */
 import { useMemo, useCallback } from "react";
 import { StatusBadge } from "./StatusBadge";
+import { IconBeaker } from "./Icons";
 import type { WorkTask } from "../types";
 
-const ROLE_ICONS: Record<string, string> = { developer: "D", tester: "T", researcher: "🔬" };
+const ROLE_LABELS: Record<string, string> = { developer: "D", tester: "T", researcher: "R" };
 
 const STATUS_BORDER: Record<string, string> = {
   completed: "border-ds-completed shadow-[0_0_0_2px_rgba(111,172,80,0.12)]",
@@ -56,7 +57,7 @@ function DagNode({ task, onClick }: { task: WorkTask; onClick?: (id: string) => 
       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClick?.(task.id); }}
     >
       <div className="flex items-center gap-sm mb-xs">
-        <span className="text-[18px] leading-none">{ROLE_ICONS[task.role] || "?"}</span>
+        <span className="text-[18px] leading-none">{task.role === "researcher" ? <IconBeaker size={18} /> : (ROLE_LABELS[task.role] || "?")}</span>
         <StatusBadge status={task.status} />
       </div>
       <div className="text-xs text-ds-text-muted truncate max-w-[200px]">{task.objective || `Task ${task.id.slice(0, 8)}…`}</div>
