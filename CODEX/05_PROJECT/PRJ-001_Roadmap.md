@@ -280,7 +280,7 @@ Phases are **scope-bounded**, not time-bounded.
 - [x] Admin user list/deletion UI (JOB-026)
 - [x] Dark mode outline buttons, anchor hover fix (hotfix)
 - [x] Tailwind CSS v4 migration with brand tokens and dark mode (JOB-027)
-- [ ] Reusable component library: Button, Card, Input, Badge, Select, DataTable, Dropdown, Modal (JOB-028)
+- [x] Reusable component library: Button, Card, Input, Badge, Select, DataTable, Dropdown, Modal (JOB-028)
 - [ ] Remove manual job creation, fix visual bugs, responsive audit (JOB-029)
 
 ---

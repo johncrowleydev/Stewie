@@ -454,7 +454,7 @@ documents:
     path: 05_PROJECT/JOB-028_Component_Library.md
     title: "Job 028 — Reusable Component Library"
     type: how-to
-    status: OPEN
+    status: CLOSED
     tags: [project-management, job, workflow, phase-7, frontend, design-system, components]
     agents: [coder]
     summary: >
@@ -1092,6 +1092,18 @@ documents:
       4,349-line index.css deleted, replaced with ds-* @theme tokens and
       tw.ts shared utility. DEF-010 (build error) and DEF-011 (duplicate
       keyframe) fixed by architect during audit. Verdict: CONDITIONAL PASS.
+
+  - id: VER-028
+    path: 40_VERIFICATION/VER-028_JOB-028_Audit.md
+    title: "JOB-028 Audit — Reusable Component Library"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, phase-7, frontend, components, design-system]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-028 (Component Library). 260 tests pass. 8 typed
+      React components (Button, Card, Input, FormGroup, Badge, DataTable,
+      Select, Modal) in src/components/ui/. Zero defects. Verdict: PASS.
 
   # ---- 60_EVOLUTION ----
   - id: EVO-001
