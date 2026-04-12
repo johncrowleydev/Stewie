@@ -230,7 +230,7 @@ export function ProjectsPage() {
               className="bg-ds-surface border border-ds-border rounded-lg p-lg transition-all duration-150 cursor-pointer hover:border-ds-primary hover:shadow-ds-md hover:-translate-y-0.5"
               key={project.id}
               id={`project-${project.id}`}
-              onClick={() => { void navigate(`/projects/${project.id}`); }}
+              onClick={() => { void navigate(`/p/${project.id}/`); }}
             >
               <div className="flex items-center justify-between gap-sm mb-sm">
                 <h3 className="text-base font-semibold m-0">{project.name}</h3>

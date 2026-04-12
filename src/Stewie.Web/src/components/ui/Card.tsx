@@ -15,7 +15,7 @@
  *   styles without losing the base card appearance.
  * - `data-testid` ensures deterministic test selectors (GOV-003 §8.4).
  *
- * Used by: DashboardPage, JobDetailPage, ProjectDetailPage, SettingsPage
+ * Used by: DashboardPage, JobDetailPage, SettingsPage
  * Related: tw.ts (base `card` style), GOV-003 §8
  *
  * REF: JOB-028 T-501
