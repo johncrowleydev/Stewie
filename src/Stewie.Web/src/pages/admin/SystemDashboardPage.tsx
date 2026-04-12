@@ -29,13 +29,17 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { fetchHealth, fetchProjects, fetchJobs } from "../../api/client";
-import { Card, Badge } from "../../components/ui";
+import { fetchHealth, fetchProjects, fetchJobs, getAgentSessions } from "../../api/client";
+import { Card, Badge, DataTable } from "../../components/ui";
 import { skeleton } from "../../tw";
-import type { HealthResponse } from "../../types";
+import type { HealthResponse, AgentSession, Project } from "../../types";
+import type { Column } from "../../components/ui";
 
 /** Auto-refresh interval for health data (30 seconds). */
 const HEALTH_REFRESH_MS = 30_000;
+
+/** Auto-refresh interval for agent sessions (30 seconds). */
+const SESSIONS_REFRESH_MS = 30_000;
 
 /**
  * Stat card style map — variant name → semi-transparent bg + text color.
@@ -109,12 +113,92 @@ function formatTimestamp(isoTimestamp: string): string {
  * SystemDashboardPage — Main admin dashboard with system health,
  * agent sessions, and recent activity panels.
  */
+/**
+ * Agent session row — enriched with project name for display in the table.
+ *
+ * DECISION: Extending AgentSession with projectName rather than doing a
+ * lookup in the render function. Keeps the DataTable column definitions
+ * simple and avoids repeated Map lookups per render cycle.
+ */
+interface SessionRow extends AgentSession {
+  /** Project name resolved from the project ID. */
+  projectName: string;
+  /** Index signature required by DataTable<T extends Record<string, unknown>>. */
+  [key: string]: unknown;
+}
+
+/**
+ * Computes a human-readable runtime duration from a start time.
+ *
+ * @param startedAt - ISO 8601 timestamp of when the session started.
+ * @returns Human-readable duration string (e.g., "5m 23s").
+ */
+function formatDuration(startedAt: string): string {
+  const startMs = new Date(startedAt).getTime();
+  const nowMs = Date.now();
+  const diffSeconds = Math.max(0, Math.floor((nowMs - startMs) / 1000));
+  const minutes = Math.floor(diffSeconds / 60);
+  const seconds = diffSeconds % 60;
+  if (minutes === 0) return `${String(seconds)}s`;
+  return `${String(minutes)}m ${String(seconds)}s`;
+}
+
+/** Column definitions for the agent sessions DataTable. */
+const SESSION_COLUMNS: Column<SessionRow>[] = [
+  { key: "projectName", header: "Project" },
+  {
+    key: "role",
+    header: "Role",
+    render: (row) => (
+      <Badge
+        variant={row.role === "architect" ? "info" : "pending"}
+        size="sm"
+        dot={false}
+      >
+        {row.role}
+      </Badge>
+    ),
+  },
+  {
+    key: "runtimeName",
+    header: "Runtime",
+    render: (row) => (
+      <span className="font-mono text-xs text-ds-text-muted">{row.runtimeName}</span>
+    ),
+  },
+  {
+    key: "status",
+    header: "Status",
+    render: (row) => {
+      const variant = row.status === "Running" ? "running"
+        : row.status === "Completed" ? "completed"
+        : row.status === "Failed" ? "failed"
+        : "pending";
+      return <Badge variant={variant} size="sm">{row.status}</Badge>;
+    },
+  },
+  {
+    key: "startedAt",
+    header: "Running For",
+    render: (row) => (
+      <span className="text-s text-ds-text-muted">
+        {formatDuration(row.startedAt)}
+      </span>
+    ),
+  },
+];
+
 export function SystemDashboardPage() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [healthError, setHealthError] = useState<string | null>(null);
   const [healthLoading, setHealthLoading] = useState(true);
   const [totalProjects, setTotalProjects] = useState(0);
   const [totalJobs, setTotalJobs] = useState(0);
+
+  /* Agent sessions state */
+  const [sessions, setSessions] = useState<SessionRow[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState(true);
+  const [projectsCache, setProjectsCache] = useState<Project[]>([]);
 
   /**
    * Fetch all health-related data in parallel.
@@ -133,6 +217,7 @@ export function SystemDashboardPage() {
       setHealth(healthResult);
       setTotalProjects(projects.length);
       setTotalJobs(jobs.length);
+      setProjectsCache(projects);
       setHealthError(null);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to fetch health data";
@@ -142,20 +227,76 @@ export function SystemDashboardPage() {
     }
   }, []);
 
+  /**
+   * Fetch active agent sessions across all projects.
+   *
+   * FAILURE MODE: If any project's session fetch fails, it's silently skipped.
+   * Remaining projects still display correctly.
+   * BLAST RADIUS: Only the sessions panel is affected.
+   */
+  const loadSessions = useCallback(async (projects: Project[]) => {
+    try {
+      const allSessions: SessionRow[] = [];
+      const projectMap = new Map(projects.map((p) => [p.id, p.name]));
+
+      /* Fetch sessions per project in parallel. */
+      const results = await Promise.allSettled(
+        projects.map((p) => getAgentSessions(p.id))
+      );
+
+      for (let i = 0; i < results.length; i++) {
+        const result = results[i];
+        if (result.status === "fulfilled") {
+          const projectName = projectMap.get(projects[i].id) ?? "Unknown";
+          for (const session of result.value) {
+            allSessions.push({ ...session, projectName });
+          }
+        }
+      }
+
+      setSessions(allSessions);
+    } catch {
+      /* Swallowing top-level errors — individual failures handled above. */
+    } finally {
+      setSessionsLoading(false);
+    }
+  }, []);
+
   /* Initial fetch + auto-refresh timer with cleanup. */
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const healthIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sessionsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   useEffect(() => {
     void loadHealthData();
-    intervalRef.current = setInterval(() => {
+    healthIntervalRef.current = setInterval(() => {
       void loadHealthData();
     }, HEALTH_REFRESH_MS);
 
     return () => {
-      if (intervalRef.current !== null) {
-        clearInterval(intervalRef.current);
+      if (healthIntervalRef.current !== null) {
+        clearInterval(healthIntervalRef.current);
       }
     };
   }, [loadHealthData]);
+
+  /**
+   * Load sessions once projects are available, then auto-refresh.
+   * Uses projectsCache to avoid re-fetching projects on each interval.
+   */
+  useEffect(() => {
+    if (projectsCache.length === 0) return;
+
+    void loadSessions(projectsCache);
+    sessionsIntervalRef.current = setInterval(() => {
+      void loadSessions(projectsCache);
+    }, SESSIONS_REFRESH_MS);
+
+    return () => {
+      if (sessionsIntervalRef.current !== null) {
+        clearInterval(sessionsIntervalRef.current);
+      }
+    };
+  }, [projectsCache, loadSessions]);
 
   return (
     <div id="system-dashboard-page" data-testid="system-dashboard-page">
@@ -284,6 +425,23 @@ export function SystemDashboardPage() {
           </Card>
         </>
       )}
+
+      {/* ── Active Agent Sessions Panel ── */}
+      <Card className="mb-xl">
+        <Card.Header>
+          <span className="flex items-center gap-sm">
+            <span aria-hidden="true">🤖</span>
+            Active Agent Sessions
+          </span>
+        </Card.Header>
+        <DataTable<SessionRow>
+          columns={SESSION_COLUMNS}
+          data={sessions}
+          loading={sessionsLoading}
+          skeletonRows={3}
+          emptyMessage="No active agent sessions"
+        />
+      </Card>
     </div>
   );
 }
