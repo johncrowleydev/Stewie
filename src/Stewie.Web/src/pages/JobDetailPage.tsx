@@ -1,17 +1,7 @@
 /**
  * JobDetailPage — Displays a single job with task chain timeline, governance reports,
  * git info, diff viewer, and events mini-timeline.
- *
- * T-128: SignalR real-time updates via job-specific group
- *
- * Fetches:
- * - GET /api/jobs/{id} (CON-002 §4.2)
- * - GET /api/events?entityType=Job&entityId={id} (CON-002 §4.5)
- * - GET /api/tasks/{taskId}/governance (CON-002 §4.6) — per tester task
- *
- * Real-time: Joins "job:{id}" group via SignalR for TaskUpdated/JobUpdated push.
- *
- * REF: CON-002 §5.2, §5.6, §4.6, JOB-012 T-128
+ * REF: CON-002 §5.2, §5.6, §4.6, JOB-012 T-128, JOB-027 T-404
  */
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
@@ -19,73 +9,50 @@ import { fetchJob, fetchEventsByEntity, fetchTaskGovernance } from "../api/clien
 import { StatusBadge } from "../components/StatusBadge";
 import { GovernanceReportPanel } from "../components/GovernanceReportPanel";
 import { ContainerOutputPanel } from "../components/ContainerOutputPanel";
+import { backButton, card, skeleton, btnGhost, sectionHeading } from "../tw";
 import type { Job, Event, EventType, Artifact, DiffContent, GovernanceReport, WorkTask } from "../types";
 import { useSignalR } from "../hooks/useSignalR";
 
-/** Maps event types to display colors */
 const EVENT_COLORS: Record<EventType, string> = {
-  JobCreated: "var(--color-running)",
-  JobStarted: "var(--color-warning)",
-  JobCompleted: "var(--color-completed)",
-  JobFailed: "var(--color-failed)",
-  TaskCreated: "var(--color-running)",
-  TaskStarted: "var(--color-warning)",
-  TaskCompleted: "var(--color-completed)",
-  TaskFailed: "var(--color-failed)",
-  GovernanceStarted: "var(--color-warning)",
-  GovernancePassed: "var(--color-completed)",
-  GovernanceFailed: "var(--color-failed)",
-  GovernanceRetry: "var(--color-warning)",
+  JobCreated: "var(--color-running)", JobStarted: "var(--color-warning)",
+  JobCompleted: "var(--color-completed)", JobFailed: "var(--color-failed)",
+  TaskCreated: "var(--color-running)", TaskStarted: "var(--color-warning)",
+  TaskCompleted: "var(--color-completed)", TaskFailed: "var(--color-failed)",
+  GovernanceStarted: "var(--color-warning)", GovernancePassed: "var(--color-completed)",
+  GovernanceFailed: "var(--color-failed)", GovernanceRetry: "var(--color-warning)",
 };
 
-/** Short labels for mini-timeline */
 const EVENT_SHORT_LABELS: Record<EventType, string> = {
-  JobCreated: "Created",
-  JobStarted: "Started",
-  JobCompleted: "Completed",
-  JobFailed: "Failed",
-  TaskCreated: "Task Created",
-  TaskStarted: "Task Started",
-  TaskCompleted: "Task Done",
-  TaskFailed: "Task Failed",
-  GovernanceStarted: "Gov Started",
-  GovernancePassed: "Gov Passed",
-  GovernanceFailed: "Gov Failed",
-  GovernanceRetry: "Gov Retry",
+  JobCreated: "Created", JobStarted: "Started", JobCompleted: "Completed", JobFailed: "Failed",
+  TaskCreated: "Task Created", TaskStarted: "Task Started", TaskCompleted: "Task Done", TaskFailed: "Task Failed",
+  GovernanceStarted: "Gov Started", GovernancePassed: "Gov Passed", GovernanceFailed: "Gov Failed", GovernanceRetry: "Gov Retry",
 };
 
-/** Role icons for the task chain timeline */
-const ROLE_ICONS: Record<string, string> = {
-  developer: "D",
-  tester: "T",
-  researcher: "🔬",
+const ROLE_ICONS: Record<string, string> = { developer: "D", tester: "T", researcher: "🔬" };
+
+/* Status-specific dot styles */
+const dotStatusStyles: Record<string, string> = {
+  completed: "border-ds-completed shadow-[0_0_0_3px_rgba(111,172,80,0.15)]",
+  failed: "border-ds-failed shadow-[0_0_0_3px_rgba(229,72,77,0.15)]",
+  running: "border-ds-warning shadow-[0_0_0_3px_rgba(245,166,35,0.15)] animate-[pulse-ring_2s_ease-in-out_infinite]",
+  pending: "border-ds-border opacity-60",
 };
 
-/**
- * Renders a color-coded diff patch — green for added lines, red for removed.
- */
 function DiffViewer({ patch }: { patch: string }) {
   const lines = patch.split("\n");
   return (
-    <pre className="diff-viewer" id="diff-viewer">
+    <pre className="overflow-x-auto p-md bg-ds-bg rounded-md font-mono text-xs leading-relaxed mt-sm" id="diff-viewer">
       {lines.map((line, i) => {
-        let className = "diff-line";
-        if (line.startsWith("+") && !line.startsWith("+++")) className += " diff-add";
-        else if (line.startsWith("-") && !line.startsWith("---")) className += " diff-del";
-        else if (line.startsWith("@@")) className += " diff-hunk";
-        return (
-          <div key={i} className={className}>
-            {line}
-          </div>
-        );
+        let cls = "";
+        if (line.startsWith("+") && !line.startsWith("+++")) cls = "text-ds-completed bg-[rgba(111,172,80,0.08)]";
+        else if (line.startsWith("-") && !line.startsWith("---")) cls = "text-ds-failed bg-[rgba(229,72,77,0.08)]";
+        else if (line.startsWith("@@")) cls = "text-ds-running font-semibold";
+        return <div key={i} className={cls}>{line}</div>;
       })}
     </pre>
   );
 }
 
-/**
- * Computes a human-readable duration between two ISO timestamps.
- */
 function formatDuration(start: string | null, end: string | null): string {
   if (!start) return "—";
   const startMs = new Date(start).getTime();
@@ -96,11 +63,6 @@ function formatDuration(start: string | null, end: string | null): string {
   return `${Math.floor(diffSec / 3600)}h ${Math.floor((diffSec % 3600) / 60)}m`;
 }
 
-/**
- * TaskChainTimeline — Renders the task chain as a vertical timeline.
- * Each node shows: role icon, status badge, attempt number, duration.
- * Clicking a tester node toggles the GovernanceReportPanel below it.
- */
 function TaskChainTimeline({ tasks, jobId }: { tasks: WorkTask[]; jobId: string }) {
   const [expandedTask, setExpandedTask] = useState<string | null>(null);
   const [reports, setReports] = useState<Record<string, GovernanceReport | null>>({});
@@ -108,21 +70,12 @@ function TaskChainTimeline({ tasks, jobId }: { tasks: WorkTask[]; jobId: string 
   const [reportErrors, setReportErrors] = useState<Record<string, string | null>>({});
   const [expandedOutput, setExpandedOutput] = useState<Record<string, boolean>>({});
 
-  /** Toggle governance report for a tester task */
   const toggleGovernance = useCallback(async (task: WorkTask) => {
     if (task.role !== "tester") return;
-
     const taskId = task.id;
-    if (expandedTask === taskId) {
-      setExpandedTask(null);
-      return;
-    }
-
+    if (expandedTask === taskId) { setExpandedTask(null); return; }
     setExpandedTask(taskId);
-
-    // Only fetch if not already cached
     if (reports[taskId] !== undefined) return;
-
     setReportLoading((prev) => ({ ...prev, [taskId]: true }));
     try {
       const report = await fetchTaskGovernance(taskId);
@@ -130,17 +83,14 @@ function TaskChainTimeline({ tasks, jobId }: { tasks: WorkTask[]; jobId: string 
       setReportErrors((prev) => ({ ...prev, [taskId]: null }));
     } catch (err) {
       setReports((prev) => ({ ...prev, [taskId]: null }));
-      setReportErrors((prev) => ({
-        ...prev,
-        [taskId]: err instanceof Error ? err.message : "Failed to load governance report",
-      }));
+      setReportErrors((prev) => ({ ...prev, [taskId]: err instanceof Error ? err.message : "Failed to load governance report" }));
     } finally {
       setReportLoading((prev) => ({ ...prev, [taskId]: false }));
     }
   }, [expandedTask, reports]);
 
   return (
-    <div className="task-chain" id="task-chain-timeline">
+    <div className="relative py-md mb-xl" id="task-chain-timeline">
       {tasks.map((task, idx) => {
         const isLast = idx === tasks.length - 1;
         const isTester = task.role === "tester";
@@ -148,85 +98,54 @@ function TaskChainTimeline({ tasks, jobId }: { tasks: WorkTask[]; jobId: string 
         const statusClass = task.status.toLowerCase();
 
         return (
-          <div className="task-chain-node" key={task.id} id={`chain-node-${task.id}`}>
-            {/* Connector line */}
-            {!isLast && <div className="task-chain-connector" />}
-
-            {/* Node dot */}
-            <div className={`task-chain-dot task-chain-dot--${statusClass}`}>
-              <span className="task-chain-dot-icon">{ROLE_ICONS[task.role] || "?"}</span>
+          <div className="relative flex gap-md pb-lg last:pb-0" key={task.id} id={`chain-node-${task.id}`}>
+            {!isLast && <div className="absolute left-[19px] top-10 bottom-0 w-0.5 bg-ds-border opacity-50" />}
+            <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center border-2 bg-ds-surface z-[1] transition-all duration-200 ${dotStatusStyles[statusClass] ?? dotStatusStyles.pending}`}>
+              <span className="text-[18px] leading-none">{ROLE_ICONS[task.role] || "?"}</span>
             </div>
-
-            {/* Node content */}
             <div
-              className={`task-chain-content ${isTester ? "task-chain-content--clickable" : ""}`}
+              className={`flex-1 bg-ds-surface border border-ds-border rounded-md p-md transition-all duration-200 ${isTester ? "cursor-pointer hover:border-ds-primary hover:shadow-[0_2px_8px_rgba(111,172,80,0.1)]" : ""}`}
               onClick={() => { if (isTester) void toggleGovernance(task); }}
               role={isTester ? "button" : undefined}
               tabIndex={isTester ? 0 : undefined}
               aria-expanded={isTester ? isExpanded : undefined}
             >
-              <div className="task-chain-header">
-                <span className="task-chain-role">
-                  {task.role.charAt(0).toUpperCase() + task.role.slice(1)}
-                </span>
+              <div className="flex items-center gap-sm flex-wrap">
+                <span className="font-semibold text-md">{task.role.charAt(0).toUpperCase() + task.role.slice(1)}</span>
                 <StatusBadge status={task.status} />
                 {(task.attemptNumber ?? 1) > 1 && (
-                  <span className="task-chain-attempt">
-                    Attempt {task.attemptNumber}
-                  </span>
+                  <span className="text-xs py-px px-2 rounded-full bg-[rgba(245,166,35,0.15)] text-ds-warning font-semibold">Attempt {task.attemptNumber}</span>
                 )}
                 {isTester && (
-                  <span className="task-chain-expand-hint">
-                    {isExpanded ? "▼ Hide Report" : "▶ View Report"}
-                  </span>
+                  <span className="text-xs text-ds-text-secondary ml-auto">{isExpanded ? "▼ Hide Report" : "▶ View Report"}</span>
                 )}
               </div>
-              <div className="task-chain-meta">
-                <span className="mono task-chain-id">{task.id.slice(0, 8)}…</span>
-                <span className="task-chain-duration">
-                  {formatDuration(task.startedAt, task.completedAt)}
-                </span>
-                {task.objective && (
-                  <span className="task-chain-objective">{task.objective}</span>
-                )}
+              <div className="flex items-center gap-md mt-xs text-s text-ds-text-secondary flex-wrap">
+                <span className="font-mono text-xs">{task.id.slice(0, 8)}…</span>
+                <span className="text-xs py-px px-1.5 rounded-sm bg-ds-surface-elevated">{formatDuration(task.startedAt, task.completedAt)}</span>
+                {task.objective && <span className="max-w-[300px] truncate">{task.objective}</span>}
               </div>
             </div>
 
-            {/* Governance Report Panel (expands below tester nodes) */}
             {isTester && isExpanded && (
-              <div className="task-chain-governance">
-                <GovernanceReportPanel
-                  report={reports[task.id] ?? null}
-                  loading={reportLoading[task.id]}
-                  error={reportErrors[task.id]}
-                />
+              <div className="ml-[56px] mt-sm animate-[slideDown_0.2s_ease-out]">
+                <GovernanceReportPanel report={reports[task.id] ?? null} loading={reportLoading[task.id]} error={reportErrors[task.id]} />
               </div>
             )}
 
-            {/* Container Output Panel (JOB-014 T-149) */}
             {task.status === "Running" ? (
-              <ContainerOutputPanel
-                taskId={task.id}
-                jobId={jobId}
-                isActive={true}
-              />
+              <ContainerOutputPanel taskId={task.id} jobId={jobId} isActive={true} />
             ) : (task.status === "Completed" || task.status === "Failed") ? (
               <>
                 <button
-                  className="terminal-collapse-toggle"
+                  className="flex items-center gap-xs text-s text-ds-text-muted mt-sm ml-[56px] bg-transparent border-none cursor-pointer font-sans transition-colors duration-150 hover:text-ds-text"
                   onClick={() => setExpandedOutput(prev => ({ ...prev, [task.id]: !prev[task.id] }))}
                   id={`toggle-output-${task.id}`}
                 >
-                  <span className={`terminal-collapse-toggle-icon ${expandedOutput[task.id] ? "expanded" : ""}`}>▶</span>
+                  <span className={`transition-transform duration-150 ${expandedOutput[task.id] ? "rotate-90" : ""}`}>▶</span>
                   {expandedOutput[task.id] ? "Hide output" : "Show output"}
                 </button>
-                {expandedOutput[task.id] && (
-                  <ContainerOutputPanel
-                    taskId={task.id}
-                    jobId={jobId}
-                    isActive={false}
-                  />
-                )}
+                {expandedOutput[task.id] && <ContainerOutputPanel taskId={task.id} jobId={jobId} isActive={false} />}
               </>
             ) : null}
           </div>
@@ -236,7 +155,6 @@ function TaskChainTimeline({ tasks, jobId }: { tasks: WorkTask[]; jobId: string 
   );
 }
 
-/** Job detail page with metadata cards, task chain timeline, diff viewer, and events */
 export function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [job, setJob] = useState<Job | null>(null);
@@ -245,100 +163,44 @@ export function JobDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [diffExpanded, setDiffExpanded] = useState(false);
 
-  // SignalR real-time updates (T-128)
   const { state: signalRState, joinGroup, leaveGroup, on } = useSignalR();
   const isLive = signalRState === "connected";
 
-  /** Re-fetch job + events data */
   const loadData = useCallback(async () => {
     if (!id) return;
     try {
       const jobData = await fetchJob(id);
-      setJob(jobData);
-      setError(null);
-
-      // Fetch events — soft dependency
-      try {
-        const eventData = await fetchEventsByEntity("Job", id);
-        setEvents(eventData);
-      } catch {
-        // Events endpoint may not exist yet
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load job");
-    } finally {
-      setLoading(false);
-    }
+      setJob(jobData); setError(null);
+      try { setEvents(await fetchEventsByEntity("Job", id)); } catch { /* noop */ }
+    } catch (err) { setError(err instanceof Error ? err.message : "Failed to load job"); }
+    finally { setLoading(false); }
   }, [id]);
 
-  // Initial data load
-  useEffect(() => {
-    void loadData();
-  }, [loadData]);
+  useEffect(() => { void loadData(); }, [loadData]);
 
-  // Join/leave job-specific SignalR group
   const joinedRef = useRef(false);
   useEffect(() => {
-    if (isLive && id && !joinedRef.current) {
-      void joinGroup("job", id);
-      joinedRef.current = true;
-    }
-
-    return () => {
-      if (joinedRef.current && id) {
-        void leaveGroup("job", id);
-        joinedRef.current = false;
-      }
-    };
+    if (isLive && id && !joinedRef.current) { void joinGroup("job", id); joinedRef.current = true; }
+    return () => { if (joinedRef.current && id) { void leaveGroup("job", id); joinedRef.current = false; } };
   }, [isLive, id, joinGroup, leaveGroup]);
 
-  // Listen for TaskUpdated and JobUpdated events → re-fetch
   useEffect(() => {
     if (!isLive) return;
-
-    const cleanupTask = on("TaskUpdated", () => {
-      void loadData();
-    });
-
-    const cleanupJob = on("JobUpdated", () => {
-      void loadData();
-    });
-
-    return () => {
-      cleanupTask();
-      cleanupJob();
-    };
+    const c1 = on("TaskUpdated", () => { void loadData(); });
+    const c2 = on("JobUpdated", () => { void loadData(); });
+    return () => { c1(); c2(); };
   }, [isLive, on, loadData]);
 
-  /** Format an ISO date string to a human-readable local string */
-  function formatDate(dateStr: string | null): string {
-    if (!dateStr) return "—";
-    return new Date(dateStr).toLocaleString();
-  }
+  function formatDate(dateStr: string | null): string { return dateStr ? new Date(dateStr).toLocaleString() : "—"; }
+  function formatShortTime(iso: string): string { return new Date(iso).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", second: "2-digit" }); }
 
-  /** Format timestamp to short time string */
-  function formatShortTime(iso: string): string {
-    return new Date(iso).toLocaleTimeString(undefined, {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-  }
-
-  /** Try to parse a diff artifact from the job's tasks */
   function getDiffContent(): DiffContent | null {
     if (!job?.tasks) return null;
     for (const task of job.tasks) {
       const artifacts = (task as unknown as { artifacts?: Artifact[] }).artifacts;
       if (!artifacts) continue;
       const diffArtifact = artifacts.find((a) => a.type === "diff");
-      if (diffArtifact?.contentJson) {
-        try {
-          return JSON.parse(diffArtifact.contentJson) as DiffContent;
-        } catch {
-          // Invalid JSON — ignore
-        }
-      }
+      if (diffArtifact?.contentJson) { try { return JSON.parse(diffArtifact.contentJson) as DiffContent; } catch { /* noop */ } }
     }
     return null;
   }
@@ -346,9 +208,9 @@ export function JobDetailPage() {
   if (loading) {
     return (
       <div>
-        <div className="skeleton skeleton-row" style={{ width: 120, marginBottom: 24 }} />
-        <div className="skeleton skeleton-card" style={{ marginBottom: 24 }} />
-        <div className="skeleton skeleton-card" />
+        <div className={`${skeleton} w-[120px] h-[38px] mb-lg`} />
+        <div className={`${skeleton} h-[120px] mb-lg`} />
+        <div className={`${skeleton} h-[200px]`} />
       </div>
     );
   }
@@ -356,12 +218,10 @@ export function JobDetailPage() {
   if (error || !job) {
     return (
       <div>
-        <Link to="/jobs" className="back-link">
-          ← Back to Jobs
-        </Link>
-        <div className="error-state">
-          <h3>{error?.includes("404") ? "Job not found" : "Error loading job"}</h3>
-          <p>{error ?? "The requested job could not be found."}</p>
+        <Link to="/jobs" className={backButton} id="back-to-jobs">← Back to Jobs</Link>
+        <div className="text-center p-2xl text-ds-text-muted bg-[rgba(229,72,77,0.08)] border border-[rgba(229,72,77,0.2)] rounded-lg">
+          <h3 className="text-base font-semibold text-ds-failed mb-sm">{error?.includes("404") ? "Job not found" : "Error loading job"}</h3>
+          <p className="text-md">{error ?? "The requested job could not be found."}</p>
         </div>
       </div>
     );
@@ -373,124 +233,78 @@ export function JobDetailPage() {
 
   return (
     <div id="job-detail-page">
-      <Link to="/jobs" className="back-link" id="back-to-jobs">
-        ← Back to Jobs
-      </Link>
+      <Link to="/jobs" className={backButton} id="back-to-jobs">← Back to Jobs</Link>
 
-      <div className="detail-header">
-        
+      {/* Header row */}
+      <div className="flex items-center gap-lg mb-xl">
         <StatusBadge status={job.status} />
         {job.branch && (
-          <span className="branch-badge" id="job-branch-badge">
+          <span className="inline-flex items-center gap-1.5 py-px px-2.5 rounded-full text-xs font-medium bg-ds-surface-elevated text-ds-text-muted border border-ds-border" id="job-branch-badge">
             🌿 {job.branch}
           </span>
         )}
         {job.pullRequestUrl && (
-          <a
-            href={job.pullRequestUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="pr-badge"
-            id="job-pr-badge"
-          >
-            <svg viewBox="0 0 16 16" fill="currentColor">
-              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-            </svg>
+          <a href={job.pullRequestUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-medium bg-[rgba(111,172,80,0.12)] text-ds-primary no-underline transition-colors duration-150 hover:bg-[rgba(111,172,80,0.24)] [&_svg]:w-3.5 [&_svg]:h-3.5" id="job-pr-badge">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" /></svg>
             View PR
           </a>
         )}
       </div>
 
-      <div className="detail-meta">
-        <div className="meta-item">
-          <div className="meta-label">Job ID</div>
-          <div className="meta-value mono">{job.id}</div>
-        </div>
-        <div className="meta-item">
-          <div className="meta-label">Status</div>
-          <div className="meta-value">{job.status}</div>
-        </div>
-        <div className="meta-item">
-          <div className="meta-label">Created</div>
-          <div className="meta-value">{formatDate(job.createdAt)}</div>
-        </div>
-        <div className="meta-item">
-          <div className="meta-label">Completed</div>
-          <div className="meta-value">{formatDate(job.completedAt)}</div>
-        </div>
-        {job.projectId && (
-          <div className="meta-item">
-            <div className="meta-label">Project ID</div>
-            <div className="meta-value mono">{job.projectId}</div>
+      {/* Metadata grid */}
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-md mb-xl">
+        {[
+          { label: "Job ID", value: job.id, mono: true },
+          { label: "Status", value: job.status },
+          { label: "Created", value: formatDate(job.createdAt) },
+          { label: "Completed", value: formatDate(job.completedAt) },
+          ...(job.projectId ? [{ label: "Project ID", value: job.projectId, mono: true }] : []),
+          ...(job.commitSha ? [{ label: "Commit", value: job.commitSha.slice(0, 12), mono: true }] : []),
+        ].map((m) => (
+          <div key={m.label} className="bg-ds-surface border border-ds-border rounded-md p-md">
+            <div className="text-xs font-semibold uppercase tracking-wider text-ds-text-muted mb-xs">{m.label}</div>
+            <div className={`text-md text-ds-text break-all ${m.mono ? "font-mono text-s" : ""}`}>{m.value}</div>
           </div>
-        )}
-        {job.commitSha && (
-          <div className="meta-item">
-            <div className="meta-label">Commit</div>
-            <div className="meta-value mono">{job.commitSha.slice(0, 12)}</div>
-          </div>
-        )}
+        ))}
       </div>
 
-      {/* Task Chain Timeline (T-076) */}
-      <h2 className="section-heading">
-        Task Chain ({job.tasks?.length ?? 0})
-      </h2>
+      {/* Task Chain */}
+      <h2 className={`${sectionHeading} pb-sm border-b border-ds-border`}>Task Chain ({job.tasks?.length ?? 0})</h2>
 
       {!hasTasks ? (
-        <div className="empty-state">
-          <div className="empty-icon">--</div>
-          <h3>No tasks</h3>
-          <p>This job has no associated tasks.</p>
+        <div className="text-center p-2xl text-ds-text-muted">
+          <div className="text-[3rem] mb-md opacity-30">--</div>
+          <h3 className="text-base font-semibold text-ds-text mb-sm">No tasks</h3>
+          <p className="text-md">This job has no associated tasks.</p>
         </div>
       ) : hasMultipleTasks ? (
-        /* Multi-task: render vertical timeline */
         <TaskChainTimeline tasks={job.tasks} jobId={job.id} />
       ) : (
-        /* Single task: render compact card */
-        <div className="card" style={{ marginBottom: "var(--space-xl)" }}>
-          <div className="task-chain-single">
-            <span className="task-chain-dot-icon">{ROLE_ICONS[job.tasks[0].role] || "?"}</span>
+        <div className={`${card} mb-xl`}>
+          <div className="flex items-center gap-md p-md">
+            <span className="text-[18px] leading-none">{ROLE_ICONS[job.tasks[0].role] || "?"}</span>
             <StatusBadge status={job.tasks[0].status} />
-            <span className="task-chain-role">
-              {job.tasks[0].role.charAt(0).toUpperCase() + job.tasks[0].role.slice(1)}
-            </span>
-            <span className="mono" style={{ fontSize: "var(--font-size-xs)" }}>
-              {job.tasks[0].id.slice(0, 8)}…
-            </span>
-            <span className="task-chain-duration">
-              {formatDuration(job.tasks[0].startedAt, job.tasks[0].completedAt)}
-            </span>
+            <span className="font-semibold text-md">{job.tasks[0].role.charAt(0).toUpperCase() + job.tasks[0].role.slice(1)}</span>
+            <span className="font-mono text-xs">{job.tasks[0].id.slice(0, 8)}…</span>
+            <span className="text-xs py-px px-1.5 rounded-sm bg-ds-surface-elevated">{formatDuration(job.tasks[0].startedAt, job.tasks[0].completedAt)}</span>
           </div>
-          {/* Container output for single task (JOB-014) */}
           {(job.tasks[0].status === "Running" || job.tasks[0].status === "Completed" || job.tasks[0].status === "Failed") && (
-            <ContainerOutputPanel
-              taskId={job.tasks[0].id}
-              jobId={job.id}
-              isActive={job.tasks[0].status === "Running"}
-            />
+            <ContainerOutputPanel taskId={job.tasks[0].id} jobId={job.id} isActive={job.tasks[0].status === "Running"} />
           )}
         </div>
       )}
 
-      {/* Diff Summary + Viewer */}
+      {/* Diff */}
       {(job.diffSummary || diffContent) && (
         <>
-          <h2 className="section-heading">Changes</h2>
-          <div className="card" style={{ marginBottom: "var(--space-xl)" }}>
+          <h2 className={`${sectionHeading} pb-sm border-b border-ds-border`}>Changes</h2>
+          <div className={`${card} mb-xl`}>
             {job.diffSummary && (
-              <div className="diff-summary" id="diff-summary">
-                <pre>{job.diffSummary}</pre>
-              </div>
+              <pre className="overflow-x-auto p-md bg-ds-bg rounded-md font-mono text-xs leading-relaxed" id="diff-summary">{job.diffSummary}</pre>
             )}
             {diffContent?.diffPatch && (
               <div>
-                <button
-                  className="btn btn-ghost"
-                  onClick={() => setDiffExpanded(!diffExpanded)}
-                  id="toggle-diff-btn"
-                  style={{ marginTop: "var(--space-sm)" }}
-                >
+                <button className={`${btnGhost} mt-sm`} onClick={() => setDiffExpanded(!diffExpanded)} id="toggle-diff-btn">
                   {diffExpanded ? "▼ Hide full diff" : "▶ Show full diff"}
                 </button>
                 {diffExpanded && <DiffViewer patch={diffContent.diffPatch} />}
@@ -500,28 +314,18 @@ export function JobDetailPage() {
         </>
       )}
 
-      {/* Events Mini-Timeline */}
+      {/* Events */}
       {events.length > 0 && (
         <>
-          <h2 className="section-heading">Lifecycle Events</h2>
-          <div className="card" style={{ marginBottom: "var(--space-xl)" }}>
-            <div className="mini-timeline" id="job-events-timeline">
+          <h2 className={`${sectionHeading} pb-sm border-b border-ds-border`}>Lifecycle Events</h2>
+          <div className={`${card} mb-xl`}>
+            <div className="flex flex-wrap gap-md" id="job-events-timeline">
               {events.map((event, idx) => (
-                <div className="mini-timeline-item" key={event.id}>
-                  <div
-                    className="mini-timeline-dot"
-                    style={{ background: EVENT_COLORS[event.eventType] }}
-                  />
-                  {idx < events.length - 1 && <div className="mini-timeline-line" />}
-                  <div
-                    className="mini-timeline-label"
-                    style={{ color: EVENT_COLORS[event.eventType] }}
-                  >
-                    {EVENT_SHORT_LABELS[event.eventType]}
-                  </div>
-                  <div className="mini-timeline-time">
-                    {formatShortTime(event.timestamp)}
-                  </div>
+                <div className="flex items-center gap-sm" key={event.id}>
+                  <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: EVENT_COLORS[event.eventType] }} />
+                  <div className="text-s font-medium" style={{ color: EVENT_COLORS[event.eventType] }}>{EVENT_SHORT_LABELS[event.eventType]}</div>
+                  <div className="text-xs text-ds-text-muted">{formatShortTime(event.timestamp)}</div>
+                  {idx < events.length - 1 && <div className="w-6 h-px bg-ds-border" />}
                 </div>
               ))}
             </div>

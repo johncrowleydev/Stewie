@@ -1,27 +1,16 @@
 /**
  * ProjectsPage — Lists projects and provides a create form with link/create toggle.
- * Fetches from GET /api/projects and POST /api/projects (CON-002 §4.1 v1.4.0).
- *
- * Two creation modes:
- *   - "Link Existing Repository" (default): requires name + repoUrl
- *   - "Create New Repository": requires name + repoName, optionally description + isPrivate
- *     (disabled when no GitHub token is configured — T-302)
- *
- * When GitHub is connected, "Link Existing" mode shows a RepoCombobox for
- * searchable repo selection (T-303).
- *
- * REF: JOB-025 T-302, T-303
+ * REF: JOB-025 T-302, T-303, JOB-027 T-405
  */
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchProjects, createProject, getGitHubStatus } from "../api/client";
 import { RepoCombobox } from "../components/RepoCombobox";
+import { btnPrimary, btnGhost, formInput, formLabel, formGroup, formHint, card, pageTitleRow, skeleton } from "../tw";
 import type { Project, CreateProjectRequest, GitHubStatus } from "../types";
 
-/** Possible creation modes */
 type CreationMode = "link" | "create";
 
-/** SVG icon for GitHub provider badge */
 function GitHubIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -30,32 +19,24 @@ function GitHubIcon() {
   );
 }
 
-/** Returns a provider icon/badge for the given provider string */
 function ProviderBadge({ provider }: { provider: string | null }) {
   if (!provider) return null;
-
   const label = provider.charAt(0).toUpperCase() + provider.slice(1);
   const isGitHub = provider.toLowerCase() === "github";
-
   return (
-    <span className="provider-badge" title={`Hosted on ${label}`}>
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-ds-primary-muted text-ds-primary whitespace-nowrap [&_svg]:w-3 [&_svg]:h-3" title={`Hosted on ${label}`}>
       {isGitHub && <GitHubIcon />}
       {label}
     </span>
   );
 }
 
-/** Projects page with list and inline create form */
 export function ProjectsPage() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // GitHub connection status for feature gating
   const [gitHubStatus, setGitHubStatus] = useState<GitHubStatus | null>(null);
-
-  // Form state
   const [showForm, setShowForm] = useState(false);
   const [creationMode, setCreationMode] = useState<CreationMode>("link");
   const [formName, setFormName] = useState("");
@@ -67,128 +48,63 @@ export function ProjectsPage() {
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  /** Load all projects */
   async function loadProjects() {
-    try {
-      const data = await fetchProjects();
-      setProjects(data);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load projects");
-    } finally {
-      setLoading(false);
-    }
+    try { const data = await fetchProjects(); setProjects(data); setError(null); }
+    catch (err) { setError(err instanceof Error ? err.message : "Failed to load projects"); }
+    finally { setLoading(false); }
   }
 
-  /** Load GitHub connection status for feature gating */
   const loadGitHubStatus = useCallback(async () => {
-    try {
-      const status = await getGitHubStatus();
-      setGitHubStatus(status);
-    } catch {
-      // Non-critical — treat as disconnected
-      setGitHubStatus({ connected: false, username: null });
-    }
+    try { setGitHubStatus(await getGitHubStatus()); }
+    catch { setGitHubStatus({ connected: false, username: null }); }
   }, []);
 
-  useEffect(() => {
-    void loadProjects();
-    void loadGitHubStatus();
-  }, [loadGitHubStatus]);
+  useEffect(() => { void loadProjects(); void loadGitHubStatus(); }, [loadGitHubStatus]);
 
   const isGitHubConnected = gitHubStatus?.connected ?? false;
 
-  /** Reset form fields when toggling modes or closing */
   function resetForm() {
-    setFormName("");
-    setFormRepoUrl("");
-    setFormRepoName("");
-    setFormDescription("");
-    setFormIsPrivate(true);
-    setFormError(null);
-    setFormSuccess(null);
-    setCreationMode("link");
+    setFormName(""); setFormRepoUrl(""); setFormRepoName(""); setFormDescription("");
+    setFormIsPrivate(true); setFormError(null); setFormSuccess(null); setCreationMode("link");
   }
 
-  /** Handle form submission */
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setFormError(null);
-    setFormSuccess(null);
-
-    // Common validation
-    if (!formName.trim()) {
-      setFormError("Project name is required.");
-      return;
-    }
-
-    // Mode-specific validation
-    if (creationMode === "link") {
-      if (!formRepoUrl.trim()) {
-        setFormError("Repository URL is required when linking an existing repo.");
-        return;
-      }
-    } else {
-      if (!formRepoName.trim()) {
-        setFormError("Repository name is required when creating a new repo.");
-        return;
-      }
-    }
-
+    setFormError(null); setFormSuccess(null);
+    if (!formName.trim()) { setFormError("Project name is required."); return; }
+    if (creationMode === "link" && !formRepoUrl.trim()) { setFormError("Repository URL is required when linking an existing repo."); return; }
+    if (creationMode === "create" && !formRepoName.trim()) { setFormError("Repository name is required when creating a new repo."); return; }
     setSubmitting(true);
     try {
-      const payload: CreateProjectRequest =
-        creationMode === "link"
-          ? {
-              name: formName.trim(),
-              repoUrl: formRepoUrl.trim(),
-            }
-          : {
-              name: formName.trim(),
-              createRepo: true,
-              repoName: formRepoName.trim(),
-              description: formDescription.trim() || undefined,
-              isPrivate: formIsPrivate,
-            };
-
+      const payload: CreateProjectRequest = creationMode === "link"
+        ? { name: formName.trim(), repoUrl: formRepoUrl.trim() }
+        : { name: formName.trim(), createRepo: true, repoName: formRepoName.trim(), description: formDescription.trim() || undefined, isPrivate: formIsPrivate };
       const created = await createProject(payload);
       setFormSuccess(`Project "${created.name}" created successfully.`);
-      resetForm();
-      setShowForm(false);
-      // Reload projects list
-      await loadProjects();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to create project";
-      setFormError(message);
-    } finally {
-      setSubmitting(false);
-    }
+      resetForm(); setShowForm(false); await loadProjects();
+    } catch (err) { setFormError(err instanceof Error ? err.message : "Failed to create project"); }
+    finally { setSubmitting(false); }
   }
 
-  /** Called when RepoCombobox selects a repo */
-  const handleRepoSelect = useCallback((repoUrl: string) => {
-    setFormRepoUrl(repoUrl);
-  }, []);
+  const handleRepoSelect = useCallback((repoUrl: string) => { setFormRepoUrl(repoUrl); }, []);
 
-  /** Format an ISO date string to a readable date */
   function formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return new Date(dateStr).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
   }
+
+  /* Mode toggle button */
+  const modeBtn = (active: boolean, disabled = false) => [
+    "flex items-center justify-center gap-sm py-sm px-md border rounded-sm text-s font-medium font-sans cursor-pointer transition-all duration-150",
+    active ? "bg-ds-surface text-ds-primary border-ds-primary shadow-ds-sm" : "bg-transparent text-ds-text-muted border-transparent hover:text-ds-text hover:bg-ds-surface-hover",
+    disabled ? "opacity-50 cursor-not-allowed" : "",
+  ].join(" ");
 
   if (loading) {
     return (
       <div>
-        <div className="page-title-row">
-          
-        </div>
-        <div className="projects-grid">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="skeleton skeleton-card" />
-          ))}
+        <div className={pageTitleRow} />
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-lg">
+          {[1, 2, 3].map((i) => <div key={i} className={`${skeleton} h-[120px] rounded-lg`} />)}
         </div>
       </div>
     );
@@ -197,12 +113,10 @@ export function ProjectsPage() {
   if (error) {
     return (
       <div>
-        <div className="page-title-row">
-          
-        </div>
-        <div className="error-state">
-          <h3>Failed to load projects</h3>
-          <p>{error}</p>
+        <div className={pageTitleRow} />
+        <div className="text-center p-2xl text-ds-text-muted">
+          <h3 className="text-base font-semibold text-ds-text mb-sm">Failed to load projects</h3>
+          <p className="text-md">{error}</p>
         </div>
       </div>
     );
@@ -210,215 +124,120 @@ export function ProjectsPage() {
 
   return (
     <div id="projects-page">
-      <div className="page-title-row">
-        
-        <button
-          className="btn btn-primary"
-          onClick={() => { setShowForm(!showForm); if (showForm) resetForm(); }}
-          id="toggle-create-form"
-        >
+      <div className={pageTitleRow}>
+        <div />
+        <button className={btnPrimary} onClick={() => { setShowForm(!showForm); if (showForm) resetForm(); }} id="toggle-create-form">
           {showForm ? "Cancel" : "+ New Project"}
         </button>
       </div>
 
-      {formSuccess && (
-        <div className="form-success" style={{ marginBottom: 16 }}>
-          ✓ {formSuccess}
-        </div>
-      )}
+      {formSuccess && <div className="text-ds-completed text-s mt-sm mb-md">✓ {formSuccess}</div>}
 
       {showForm && (
-        <form className="create-form" onSubmit={(e) => { void handleSubmit(e); }} id="create-project-form">
-          <h3>Create New Project</h3>
+        <form className={`${card} mb-xl`} onSubmit={(e) => { void handleSubmit(e); }} id="create-project-form">
+          <h3 className="text-base font-semibold mb-md">Create New Project</h3>
 
           {/* Mode Toggle */}
-          <div className="mode-toggle" id="creation-mode-toggle">
-            <button
-              type="button"
-              className={`mode-toggle-btn ${creationMode === "link" ? "active" : ""}`}
-              onClick={() => { setCreationMode("link"); setFormError(null); }}
-              id="mode-link"
-            >
-              
+          <div className="grid grid-cols-2 gap-sm mb-lg bg-ds-bg rounded-md p-xs" id="creation-mode-toggle">
+            <button type="button" className={modeBtn(creationMode === "link")} onClick={() => { setCreationMode("link"); setFormError(null); }} id="mode-link">
               Link Existing Repository
             </button>
             <button
               type="button"
-              className={`mode-toggle-btn ${creationMode === "create" ? "active" : ""} ${!isGitHubConnected ? "disabled" : ""}`}
-              onClick={() => {
-                if (!isGitHubConnected) return;
-                setCreationMode("create");
-                setFormError(null);
-              }}
+              className={modeBtn(creationMode === "create", !isGitHubConnected)}
+              onClick={() => { if (!isGitHubConnected) return; setCreationMode("create"); setFormError(null); }}
               disabled={!isGitHubConnected}
               id="mode-create"
               title={!isGitHubConnected ? "Connect GitHub in Settings to create repos" : ""}
             >
-              
               Create New Repository
-              {!isGitHubConnected && (
-                <span className="mode-toggle-hint">No GitHub</span>
-              )}
+              {!isGitHubConnected && <span className="text-[10px] font-medium text-ds-warning ml-xs">No GitHub</span>}
             </button>
           </div>
 
-          {/* Common: Project Name */}
-          <div className="form-group">
-            <label className="form-label" htmlFor="project-name">Project Name</label>
-            <input
-              className="form-input"
-              id="project-name"
-              type="text"
-              placeholder="My Project"
-              value={formName}
-              onChange={(e) => setFormName(e.target.value)}
-              disabled={submitting}
-            />
+          {/* Project Name */}
+          <div className={formGroup}>
+            <label className={formLabel} htmlFor="project-name">Project Name</label>
+            <input className={formInput} id="project-name" type="text" placeholder="My Project" value={formName} onChange={(e) => setFormName(e.target.value)} disabled={submitting} />
           </div>
 
-          {/* Link mode fields */}
+          {/* Link mode */}
           {creationMode === "link" && (
-            <div className="form-group">
-              <label className="form-label" htmlFor="project-repo-url">Repository URL</label>
+            <div className={formGroup}>
+              <label className={formLabel} htmlFor="project-repo-url">Repository URL</label>
               {isGitHubConnected ? (
                 <>
-                  <RepoCombobox
-                    onSelect={handleRepoSelect}
-                    disabled={submitting}
-                  />
-                  {formRepoUrl && (
-                    <div className="form-hint" style={{ color: "var(--color-completed)" }}>
-                      Selected: {formRepoUrl}
-                    </div>
-                  )}
-                  <div className="form-hint">
-                    Select from your repos or paste a URL below.
-                  </div>
-                  <input
-                    className="form-input"
-                    id="project-repo-url"
-                    type="text"
-                    placeholder="Or paste URL manually…"
-                    value={formRepoUrl}
-                    onChange={(e) => setFormRepoUrl(e.target.value)}
-                    disabled={submitting}
-                    style={{ marginTop: "var(--space-sm)" }}
-                  />
+                  <RepoCombobox onSelect={handleRepoSelect} disabled={submitting} />
+                  {formRepoUrl && <div className={`${formHint} not-italic`} style={{ color: "var(--color-completed)" }}>Selected: {formRepoUrl}</div>}
+                  <div className={formHint}>Select from your repos or paste a URL below.</div>
+                  <input className={`${formInput} mt-sm`} id="project-repo-url" type="text" placeholder="Or paste URL manually…" value={formRepoUrl} onChange={(e) => setFormRepoUrl(e.target.value)} disabled={submitting} />
                 </>
               ) : (
                 <>
-                  <input
-                    className="form-input"
-                    id="project-repo-url"
-                    type="text"
-                    placeholder="https://github.com/org/repo"
-                    value={formRepoUrl}
-                    onChange={(e) => setFormRepoUrl(e.target.value)}
-                    disabled={submitting}
-                  />
-                  <div className="form-hint">Paste the full URL of an existing repository.</div>
+                  <input className={formInput} id="project-repo-url" type="text" placeholder="https://github.com/org/repo" value={formRepoUrl} onChange={(e) => setFormRepoUrl(e.target.value)} disabled={submitting} />
+                  <div className={formHint}>Paste the full URL of an existing repository.</div>
                 </>
               )}
             </div>
           )}
 
-          {/* Create mode fields */}
+          {/* Create mode */}
           {creationMode === "create" && (
             <>
-              <div className="form-group">
-                <label className="form-label" htmlFor="project-repo-name">Repository Name</label>
-                <input
-                  className="form-input"
-                  id="project-repo-name"
-                  type="text"
-                  placeholder="my-new-repo"
-                  value={formRepoName}
-                  onChange={(e) => setFormRepoName(e.target.value)}
-                  disabled={submitting}
-                />
-                <div className="form-hint">A new GitHub repository will be created with this name.</div>
+              <div className={formGroup}>
+                <label className={formLabel} htmlFor="project-repo-name">Repository Name</label>
+                <input className={formInput} id="project-repo-name" type="text" placeholder="my-new-repo" value={formRepoName} onChange={(e) => setFormRepoName(e.target.value)} disabled={submitting} />
+                <div className={formHint}>A new GitHub repository will be created with this name.</div>
               </div>
-
-              <div className="form-group">
-                <label className="form-label" htmlFor="project-description">Description</label>
-                <textarea
-                  className="form-input"
-                  id="project-description"
-                  placeholder="Optional repository description"
-                  value={formDescription}
-                  onChange={(e) => setFormDescription(e.target.value)}
-                  disabled={submitting}
-                  rows={2}
-                />
+              <div className={formGroup}>
+                <label className={formLabel} htmlFor="project-description">Description</label>
+                <textarea className={`${formInput} resize-y min-h-[60px]`} id="project-description" placeholder="Optional repository description" value={formDescription} onChange={(e) => setFormDescription(e.target.value)} disabled={submitting} rows={2} />
               </div>
-
-              <div className="form-group">
-                <label className="form-checkbox-label" htmlFor="project-is-private">
-                  <input
-                    type="checkbox"
-                    id="project-is-private"
-                    checked={formIsPrivate}
-                    onChange={(e) => setFormIsPrivate(e.target.checked)}
-                    disabled={submitting}
-                    className="form-checkbox"
-                  />
-                  <span className="checkbox-visual" />
+              <div className={formGroup}>
+                <label className="flex items-center gap-sm text-md text-ds-text cursor-pointer select-none" htmlFor="project-is-private">
+                  <input type="checkbox" id="project-is-private" checked={formIsPrivate} onChange={(e) => setFormIsPrivate(e.target.checked)} disabled={submitting}
+                    className="sr-only peer" />
+                  <span className="w-4 h-4 rounded-[3px] border border-ds-border bg-ds-bg transition-all duration-150 peer-checked:bg-ds-primary peer-checked:border-ds-primary flex items-center justify-center [&>svg]:hidden peer-checked:[&>svg]:block">
+                    <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="2 7 5.5 10.5 12 4" /></svg>
+                  </span>
                   Private repository
                 </label>
-                <div className="form-hint">Private repos are only visible to you and your collaborators.</div>
+                <div className={formHint}>Private repos are only visible to you and your collaborators.</div>
               </div>
             </>
           )}
 
-          {formError && <div className="form-error" id="form-error-message">✕ {formError}</div>}
-          <div className="form-actions">
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={submitting}
-              id="submit-create-project"
-            >
-              {submitting
-                ? "Creating…"
-                : creationMode === "link"
-                  ? "Link Repository"
-                  : "Create Repository"}
+          {formError && <div className="text-ds-failed text-s mt-sm" id="form-error-message">✕ {formError}</div>}
+          <div className="flex gap-sm mt-md">
+            <button type="submit" className={btnPrimary} disabled={submitting} id="submit-create-project">
+              {submitting ? "Creating…" : creationMode === "link" ? "Link Repository" : "Create Repository"}
             </button>
-            <button
-              type="button"
-              className="btn btn-ghost"
-              onClick={() => { setShowForm(false); resetForm(); }}
-              disabled={submitting}
-            >
-              Cancel
-            </button>
+            <button type="button" className={btnGhost} onClick={() => { setShowForm(false); resetForm(); }} disabled={submitting}>Cancel</button>
           </div>
         </form>
       )}
 
       {projects.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">--</div>
-          <h3>No projects yet</h3>
-          <p>Create a project to organize your orchestration runs.</p>
+        <div className="text-center p-2xl text-ds-text-muted">
+          <div className="text-[3rem] mb-md opacity-30">--</div>
+          <h3 className="text-base font-semibold text-ds-text mb-sm">No projects yet</h3>
+          <p className="text-md max-w-[400px] mx-auto">Create a project to organize your orchestration runs.</p>
         </div>
       ) : (
-        <div className="projects-grid">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-lg">
           {projects.map((project) => (
             <div
-              className="project-card clickable"
+              className="bg-ds-surface border border-ds-border rounded-lg p-lg transition-all duration-150 cursor-pointer hover:border-ds-primary hover:shadow-ds-md hover:-translate-y-0.5"
               key={project.id}
               id={`project-${project.id}`}
               onClick={() => { void navigate(`/projects/${project.id}`); }}
             >
-              <div className="project-card-header">
-                <h3>{project.name}</h3>
+              <div className="flex items-center justify-between gap-sm mb-sm">
+                <h3 className="text-base font-semibold m-0">{project.name}</h3>
                 <ProviderBadge provider={project.repoProvider} />
               </div>
-              <div className="repo-url">{project.repoUrl}</div>
-              <div className="project-date">
-                Created {formatDate(project.createdAt)}
-              </div>
+              <div className="text-s text-ds-text-muted break-all mb-md">{project.repoUrl}</div>
+              <div className="text-xs text-ds-text-muted">Created {formatDate(project.createdAt)}</div>
             </div>
           ))}
         </div>

@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Dark mode variant — maps dark: utilities to data-theme="dark" attribute
+   REF: JOB-027 Design Decisions §3. useTheme.ts sets data-theme on <html>. */
+@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /* ============================================
    Self-hosted fonts
    ============================================ */
@@ -79,12 +83,39 @@
   --color-error: #ef4444;
   --color-info: #3b82f6;
 
+  /* ── Design-system tokens (bridged from index.css CSS variables) ──
+     These reference the CSS custom properties defined in :root / [data-theme]
+     so Tailwind utilities like bg-ds-surface, text-ds-muted, border-ds-border
+     automatically follow the current theme. */
+  --color-ds-bg: var(--color-bg);
+  --color-ds-surface: var(--color-surface);
+  --color-ds-surface-elevated: var(--color-surface-elevated);
+  --color-ds-surface-hover: var(--color-surface-hover);
+  --color-ds-primary: var(--color-primary);
+  --color-ds-primary-hover: var(--color-primary-hover);
+  --color-ds-primary-muted: var(--color-primary-muted);
+  --color-ds-text: var(--color-text);
+  --color-ds-text-muted: var(--color-text-muted);
+  --color-ds-text-secondary: var(--color-text-secondary);
+  --color-ds-border: var(--color-border);
+  --color-ds-border-hover: var(--color-border-hover);
+  --color-ds-pending: var(--color-pending);
+  --color-ds-running: var(--color-running);
+  --color-ds-completed: var(--color-completed);
+  --color-ds-failed: var(--color-failed);
+  --color-ds-warning: var(--color-warning);
+
   /* Shadows */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
   --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
+
+  /* Design-system shadows (theme-aware) */
+  --shadow-ds-sm: var(--shadow-sm);
+  --shadow-ds-md: var(--shadow-md);
+  --shadow-ds-lg: var(--shadow-lg);
 
   /* Border radius */
   --radius-xs: 2px;
@@ -94,6 +125,27 @@
   --radius-xl: 12px;
   --radius-2xl: 16px;
   --radius-full: 9999px;
+
+  /* Spacing aliases matching index.css tokens */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+
+  /* Layout */
+  --spacing-sidebar: 260px;
+  --spacing-header: 60px;
+
+  /* Typography sizes matching index.css tokens */
+  --text-xs: 0.75rem;
+  --text-s: 0.8125rem;
+  --text-md: 0.875rem;
+  --text-base: 1rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
 
   /* Transitions */
   --transition-fast: 120ms ease;
@@ -105,6 +157,72 @@
    Base layer — global defaults
    ============================================ */
 @layer base {
+  /* ── Theme CSS Custom Properties ──
+     Dark (default) and light override. These are the runtime values that
+     the ds-* @theme tokens resolve to. They must live in @layer base so
+     specificity doesn't conflict with Tailwind utilities. */
+  :root {
+    /* Surfaces */
+    --color-bg: #0f1117;
+    --color-surface: #1a1d27;
+    --color-surface-elevated: #22262f;
+    --color-surface-hover: #282c37;
+
+    /* Brand */
+    --color-primary: #6fac50;
+    --color-primary-hover: #5d9440;
+    --color-primary-muted: rgba(111, 172, 80, 0.12);
+
+    /* Text */
+    --color-text: #e4e5e7;
+    --color-text-muted: #8b8d93;
+    --color-text-secondary: #767573;
+
+    /* Borders */
+    --color-border: #2a2e38;
+    --color-border-hover: #3a3f4b;
+
+    /* Status */
+    --color-pending: #8b8d93;
+    --color-running: #3b82f6;
+    --color-completed: #6fac50;
+    --color-failed: #e5484d;
+    --color-warning: #f5a623;
+
+    /* Shadows (theme-aware) */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+
+  [data-theme="light"] {
+    --color-bg: #f5f5f7;
+    --color-surface: #ffffff;
+    --color-surface-elevated: #f0f0f2;
+    --color-surface-hover: #e8e8ec;
+
+    --color-primary: #5a9a3e;
+    --color-primary-hover: #4a8432;
+    --color-primary-muted: rgba(90, 154, 62, 0.10);
+
+    --color-text: #1a1a1e;
+    --color-text-muted: #6b6d73;
+    --color-text-secondary: #767573;
+
+    --color-border: #d8d9de;
+    --color-border-hover: #c0c1c6;
+
+    --color-pending: #6b6d73;
+    --color-running: #2563eb;
+    --color-completed: #3d8b24;
+    --color-failed: #dc2626;
+    --color-warning: #d97706;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+
   *,
   *::before,
   *::after {
@@ -123,16 +241,9 @@
   body {
     margin: 0;
     padding: 0;
-    background-color: var(--color-gray-50);
-    color: var(--color-gray-900);
+    background-color: var(--color-bg);
+    color: var(--color-text);
     min-height: 100vh;
-  }
-
-  /* Dark mode base overrides */
-  .dark body,
-  [data-theme="dark"] body {
-    background-color: var(--color-gray-950);
-    color: var(--color-gray-100);
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -142,13 +253,21 @@
   }
 
   a {
-    color: var(--color-primary-400);
+    color: var(--color-primary);
     text-decoration: none;
-    transition: color var(--transition-fast);
+    transition: color 150ms ease;
   }
 
   a:hover {
-    color: var(--color-primary-500);
+    color: var(--color-primary-hover);
+  }
+
+  /* Buttons acting as links must NOT inherit anchor hover color */
+  a.btn {
+    text-decoration: none;
+  }
+  a.btn:hover {
+    color: inherit;
   }
 
   code, pre, kbd, samp {
@@ -164,17 +283,104 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background-color: var(--color-gray-300);
+    background-color: var(--color-border);
     border-radius: var(--radius-full);
   }
-  .dark ::-webkit-scrollbar-thumb,
-  [data-theme="dark"] ::-webkit-scrollbar-thumb {
-    background-color: var(--color-gray-700);
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-border-hover);
   }
 
   /* Focus ring */
   :focus-visible {
-    outline: 2px solid var(--color-primary-400);
+    outline: 2px solid var(--color-primary);
     outline-offset: 2px;
   }
+}
+
+/* ============================================
+   Shared keyframe animations
+   Used via Tailwind arbitrary animate-[...] syntax
+   ============================================ */
+@keyframes dropdown-appear {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes overlay-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.8); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-ring {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15); }
+  50%      { box-shadow: 0 0 0 6px rgba(245, 166, 35, 0.05); }
+}
+
+@keyframes terminal-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 4px rgba(111, 172, 80, 0.5); }
+  50%      { opacity: 0.4; box-shadow: 0 0 8px rgba(111, 172, 80, 0.2); }
+}
+
+@keyframes terminal-blink {
+  0%, 50%  { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+@keyframes terminal-line-appear {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes architect-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(111, 172, 80, 0.4); }
+  50%      { opacity: 0.7; box-shadow: 0 0 0 4px rgba(111, 172, 80, 0); }
+}
+
+@keyframes architect-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes chat-slide-in {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes scroll-lock-appear {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fab-appear {
+  from { opacity: 0; transform: scale(0.8) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }

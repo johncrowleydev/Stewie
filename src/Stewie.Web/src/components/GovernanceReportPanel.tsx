@@ -1,86 +1,51 @@
 /**
- * GovernanceReportPanel — Displays a governance report with grouped check results.
- *
- * Features:
- * - Overall verdict badge (PASS ✅ / FAIL ❌)
- * - Pass rate progress bar (e.g., "14/16 checks passed")
- * - Checks grouped by GOV category (GOV-001, GOV-002, etc.)
- * - Each rule: rule name, pass/fail icon, severity badge (error/warning)
- * - Expandable details for failed rules (shows output in code block)
- * - Graceful handling of null/empty report
- *
- * REF: CON-002 §4.6, JOB-008 T-077
+ * GovernanceReportPanel — Displays governance check results with visual grouping.
+ * REF: CON-002 §4.6, JOB-008 T-077, JOB-027 T-407
  */
 import { useState } from "react";
+import { skeleton } from "../tw";
 import type { GovernanceReport, GovernanceCheckResult } from "../types";
 
-/** Props for the GovernanceReportPanel */
 interface GovernanceReportPanelProps {
-  /** The governance report data, or null if not yet loaded */
   report: GovernanceReport | null;
-  /** Whether the report is currently loading */
   loading?: boolean;
-  /** Optional error message */
   error?: string | null;
 }
 
-/** Groups check results by their GOV category */
 function groupByCategory(checks: GovernanceCheckResult[]): Record<string, GovernanceCheckResult[]> {
   const groups: Record<string, GovernanceCheckResult[]> = {};
-  for (const check of checks) {
-    const cat = check.category || "Other";
-    if (!groups[cat]) groups[cat] = [];
-    groups[cat].push(check);
-  }
+  for (const check of checks) { const cat = check.category || "Other"; if (!groups[cat]) groups[cat] = []; groups[cat].push(check); }
   return groups;
 }
 
-/** Human-readable labels for common GOV categories */
 const CATEGORY_LABELS: Record<string, string> = {
-  "GOV-001": "Documentation Standards",
-  "GOV-002": "Testing Protocol",
-  "GOV-003": "Coding Standards",
-  "GOV-004": "Error Handling",
-  "GOV-005": "Development Lifecycle",
-  "GOV-006": "Logging Specification",
-  "GOV-008": "Infrastructure & Operations",
-  "SEC-001": "Secret Scanning",
+  "GOV-001": "Documentation Standards", "GOV-002": "Testing Protocol", "GOV-003": "Coding Standards",
+  "GOV-004": "Error Handling", "GOV-005": "Development Lifecycle", "GOV-006": "Logging Specification",
+  "GOV-008": "Infrastructure & Operations", "SEC-001": "Secret Scanning",
 };
 
-/** GovernanceReportPanel — renders governance check results with visual grouping */
 export function GovernanceReportPanel({ report, loading, error }: GovernanceReportPanelProps) {
   const [expandedRules, setExpandedRules] = useState<Set<string>>(new Set());
 
-  /** Toggle expanded state for a rule's details */
   function toggleRule(ruleId: string) {
-    setExpandedRules((prev) => {
-      const next = new Set(prev);
-      if (next.has(ruleId)) {
-        next.delete(ruleId);
-      } else {
-        next.add(ruleId);
-      }
-      return next;
-    });
+    setExpandedRules(prev => { const next = new Set(prev); next.has(ruleId) ? next.delete(ruleId) : next.add(ruleId); return next; });
   }
 
   if (loading) {
     return (
-      <div className="governance-panel" id="governance-panel">
-        <div className="skeleton skeleton-row" style={{ height: 32, marginBottom: 16 }} />
-        <div className="skeleton skeleton-row" style={{ height: 20, marginBottom: 12 }} />
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="skeleton skeleton-row" style={{ height: 40, marginBottom: 8 }} />
-        ))}
+      <div className="bg-ds-surface border border-ds-border rounded-md p-md" id="governance-panel">
+        <div className={`${skeleton} h-8 mb-md`} />
+        <div className={`${skeleton} h-5 mb-sm`} />
+        {[1, 2, 3].map((i) => <div key={i} className={`${skeleton} h-10 mb-sm`} />)}
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="governance-panel governance-panel--error" id="governance-panel">
-        <div className="governance-error">
-          <span className="governance-error-icon">!</span>
+      <div className="bg-[rgba(229,72,77,0.06)] border border-[rgba(229,72,77,0.2)] rounded-md p-md" id="governance-panel">
+        <div className="flex items-center gap-sm text-ds-failed text-s">
+          <span className="w-5 h-5 rounded-full bg-ds-failed text-white flex items-center justify-center text-xs font-bold">!</span>
           <span>{error}</span>
         </div>
       </div>
@@ -89,104 +54,65 @@ export function GovernanceReportPanel({ report, loading, error }: GovernanceRepo
 
   if (!report) {
     return (
-      <div className="governance-panel governance-panel--empty" id="governance-panel">
-        <div className="governance-empty">
-          <span className="governance-empty-icon">--</span>
-          <span>No governance report available</span>
-        </div>
+      <div className="bg-ds-surface border border-ds-border rounded-md p-md text-center text-ds-text-muted text-s italic" id="governance-panel">
+        <span className="opacity-30 mr-sm">--</span> No governance report available
       </div>
     );
   }
 
-  const passRate = report.totalChecks > 0
-    ? Math.round((report.passedChecks / report.totalChecks) * 100)
-    : 100;
+  const passRate = report.totalChecks > 0 ? Math.round((report.passedChecks / report.totalChecks) * 100) : 100;
   const grouped = groupByCategory(report.checks);
   const categoryKeys = Object.keys(grouped).sort();
 
   return (
-    <div className="governance-panel" id="governance-panel">
-      {/* Verdict Header */}
-      <div className="governance-header">
-        <div className={`governance-verdict ${report.passed ? "governance-verdict--pass" : "governance-verdict--fail"}`}>
-          <span className="governance-verdict-icon">
-            {report.passed ? "PASS" : "FAIL"}
-          </span>
-          <span className="governance-verdict-label">
-            {report.passed ? "PASSED" : "FAILED"}
-          </span>
+    <div className="bg-ds-surface border border-ds-border rounded-md p-md" id="governance-panel">
+      {/* Verdict */}
+      <div className="flex items-center justify-between mb-md">
+        <div className={`inline-flex items-center gap-sm py-xs px-md rounded-md font-bold text-s uppercase tracking-wider ${report.passed ? "bg-[rgba(111,172,80,0.15)] text-ds-completed" : "bg-[rgba(229,72,77,0.15)] text-ds-failed"}`}>
+          <span>{report.passed ? "PASS" : "FAIL"}</span>
+          <span className="font-normal text-xs">{report.passed ? "PASSED" : "FAILED"}</span>
         </div>
-        <div className="governance-stats">
-          <span className="governance-stats-text">
-            {report.passedChecks}/{report.totalChecks} checks passed
-          </span>
-        </div>
+        <span className="text-s text-ds-text-muted">{report.passedChecks}/{report.totalChecks} checks passed</span>
       </div>
 
-      {/* Pass Rate Bar */}
-      <div className="governance-progress" id="governance-progress">
-        <div
-          className="governance-progress-bar"
-          style={{
-            width: `${passRate}%`,
-            background: report.passed
-              ? "var(--color-completed)"
-              : "var(--color-failed)",
-          }}
-        />
+      {/* Progress bar */}
+      <div className="h-1.5 bg-ds-border rounded-full overflow-hidden mb-md" id="governance-progress">
+        <div className="h-full rounded-full transition-all duration-300" style={{ width: `${passRate}%`, background: report.passed ? "var(--color-completed)" : "var(--color-failed)" }} />
       </div>
 
-      {/* Grouped Check Results */}
+      {/* Categories */}
       {categoryKeys.map((category) => {
         const checks = grouped[category];
-        const catPassed = checks.filter((c) => c.passed).length;
-        const catTotal = checks.length;
-        const allPassed = catPassed === catTotal;
-
+        const catPassed = checks.filter(c => c.passed).length;
+        const allPassed = catPassed === checks.length;
         return (
-          <div className="governance-category" key={category} id={`gov-cat-${category}`}>
-            <div className="governance-category-header">
-              <span className={`governance-category-icon ${allPassed ? "pass" : "fail"}`}>
-                {allPassed ? "✓" : "✗"}
-              </span>
-              <span className="governance-category-name">
-                {CATEGORY_LABELS[category] || category}
-              </span>
-              <span className="governance-category-id">{category}</span>
-              <span className="governance-category-count">
-                {catPassed}/{catTotal}
-              </span>
+          <div className="mb-md last:mb-0" key={category} id={`gov-cat-${category}`}>
+            <div className="flex items-center gap-sm mb-sm">
+              <span className={`text-s font-bold ${allPassed ? "text-ds-completed" : "text-ds-failed"}`}>{allPassed ? "✓" : "✗"}</span>
+              <span className="text-s font-semibold text-ds-text">{CATEGORY_LABELS[category] || category}</span>
+              <span className="text-xs text-ds-text-muted font-mono">{category}</span>
+              <span className="ml-auto text-xs text-ds-text-muted">{catPassed}/{checks.length}</span>
             </div>
-            <div className="governance-rules">
+            <div className="flex flex-col gap-xs ml-md">
               {checks.map((check) => (
-                <div
-                  className={`governance-rule ${check.passed ? "governance-rule--pass" : "governance-rule--fail"}`}
-                  key={check.ruleId}
-                  id={`gov-rule-${check.ruleId}`}
-                >
+                <div key={check.ruleId} id={`gov-rule-${check.ruleId}`}>
                   <div
-                    className="governance-rule-row"
+                    className={`flex items-center gap-sm py-xs px-sm rounded-sm text-s transition-colors duration-100 ${!check.passed && check.details ? "cursor-pointer hover:bg-ds-surface-hover" : ""}`}
                     onClick={() => { if (!check.passed && check.details) toggleRule(check.ruleId); }}
                     role={!check.passed && check.details ? "button" : undefined}
                     tabIndex={!check.passed && check.details ? 0 : undefined}
                   >
-                    <span className="governance-rule-icon">
-                      {check.passed ? "✓" : "✗"}
-                    </span>
-                    <span className="governance-rule-name">{check.ruleName}</span>
-                    <span className="governance-rule-id mono">{check.ruleId}</span>
-                    <span className={`governance-severity governance-severity--${check.severity}`}>
-                      {check.severity}
-                    </span>
+                    <span className={`text-xs font-bold ${check.passed ? "text-ds-completed" : "text-ds-failed"}`}>{check.passed ? "✓" : "✗"}</span>
+                    <span className="text-ds-text flex-1">{check.ruleName}</span>
+                    <span className="font-mono text-xs text-ds-text-muted">{check.ruleId}</span>
+                    <span className={`text-[10px] py-px px-1.5 rounded-full font-medium ${check.severity === "error" ? "bg-[rgba(229,72,77,0.12)] text-ds-failed" : "bg-[rgba(245,166,35,0.12)] text-ds-warning"}`}>{check.severity}</span>
                     {!check.passed && check.details && (
-                      <span className="governance-rule-expand">
-                        {expandedRules.has(check.ruleId) ? "▼" : "▶"}
-                      </span>
+                      <span className="text-xs text-ds-text-muted">{expandedRules.has(check.ruleId) ? "▼" : "▶"}</span>
                     )}
                   </div>
                   {!check.passed && check.details && expandedRules.has(check.ruleId) && (
-                    <div className="governance-rule-details">
-                      <pre>{check.details}</pre>
+                    <div className="ml-6 mt-xs animate-[slideDown_0.2s_ease-out]">
+                      <pre className="overflow-x-auto p-sm bg-ds-bg rounded-sm font-mono text-xs text-ds-text-muted leading-relaxed max-h-[200px] overflow-y-auto">{check.details}</pre>
                     </div>
                   )}
                 </div>

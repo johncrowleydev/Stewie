@@ -1,171 +1,97 @@
 /**
- * JobProgressPanel — Multi-task job progress display component.
- * Shows total/completed/failed/running task counts, a segmented progress bar,
- * and a per-task status list with role badges.
- *
- * For single-task jobs, collapses to a simple inline badge.
- *
- * REF: JOB-011 T-102, CON-002 v1.7.0
+ * JobProgressPanel — Multi-task job progress display.
+ * REF: JOB-011 T-102, CON-002 v1.7.0, JOB-027 T-407
  */
 import { StatusBadge } from "./StatusBadge";
 import type { WorkTask } from "../types";
 
-/** Role icons consistent with JobDetailPage */
-const ROLE_ICONS: Record<string, string> = {
-  developer: "D",
-  tester: "T",
-  researcher: "🔬",
+const ROLE_ICONS: Record<string, string> = { developer: "D", tester: "T", researcher: "🔬" };
+
+const DOT_COLORS: Record<string, string> = {
+  completed: "bg-ds-completed", failed: "bg-ds-failed", running: "bg-ds-running",
+  pending: "bg-ds-text-muted", blocked: "bg-ds-text-muted", cancelled: "bg-ds-warning",
 };
 
-interface JobProgressPanelProps {
-  /** All tasks belonging to the job */
-  tasks: WorkTask[];
-  /** Optional click handler for individual task rows */
-  onTaskClick?: (taskId: string) => void;
-}
+const BAR_COLORS: Record<string, string> = {
+  completed: "bg-ds-completed", failed: "bg-ds-failed", running: "bg-ds-running", cancelled: "bg-ds-warning",
+};
 
-/**
- * Counts tasks by status category for progress display.
- */
+interface JobProgressPanelProps { tasks: WorkTask[]; onTaskClick?: (taskId: string) => void; }
+
 function countByStatus(tasks: WorkTask[]) {
-  let completed = 0;
-  let failed = 0;
-  let running = 0;
-  let pending = 0;
-  let blocked = 0;
-  let cancelled = 0;
-
+  let completed = 0, failed = 0, running = 0, pending = 0, blocked = 0, cancelled = 0;
   for (const t of tasks) {
-    switch (t.status) {
-      case "Completed": completed++; break;
-      case "Failed": failed++; break;
-      case "Running": running++; break;
-      case "Pending": pending++; break;
-      case "Blocked": blocked++; break;
-      case "Cancelled": cancelled++; break;
-    }
+    switch (t.status) { case "Completed": completed++; break; case "Failed": failed++; break; case "Running": running++; break; case "Pending": pending++; break; case "Blocked": blocked++; break; case "Cancelled": cancelled++; break; }
   }
-
   return { completed, failed, running, pending, blocked, cancelled };
 }
 
-/**
- * Renders multi-task job progress with a segmented progress bar
- * and per-task status list. Collapses to a simple badge for single-task jobs.
- */
 export function JobProgressPanel({ tasks, onTaskClick }: JobProgressPanelProps) {
-  if (!tasks || tasks.length === 0) {
-    return null;
-  }
+  if (!tasks || tasks.length === 0) return null;
 
-  // Single-task job — show compact badge
   if (tasks.length === 1) {
     const task = tasks[0];
     return (
-      <div className="job-progress-panel" id="job-progress-single">
-        <div className="progress-task-item">
-          <span className="dag-node-role">{ROLE_ICONS[task.role] || "?"}</span>
-          <span className="progress-task-role">
-            {task.role.charAt(0).toUpperCase() + task.role.slice(1)}
-          </span>
+      <div className="bg-ds-surface border border-ds-border rounded-md p-md" id="job-progress-single">
+        <div className="flex items-center gap-sm">
+          <span className="text-[18px] leading-none">{ROLE_ICONS[task.role] || "?"}</span>
+          <span className="font-semibold text-s">{task.role.charAt(0).toUpperCase() + task.role.slice(1)}</span>
           <StatusBadge status={task.status} />
-          <span className="progress-task-objective">{task.objective}</span>
+          <span className="text-s text-ds-text-muted truncate">{task.objective}</span>
         </div>
       </div>
     );
   }
 
-  // Multi-task job — full progress panel
   const counts = countByStatus(tasks);
   const total = tasks.length;
   const terminalCount = counts.completed + counts.failed + counts.cancelled;
   const percent = (n: number) => `${((n / total) * 100).toFixed(1)}%`;
 
+  const countEntries = [
+    { key: "completed", count: counts.completed, label: "completed" },
+    { key: "failed", count: counts.failed, label: "failed" },
+    { key: "running", count: counts.running, label: "running" },
+    { key: "pending", count: counts.pending, label: "pending" },
+    { key: "blocked", count: counts.blocked, label: "blocked" },
+    { key: "cancelled", count: counts.cancelled, label: "cancelled" },
+  ].filter(e => e.count > 0);
+
   return (
-    <div className="job-progress-panel" id="job-progress-panel">
-      {/* Header with counts */}
-      <div className="progress-header">
-        <h3>Progress ({terminalCount} / {total})</h3>
-        <div className="progress-counts">
-          {counts.completed > 0 && (
-            <span className="progress-count">
-              <span className="count-dot green" /> {counts.completed} completed
+    <div className="bg-ds-surface border border-ds-border rounded-md p-md" id="job-progress-panel">
+      <div className="flex items-center justify-between mb-sm">
+        <h3 className="text-s font-semibold m-0">Progress ({terminalCount} / {total})</h3>
+        <div className="flex flex-wrap gap-sm text-xs">
+          {countEntries.map(e => (
+            <span key={e.key} className="flex items-center gap-1">
+              <span className={`w-2 h-2 rounded-full ${DOT_COLORS[e.key] ?? "bg-ds-text-muted"}`} />
+              {e.count} {e.label}
             </span>
-          )}
-          {counts.failed > 0 && (
-            <span className="progress-count">
-              <span className="count-dot red" /> {counts.failed} failed
-            </span>
-          )}
-          {counts.running > 0 && (
-            <span className="progress-count">
-              <span className="count-dot blue" /> {counts.running} running
-            </span>
-          )}
-          {counts.pending > 0 && (
-            <span className="progress-count">
-              <span className="count-dot gray" /> {counts.pending} pending
-            </span>
-          )}
-          {counts.blocked > 0 && (
-            <span className="progress-count">
-              <span className="count-dot gray" /> {counts.blocked} blocked
-            </span>
-          )}
-          {counts.cancelled > 0 && (
-            <span className="progress-count">
-              <span className="count-dot amber" /> {counts.cancelled} cancelled
-            </span>
-          )}
+          ))}
         </div>
       </div>
 
-      {/* Segmented progress bar */}
-      <div className="progress-bar-container" id="progress-bar">
-        {counts.completed > 0 && (
-          <div
-            className="progress-bar-segment completed"
-            style={{ width: percent(counts.completed) }}
-          />
-        )}
-        {counts.failed > 0 && (
-          <div
-            className="progress-bar-segment failed"
-            style={{ width: percent(counts.failed) }}
-          />
-        )}
-        {counts.running > 0 && (
-          <div
-            className="progress-bar-segment running"
-            style={{ width: percent(counts.running) }}
-          />
-        )}
-        {counts.cancelled > 0 && (
-          <div
-            className="progress-bar-segment cancelled"
-            style={{ width: percent(counts.cancelled) }}
-          />
-        )}
+      {/* Segmented bar */}
+      <div className="h-2 bg-ds-border rounded-full overflow-hidden flex mb-md" id="progress-bar">
+        {(["completed", "failed", "running", "cancelled"] as const).map(key => {
+          const n = counts[key];
+          return n > 0 ? <div key={key} className={`h-full ${BAR_COLORS[key]} transition-all duration-300`} style={{ width: percent(n) }} /> : null;
+        })}
       </div>
 
-      {/* Per-task status list */}
-      <div className="progress-task-list" id="progress-task-list">
+      {/* Task list */}
+      <div className="flex flex-col gap-xs" id="progress-task-list">
         {tasks.map((task) => (
           <div
             key={task.id}
-            className="progress-task-item"
+            className={`flex items-center gap-sm py-xs px-sm rounded-sm transition-colors duration-100 ${onTaskClick ? "cursor-pointer hover:bg-ds-surface-hover" : ""}`}
             id={`progress-task-${task.id}`}
             onClick={() => onTaskClick?.(task.id)}
-            style={{ cursor: onTaskClick ? "pointer" : undefined }}
           >
-            <span className="dag-node-role">{ROLE_ICONS[task.role] || "?"}</span>
-            <span className="progress-task-role">
-              {task.role.charAt(0).toUpperCase() + task.role.slice(1)}
-            </span>
+            <span className="text-[18px] leading-none">{ROLE_ICONS[task.role] || "?"}</span>
+            <span className="font-semibold text-xs w-16">{task.role.charAt(0).toUpperCase() + task.role.slice(1)}</span>
             <StatusBadge status={task.status} />
-            <span className="progress-task-objective">
-              {task.objective || `Task ${task.id.slice(0, 8)}…`}
-            </span>
+            <span className="text-xs text-ds-text-muted truncate flex-1">{task.objective || `Task ${task.id.slice(0, 8)}…`}</span>
           </div>
         ))}
       </div>
