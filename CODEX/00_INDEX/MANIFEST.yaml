@@ -490,7 +490,7 @@ documents:
     path: 05_PROJECT/JOB-031_Sidebar_Switcher.md
     title: "Job 031 — Data-Driven Sidebar + Project Switcher"
     type: how-to
-    status: OPEN
+    status: CLOSED
     tags: [project-management, job, workflow, phase-8, frontend, navigation]
     agents: [coder]
     summary: >
@@ -1195,6 +1195,17 @@ documents:
     summary: >
       Audit report for JOB-033. AdminInvitesPage and AdminUsersPage
       extracted. SettingsPage cleaned. Modal delete. Verdict: PASS.
+
+  - id: VER-031
+    path: 40_VERIFICATION/VER-031_JOB-031_Audit.md
+    title: "JOB-031 Audit — Data-Driven Sidebar + Project Switcher"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, phase-8, frontend, navigation]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-031. Sidebar rebuilt from nav config, project
+      switcher dropdown, chat FAB. Phase 8 complete. Verdict: PASS.
 
   # ---- 60_EVOLUTION ----
   - id: EVO-001

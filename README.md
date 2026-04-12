@@ -424,7 +424,7 @@ cd src/Stewie.Web/ClientApp && npm run build
 | 5b | Message Bus + Agent Lifecycle (RabbitMQ, IAgentRuntime) | ✅ Complete |
 | 6 | AI Agent Intelligence (OpenCode, Architect Loop, E2E) | ✅ Complete |
 | **7** | **Design System Foundation (Tailwind v4, Component Library)** | ✅ Complete |
-| 8 | App Shell + Role-Based Architecture | 📋 Planned |
+| 8 | App Shell + Role-Based Architecture | ✅ Complete |
 | 9 | Code Explorer + Premium Polish | 📋 Planned |
 | 10 | Production Hardening | 📋 Planned |
 
