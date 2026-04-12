@@ -501,7 +501,7 @@ documents:
     path: 05_PROJECT/JOB-032_Admin_Dashboard.md
     title: "Job 032 — Admin System Dashboard"
     type: how-to
-    status: OPEN
+    status: CLOSED
     tags: [project-management, job, workflow, phase-8, frontend, admin, dashboard]
     agents: [coder]
     summary: >
@@ -512,7 +512,7 @@ documents:
     path: 05_PROJECT/JOB-033_Admin_Extraction.md
     title: "Job 033 — Admin User Management Extraction"
     type: how-to
-    status: OPEN
+    status: CLOSED
     tags: [project-management, job, workflow, phase-8, frontend, admin]
     agents: [coder]
     summary: >
@@ -1173,6 +1173,28 @@ documents:
       Audit report for JOB-030 (Route Restructuring). 260 tests pass.
       Hierarchical routes, ProjectContext, AdminRoute guard, admin
       placeholders. ProjectDetailPage deleted. Verdict: PASS.
+
+  - id: VER-032
+    path: 40_VERIFICATION/VER-032_JOB-032_Audit.md
+    title: "JOB-032 Audit — Admin System Dashboard"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, phase-8, frontend, admin, dashboard]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-032. SystemDashboardPage with health panel,
+      agent sessions, activity feed. 260 tests pass. Verdict: PASS.
+
+  - id: VER-033
+    path: 40_VERIFICATION/VER-033_JOB-033_Audit.md
+    title: "JOB-033 Audit — Admin User Management Extraction"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, phase-8, frontend, admin]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-033. AdminInvitesPage and AdminUsersPage
+      extracted. SettingsPage cleaned. Modal delete. Verdict: PASS.
 
   # ---- 60_EVOLUTION ----
   - id: EVO-001

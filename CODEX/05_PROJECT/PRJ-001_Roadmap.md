@@ -297,9 +297,9 @@ Phases are **scope-bounded**, not time-bounded.
 - [ ] Data-driven sidebar config — role → nav items mapping (JOB-031)
 - [ ] Project switcher dropdown in header (JOB-031)
 - [ ] Chat FAB on all project-scoped pages (JOB-031)
-- [ ] Admin System Dashboard: health, agents, stats, activity feed (JOB-032)
-- [ ] User Management extraction from Settings to `/admin/users` (JOB-033)
-- [ ] Settings page cleanup — personal preferences only (JOB-033)
+- [x] Admin System Dashboard: health, agents, stats, activity feed (JOB-032)
+- [x] User Management extraction from Settings to `/admin/users` (JOB-033)
+- [x] Settings page cleanup — personal preferences only (JOB-033)
 
 ---
 
