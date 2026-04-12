@@ -7,7 +7,7 @@ import { useParams, Link } from "react-router-dom";
 import { fetchProject } from "../api/client";
 import { ArchitectControls } from "../components/ArchitectControls";
 import { ChatSlideover } from "../components/ChatSlideover";
-import { btnGhost, backButton, card, pageTitleRow, skeleton } from "../tw";
+import { btnGhost, card, pageTitleRow, skeleton } from "../tw";
 import type { Project } from "../types";
 
 function ChatTriggerIcon() {
