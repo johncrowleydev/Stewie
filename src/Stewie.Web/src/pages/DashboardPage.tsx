@@ -1,6 +1,6 @@
 /**
  * DashboardPage — Overview page with summary stats and real-time updates.
- * REF: JOB-012 T-126, JOB-027 T-404
+ * REF: JOB-012 T-126, JOB-027 T-404, JOB-030 T-525
  */
 import { useCallback, useEffect, useRef } from "react";
 
@@ -9,6 +9,7 @@ import type { Job } from "../types";
 import { usePolling } from "../hooks/usePolling";
 import { useSignalR } from "../hooks/useSignalR";
 import { StatusBadge } from "../components/StatusBadge";
+import { useProject } from "../contexts/ProjectContext";
 
 
 const FALLBACK_POLL_MS = 5000;
@@ -35,6 +36,8 @@ function StatCard({ icon, value, label, color }: { icon: string; value: string |
 }
 
 export function DashboardPage() {
+  // projectId available for future project-scoped API filtering
+  const { projectId: _projectId } = useProject();
   const { state: signalRState, joinGroup, leaveGroup, on } = useSignalR();
   const isLive = signalRState === "connected";
 

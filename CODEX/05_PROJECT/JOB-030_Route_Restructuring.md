@@ -2,7 +2,7 @@
 id: JOB-030
 title: "Route Restructuring + ProjectContext"
 type: planning
-status: OPEN
+status: CLOSED
 owner: architect
 agents: [developer]
 tags: [frontend, routing, architecture, phase-8]

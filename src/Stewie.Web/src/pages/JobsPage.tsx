@@ -1,6 +1,6 @@
 /**
  * JobsPage — Lists all jobs with status badges and real-time updates.
- * REF: JOB-012 T-127, CON-002 §4.2, JOB-027 T-404
+ * REF: JOB-012 T-127, CON-002 §4.2, JOB-027 T-404, JOB-030 T-525
  */
 import { useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -9,12 +9,14 @@ import { StatusBadge } from "../components/StatusBadge";
 import type { Job } from "../types";
 import { usePolling } from "../hooks/usePolling";
 import { useSignalR } from "../hooks/useSignalR";
+import { useProject } from "../contexts/ProjectContext";
 
 
 const FALLBACK_POLL_MS = 5000;
 
 export function JobsPage() {
   const navigate = useNavigate();
+  const { projectId } = useProject();
   const { state: signalRState, joinGroup, leaveGroup, on } = useSignalR();
   const isLive = signalRState === "connected";
 
@@ -92,7 +94,7 @@ export function JobsPage() {
                 <tr
                   key={job.id}
                   className="border-b border-ds-border last:border-b-0 cursor-pointer hover:bg-ds-surface-hover transition-colors duration-150"
-                  onClick={() => { void navigate(`/jobs/${job.id}`); }}
+                  onClick={() => { void navigate(`/p/${projectId}/jobs/${job.id}`); }}
                   id={`job-row-${job.id}`}
                 >
                   <td className="p-md"><StatusBadge status={job.status} /></td>

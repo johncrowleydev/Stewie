@@ -1,10 +1,11 @@
 /**
  * EventsPage — Vertical timeline of all system events.
- * REF: CON-002 §4.5, JOB-027 T-406
+ * REF: CON-002 §4.5, JOB-027 T-406, JOB-030 T-525
  */
 import { useEffect, useState } from "react";
 import { fetchEvents } from "../api/client";
 import type { Event, EventType } from "../types";
+import { useProject } from "../contexts/ProjectContext";
 
 const EVENT_COLORS: Record<EventType, string> = {
   JobCreated: "var(--color-running)",
@@ -54,6 +55,8 @@ function formatTimestamp(iso: string): string {
 }
 
 export function EventsPage() {
+  // projectId available for future project-scoped API filtering
+  const { projectId: _projectId } = useProject();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
