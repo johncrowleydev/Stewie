@@ -2,7 +2,7 @@
 id: JOB-033
 title: "Admin User Management Extraction"
 type: planning
-status: OPEN
+status: CLOSED
 owner: architect
 agents: [developer]
 tags: [frontend, admin, phase-8]

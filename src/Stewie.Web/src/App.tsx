@@ -5,9 +5,9 @@
  * - Public: /login, /register
  * - Global: /projects, /settings (protected, no project scope)
  * - Project-scoped: /p/:projectId/* (protected, wrapped in ProjectProvider)
- * - Admin: /admin/* (protected, admin-only — placeholder pages for now)
+ * - Admin: /admin/* (protected, admin-only — all pages live)
  *
- * REF: JOB-030 T-522
+ * REF: JOB-030 T-522, JOB-032 T-543, JOB-033 T-553
  */
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -24,7 +24,8 @@ import { ProjectsPage } from "./pages/ProjectsPage";
 import { EventsPage } from "./pages/EventsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { SystemDashboardPage } from "./pages/admin/SystemDashboardPage";
-import { Card } from "./components/ui";
+import { AdminInvitesPage } from "./pages/admin/AdminInvitesPage";
+import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
 
 /** localStorage key matching ProjectContext */
 const LAST_PROJECT_KEY = "stewie:lastProjectId";
@@ -40,21 +41,6 @@ function RootRedirect() {
     return <Navigate to={`/p/${lastProjectId}/`} replace />;
   }
   return <Navigate to="/projects" replace />;
-}
-
-/**
- * AdminPlaceholder — renders a Card with the section title and "Coming soon" text.
- * Used as a stub for admin pages that will be built in JOB-032 and JOB-033.
- */
-function AdminPlaceholder({ title }: { title: string }) {
-  return (
-    <Card>
-      <Card.Header>{title}</Card.Header>
-      <p className="text-ds-text-muted text-md">
-        Coming soon — this page is planned for a future sprint.
-      </p>
-    </Card>
-  );
 }
 
 function App() {
@@ -79,10 +65,10 @@ function App() {
             <Route path="events" element={<EventsPage />} />
           </Route>
 
-          {/* Admin routes (placeholder pages — JOB-032 and JOB-033) */}
+          {/* Admin routes — all pages live (JOB-032, JOB-033) */}
           <Route path="/admin" element={<AdminRoute><Outlet /></AdminRoute>}>
-            <Route path="users" element={<AdminPlaceholder title="User Management" />} />
-            <Route path="invites" element={<AdminPlaceholder title="Invite Codes" />} />
+            <Route path="users" element={<AdminUsersPage />} />
+            <Route path="invites" element={<AdminInvitesPage />} />
             <Route path="system" element={<SystemDashboardPage />} />
           </Route>
         </Route>
@@ -92,3 +78,4 @@ function App() {
 }
 
 export default App;
+

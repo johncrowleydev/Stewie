@@ -2,7 +2,7 @@
 id: JOB-032
 title: "Admin System Dashboard"
 type: planning
-status: OPEN
+status: CLOSED
 owner: architect
 agents: [developer]
 tags: [frontend, admin, dashboard, phase-8]
