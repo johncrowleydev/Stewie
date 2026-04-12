@@ -1178,12 +1178,12 @@ documents:
     path: 40_VERIFICATION/VER-032_JOB-032_Audit.md
     title: "JOB-032 Audit — Admin System Dashboard"
     type: reference
-    status: APPROVED
+    status: RETRACTED
     tags: [verification, audit, job, phase-8, frontend, admin, dashboard]
     agents: [architect]
     summary: >
-      Audit report for JOB-032. SystemDashboardPage with health panel,
-      agent sessions, activity feed. 260 tests pass. Verdict: PASS.
+      RETRACTED. Audit only checked build/types. SystemDashboardPage crashed
+      on unknown event types. UI quality unacceptable. No browser testing.
 
   - id: VER-033
     path: 40_VERIFICATION/VER-033_JOB-033_Audit.md
@@ -1200,12 +1200,12 @@ documents:
     path: 40_VERIFICATION/VER-031_JOB-031_Audit.md
     title: "JOB-031 Audit — Data-Driven Sidebar + Project Switcher"
     type: reference
-    status: APPROVED
+    status: RETRACTED
     tags: [verification, audit, job, phase-8, frontend, navigation]
     agents: [architect]
     summary: >
-      Audit report for JOB-031. Sidebar rebuilt from nav config, project
-      switcher dropdown, chat FAB. Phase 8 complete. Verdict: PASS.
+      RETRACTED. Audit only checked build/types. Sidebar context was broken
+      (Layout above ProjectProvider). JWT role lost on refresh. No browser testing.
 
   # ---- 60_EVOLUTION ----
   - id: EVO-001

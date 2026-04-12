@@ -286,24 +286,51 @@ Phases are **scope-bounded**, not time-bounded.
 
 ---
 
-### Phase 8: App Shell + Role-Based Architecture ✅ COMPLETE (2026-04-12)
+### Phase 8: App Shell + Role-Based Architecture ❌ FAILED (2026-04-12)
 **Goal:** Restructure navigation for admin vs. user roles, add project-scoped context with switcher, build admin system dashboard.
+
+> **⚠️ POST-MORTEM:** All 4 jobs (JOB-030 through JOB-033) were marked PASS by
+> architect audits that only checked build status, types, and JSDoc — never
+> actually tested the application in a browser. Three critical runtime bugs
+> shipped to main: JWT role lost on refresh, sidebar project context always null,
+> SystemDashboardPage crash on unknown event types. Bugs were hotfixed by
+> architect on 2026-04-12, but the phase does NOT meet the original vision:
+> admin UX is not meaningfully differentiated from user UX, no container
+> monitoring, no log viewing, system dashboard uses emoji icons and has
+> layout/overflow issues. Project switcher and sidebar are functional after
+> hotfix but the overall UI quality is unacceptable.
 
 > **Split rationale:** Route restructuring (JOB-030) is high-risk because it touches layouts, guards, and every page import. Splitting sidebar + switcher into a separate job (JOB-031) keeps each agent session focused.
 
 **Exit criteria:**
 - [x] Route restructuring: `/admin/*`, `/p/:projectId/*`, `/projects`, `/settings` (JOB-030)
 - [x] ProjectContext provider with localStorage persistence (JOB-030)
-- [x] Data-driven sidebar config — role → nav items mapping (JOB-031)
-- [x] Project switcher dropdown in header (JOB-031)
+- [x] Data-driven sidebar config — role → nav items mapping (JOB-031) — *functional after hotfix*
+- [x] Project switcher dropdown in header (JOB-031) — *functional after hotfix*
 - [x] Chat FAB on all project-scoped pages (JOB-031)
-- [x] Admin System Dashboard: health, agents, stats, activity feed (JOB-032)
+- [ ] ~~Admin System Dashboard: health, agents, stats, activity feed (JOB-032)~~ — *renders but quality unacceptable, missing container monitoring/logs*
 - [x] User Management extraction from Settings to `/admin/users` (JOB-033)
 - [x] Settings page cleanup — personal preferences only (JOB-033)
+- [ ] **Admin UX fundamentally differentiated from user UX** — *NOT DONE*
+- [ ] **Running container monitoring visible to admin** — *NOT DONE*
 
 ---
 
-### Phase 9: Code Explorer + Visual Polish (Planned)
+> [!CAUTION]
+> ## 🛑 PROJECT ON HOLD — ALL FUTURE WORK SUSPENDED INDEFINITELY
+>
+> As of 2026-04-12, the Human has placed this project on indefinite hold pending
+> a decision on whether to continue. Phase 8 shipped with critical runtime bugs
+> that were not caught by architect audits. The frontend UI quality is far below
+> acceptable standards. The architect's audit process (build checks + grep) was
+> inadequate and the Human's trust has been severely damaged.
+>
+> **No new jobs, phases, or backlog items should be created until the Human
+> explicitly resumes the project.**
+
+---
+
+### Phase 9: Code Explorer + Visual Polish ⏸️ ON HOLD
 **Goal:** Add GitHub-backed code browsing, overhaul events page, premium visual polish in focused passes.
 
 > **Split rationale:** JOB-036 was originally a "touch everything" polish job — structurally identical to JOB-027 which caused agent failure. Split into 3 tightly-scoped jobs by page grouping to prevent context overload.
@@ -390,3 +417,4 @@ This project is complete when:
 | 2026-04-10 | 2.0.0 | Major rewrite — clarified end-state vision (chat-driven, LLM-powered agents, RabbitMQ message bus, IAgentRuntime). Split Phase 5 into 5a/5b/6. Updated agent team, contracts, system shape, success criteria. | Human + Architect |
 | 2026-04-11 | 3.0.0 | Phase 6 marked COMPLETE. Added Phase 7 placeholder. Updated contracts to current versions. | Architect |
 | 2026-04-11 | 4.0.0 | Phase 7 (UI/UX Refinements) marked COMPLETE. Production Hardening renamed to Phase 8. CON-002 updated to v2.0.0. Component library added to Phase 8 exit criteria. Full CODEX housekeeping pass. | Architect |
+| 2026-04-12 | 5.0.0 | Phase 8 marked FAILED. Architect audits passed 4 jobs without browser testing — 3 critical runtime bugs shipped. Hotfixed JWT role, sidebar context, dashboard crash. Human placed project on indefinite hold. All future work suspended. | Architect |

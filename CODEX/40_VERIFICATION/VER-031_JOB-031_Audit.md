@@ -2,7 +2,7 @@
 id: VER-031
 title: "JOB-031 Audit — Data-Driven Sidebar + Project Switcher"
 type: reference
-status: APPROVED
+status: RETRACTED
 owner: architect
 agents: [architect]
 tags: [verification, audit, job, phase-8, frontend, navigation]
@@ -12,7 +12,12 @@ updated: 2026-04-12
 version: 1.0.0
 ---
 
-> **BLUF:** JOB-031 is a clean pass. Sidebar rebuilt from typed nav config with role filtering, project switcher using Select component, chat FAB on project pages. Zero hardcoded NavLinks remain. **Verdict: PASS.**
+> **BLUF:** ~~JOB-031 is a clean pass.~~ **RETRACTED.** This audit checked only
+> build status, TypeScript types, JSDoc coverage, and commit format. The
+> application was never tested in a browser. Three critical runtime bugs
+> shipped: Layout could not see ProjectContext (always null), JWT role claim
+> key mismatch (admin lost on refresh), and SystemDashboardPage crash on
+> unknown event types. Verdict retracted on 2026-04-12.
 
 # VER-031: JOB-031 Data-Driven Sidebar — Audit
 

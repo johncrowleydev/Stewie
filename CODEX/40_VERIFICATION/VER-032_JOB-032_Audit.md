@@ -2,7 +2,7 @@
 id: VER-032
 title: "JOB-032 Audit — Admin System Dashboard"
 type: reference
-status: APPROVED
+status: RETRACTED
 owner: architect
 agents: [architect]
 tags: [verification, audit, job, phase-8, frontend, admin, dashboard]
@@ -12,7 +12,12 @@ updated: 2026-04-12
 version: 1.0.0
 ---
 
-> **BLUF:** JOB-032 is a clean pass. Admin system dashboard built with health panel, agent sessions table, and activity feed. Uses Card, Badge, DataTable from ui/. Zero defects. **Verdict: PASS.**
+> **BLUF:** ~~JOB-032 is a clean pass.~~ **RETRACTED.** This audit checked only
+> build/types/JSDoc — never tested in a browser. SystemDashboardPage crashes
+> on AgentStarted/AgentTerminated event types not in EVENT_TYPE_VARIANT map.
+> UI uses emoji icons (♥⌘📁⚡📋🔧🤖), text overflows containers, layout is
+> unprofessional. Missing critical functionality: no container monitoring,
+> no log viewing, no real admin differentiation. Verdict retracted 2026-04-12.
 
 # VER-032: JOB-032 Admin System Dashboard — Audit
 
