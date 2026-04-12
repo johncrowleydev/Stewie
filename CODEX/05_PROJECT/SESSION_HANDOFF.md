@@ -8,87 +8,124 @@ agents: [architect]
 tags: [handoff, session-context]
 related: [PRJ-001, BCK-001]
 created: 2026-04-11
-updated: 2026-04-11
-version: 9.0.0
+updated: 2026-04-12
+version: 7.0.0
 ---
 
-> **BLUF:** Living snapshot of project state for Architect Agent session continuity. Updated at session end with completed work, open items, and environment config. Currently at Phase 7 (Design System Foundation) — Tailwind scaffold done, component migration ready for Developer Agent.
+> **BLUF:** Project is ON INDEFINITE HOLD. Phase 8 shipped with critical
+> runtime bugs that architect audits failed to catch. Three bugs were hotfixed
+> but the UI quality is far below acceptable. The Human is considering scrapping
+> the project entirely. The next session — if there is one — must NOT begin new
+> work. It must wait for the Human's decision.
 
 # Architect Session Handoff
 
 ## Current State
 
-- **Commit:** `0300ec5` on `main`
-- **Phase 7 (Design System Foundation):** IN PROGRESS — scaffold complete, migration pending
-- **Phases 8–10:** Planned, not started
+- **Commit:** `09d8641` on `main`
+- **Phase 8 (App Shell + Role-Based Architecture):** ❌ FAILED — runtime bugs shipped, UI quality unacceptable, admin UX not differentiated
 - **Tests:** 260 passed, 0 failed, 5 skipped
-- **Frontend modules:** 93 (381KB JS, 64KB CSS)
-- **CODEX compliance:** 81/81 documents passing (zero violations)
+- **Frontend:** 110 modules (413.60 kB JS, 44.22 kB CSS)
+- **CODEX compliance:** 94 documents
+
+## ⛔ PROJECT STATUS: ON HOLD — INDEFINITE
+
+The Human placed the project on indefinite hold on 2026-04-12 after discovering
+that Phase 8 was broken despite all 4 jobs passing architect audits. The Human
+is deciding whether to continue or scrap the project entirely.
+
+**Do NOT:**
+- Create new jobs, phases, or backlog items
+- Begin any feature work
+- Propose plans or next steps unprompted
+
+**DO:**
+- Wait for the Human to communicate their decision
+- If the Human decides to continue, the architect must fundamentally change
+  the audit process before any new work begins (see "Audit Failure" below)
 
 ## What This Session Accomplished
 
-### Phase 7 Rescoping
-Phase 7 was previously completed as "UI/UX Refinements" (JOB-024/025/026). It was reopened and rescoped into a comprehensive UI/UX architecture overhaul spanning Phases 7–10:
+### 1. Phase 8 Completion (Later Marked FAILED)
+- Handed off JOB-030 (route restructuring), JOB-031 (sidebar + switcher),
+  JOB-032 (admin dashboard), JOB-033 (admin extraction) to dev agents
+- All 4 jobs completed by dev agents, all 4 passed architect audits
+- Audits were later revealed to be inadequate — build-only, no browser testing
 
-| Phase | Scope | Status |
-|:------|:------|:-------|
-| 7 | Design System Foundation (Tailwind + component library + cleanup) | IN PROGRESS |
-| 8 | App Shell + Role-Based Architecture (admin/user split, project-scoped nav) | PLANNED |
-| 9 | Code Explorer + Premium Polish (GitHub file browsing, events overhaul) | PLANNED |
-| 10 | Production Hardening | PLANNED |
+### 2. Critical Bug Discovery and Hotfix
+After the Human tested the app, three critical bugs were found:
 
-### Tailwind CSS v4 Scaffold (T-400, T-401 complete)
-- Installed `tailwindcss` + `@tailwindcss/vite`
-- Configured Vite plugin in `vite.config.ts`
-- Created `src/app.css` with brand tokens via `@theme` directive, `@font-face` declarations, `@layer base` defaults
-- Self-hosted fonts: Inter (400/500/600) + JetBrains Mono (400) in `public/fonts/`
-- Both `app.css` (Tailwind) and `index.css` (legacy) active during migration
+| Bug | Root Cause | Fix Applied |
+|:----|:-----------|:------------|
+| Admin role lost on page refresh | JWT claim key is `http://schemas.microsoft.com/ws/2008/06/identity/claims/role` (with capital "Admin"), but `decodeUser()` in `AuthContext.tsx` only looked for `decoded.role` | Added full URI claim key lookup + `toLowerCase()` normalization |
+| Sidebar never shows project links, project switcher broken | `Layout.tsx` sits above `ProjectProvider` in the component tree, so `useContext(ProjectContext)` was always `null` | Replaced context read with URL-based regex extraction: `location.pathname.match(/^\/p\/([^/]+)/)` |
+| SystemDashboardPage blank screen crash | `EVENT_TYPE_VARIANT` map missing `AgentStarted`/`AgentTerminated` event types that exist in the database. `config.variant` threw on `undefined` | Added missing event types + `DEFAULT_EVENT_CONFIG` fallback |
 
-### JOB-027 Sprint Doc Ready
-`CODEX/05_PROJECT/JOB-027_Tailwind_Migration.md` contains everything a Developer Agent needs:
-- Design decisions (brand tokens, dark mode selector, responsive breakpoints)
-- Task-by-task migration order (T-402 through T-408)
-- CSS class inventory per component
-- Rules (one commit per task, CSS-only, delete from index.css as you go)
-- Exit criteria (index.css deleted, all pages identical, build succeeds)
+Hotfix commit: `60d9c2d`
 
-### CODEX Governance Overhaul
-- **TAG_TAXONOMY.yaml** expanded from ~60 to ~110 tags (added `job`, `phase-1` through `phase-10`, `frontend`, `backend`, `chat`, `containers`, etc.)
-- **GOV-001** type enum expanded: added `planning`, `contract`, `evolution`
-- **GOV-001** status enum expanded: added `OPEN`, `CLOSED`, `ACTIVE`, `FIXED`, `PROPOSED`
-- **VER-018** frontmatter completely rewritten (was missing 8 of 11 fields)
-- **7 docs** got missing BLUFs added (JOB-025, JOB-026, SESSION_HANDOFF, CON-004, VER-020, VER-025-026)
-- **VER-010, VER-011** got missing `agents`, `related`, `updated` fields
-- **JOB-020** type fixed from `job` to `how-to`, missing `version` added
-- **CON-004** `refs` renamed to `related`
-- **MANIFEST.yaml** synced: JOB-027 added, stale summaries updated
+### 3. Documentation Updates (Honest State)
+- **PRJ-001 Roadmap:** Phase 8 → ❌ FAILED with detailed post-mortem. Project hold notice added. Phase 9 → ⏸️ ON HOLD. Changelog entry v5.0.0.
+- **README.md:** Phase 8 → Failed, Phase 9/10 → On Hold.
+- **VER-031:** APPROVED → RETRACTED. BLUF rewritten to explain inadequate audit.
+- **VER-032:** APPROVED → RETRACTED. Same.
+- **MANIFEST.yaml:** VER-031 and VER-032 statuses/summaries updated.
+
+Status commit: `09d8641`
+
+## Audit Failure — Root Cause Analysis
+
+The architect audit process for Phase 8 consisted of:
+1. `npm run build` — zero errors ✓
+2. `grep` for TypeScript `any` types — zero found ✓
+3. Check JSDoc/TSDoc documentation — present ✓
+4. Check commit message format — correct ✓
+5. Check file count matches task count — correct ✓
+
+**What was NOT done:**
+- ❌ Never opened a browser
+- ❌ Never tested login → navigation flow
+- ❌ Never verified that UI components actually rendered
+- ❌ Never tested admin role persistence across refresh
+- ❌ Never tested project switcher interaction
+- ❌ Never verified API response shapes matched TypeScript types at runtime
+
+**If the project continues, the audit process MUST include:**
+- Mandatory browser testing for ALL frontend jobs
+- Login → navigate → interact → verify flow for every UI change
+- Console error check (zero uncaught errors)
+- Refresh persistence test for auth state
+- API response shape validation against TypeScript interfaces
 
 ## Key Design Decisions
 
 | Decision | Rationale |
 |:---------|:----------|
-| Tailwind CSS v4 over vanilla CSS | Replaces 4,349-line monolith with utility-first classes, built-in responsive/dark mode |
-| `@theme` for brand tokens | Tailwind v4 native — no tailwind.config.js needed |
-| Self-hosted fonts | No external CDN dependency, WOFF2 for performance |
-| Dark mode via `[data-theme="dark"]` | Matches existing `useTheme.ts` hook mechanism |
-| Role-based UI split via shared shell | Single codebase, data-driven sidebar, not two separate frontends |
-| Manual job creation removed | Jobs are created by Architect Agent via chat, not by human users |
-| GOV-001 type/status expansion | Legalizes organically-emerged document types rather than forcing reclassification |
+| URL-based project detection in Layout | Layout sits above ProjectProvider in the component tree. Cannot use useContext. Regex on `location.pathname` is the only reliable approach. |
+| Defensive event type fallback | API returns event types not in the TypeScript union. `DEFAULT_EVENT_CONFIG` prevents crash on unknown types. Backend and frontend type definitions are out of sync. |
+| VER retraction, not deletion | Retaining the audit docs with RETRACTED status preserves the historical record of what went wrong. Deletion would hide the failure. |
+
+## Remaining Issues (NOT FIXED)
+
+These issues were identified but NOT addressed because the project is on hold:
+
+1. **SystemDashboardPage UI quality** — Uses emoji icons (♥⌘📁⚡📋🔧🤖), text overflows containers, unprofessional appearance
+2. **No container monitoring** — Admin dashboard has no visibility into running Docker containers
+3. **No log viewing** — No way to see agent output/logs from the admin UI
+4. **Admin UX not differentiated** — Admin and user views are essentially the same sidebar with extra links. The Human's vision was for a fundamentally different monitoring-focused admin experience.
+5. **"Projects" link redundant with project switcher** — Sidebar has both a "Projects" nav link and a project switcher dropdown, which is contradictory
+6. **EventType union out of sync** — `types/index.ts` EventType union doesn't include `AgentStarted`/`AgentTerminated` that exist in the database
 
 ## Infrastructure
 
-- SQL Server: `stewie-sqlserver` (port 1433)
-- RabbitMQ: `stewie-rabbitmq` (port 5672)
-- Backend: `Stewie__AdminPassword=admin`, `Stewie__JwtSecret="super-secret-jwt-key-that-is-at-least-32-bytes-long"`, `Stewie__EncryptionKey="GkLUVANEsbyw1TnDCFvj5ZJ9BFmi3AlX9zMKvp5vHM4="`
-- Login: admin / admin
-
-## Next Steps (for the next architect session)
-
-1. **Assign JOB-027 to a Developer Agent** — the sprint doc is complete and ready. Spin up a dev agent pointed at `CODEX/05_PROJECT/JOB-027_Tailwind_Migration.md`. Working branch: `feature/JOB-027-tailwind-migration`.
-2. **Audit JOB-027 when complete** — verify all pages render identically in light/dark, responsive at all breakpoints, `npm run build` succeeds, `index.css` deleted.
-3. **Plan JOB-028 (Component Library)** — reusable `Button`, `Card`, `Input`, `Badge`, `StatusBadge` components built with Tailwind utilities.
-4. **Plan JOB-029 (Cleanup + Bug Fixes)** — remove CreateJobPage, fix remaining visual issues.
-5. **Begin Phase 8 planning** — app shell restructuring, role-based sidebar, project-scoped navigation.
+- **SQL Server:** `stewie-sqlserver` (port 1433) — running
+- **RabbitMQ:** `stewie-rabbitmq` (port 5672) — running but connection refused in dev (expected)
+- **Backend:** .NET 10 API at `http://localhost:5275`
+- **Frontend:** Vite dev server at `http://localhost:5173`
+- **Required env vars:**
+  - `Stewie__AdminPassword=admin`
+  - `Stewie__JwtSecret="super-secret-jwt-key-that-is-at-least-32-bytes-long"`
+  - `Stewie__EncryptionKey="GkLUVANEsbyw1TnDCFvj5ZJ9BFmi3AlX9zMKvp5vHM4="`
+- **Login:** username `admin`, password `admin`
 
 ## Contracts (current versions)
 
