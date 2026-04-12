@@ -8,7 +8,7 @@
  * - Green "Live" = WebSocket connected
  * - Blue "Polling" = HTTP polling fallback
  *
- * REF: JOB-012 T-126
+ * REF: JOB-012 T-126, JOB-027 T-404
  */
 import { useCallback, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
@@ -70,7 +70,7 @@ export function DashboardPage() {
   if (loading) {
     return (
       <div>
-        <div className="stats-grid">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-[var(--space-lg)] mb-[var(--space-xl)]">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="skeleton skeleton-card" />
           ))}
@@ -90,7 +90,7 @@ export function DashboardPage() {
 
   return (
     <div id="dashboard-page">
-      <div className="page-title-row">
+      <div className="flex items-center justify-between mb-[var(--space-xl)]">
         
         <div className="title-actions">
           <Link to="/jobs/new" className="btn btn-primary" id="dashboard-new-job">
@@ -99,29 +99,57 @@ export function DashboardPage() {
         </div>
       </div>
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon blue">B</div>
-          <div className="card-value">{totalJobs}</div>
-          <div className="card-label">Total Jobs</div>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-[var(--space-lg)] mb-[var(--space-xl)]">
+        <div
+          className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-lg)] p-[var(--space-lg)] transition-all duration-150 hover:border-[var(--color-border-hover)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
+        >
+          <div
+            className="w-10 h-10 rounded-[var(--radius-md)] flex items-center justify-center mb-[var(--space-md)] text-[1.2rem]"
+            style={{ background: "rgba(59, 130, 246, 0.15)", color: "var(--color-running)" }}
+          >
+            B
+          </div>
+          <div className="text-[var(--font-size-3xl)] font-bold text-[var(--color-text)] mb-[var(--space-xs)]">{totalJobs}</div>
+          <div className="text-[var(--font-size-sm)] text-[var(--color-text-muted)]">Total Jobs</div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon green">✓</div>
-          <div className="card-value">{passRate}%</div>
-          <div className="card-label">Pass Rate</div>
+        <div
+          className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-lg)] p-[var(--space-lg)] transition-all duration-150 hover:border-[var(--color-border-hover)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
+        >
+          <div
+            className="w-10 h-10 rounded-[var(--radius-md)] flex items-center justify-center mb-[var(--space-md)] text-[1.2rem]"
+            style={{ background: "rgba(111, 172, 80, 0.15)", color: "var(--color-completed)" }}
+          >
+            ✓
+          </div>
+          <div className="text-[var(--font-size-3xl)] font-bold text-[var(--color-text)] mb-[var(--space-xs)]">{passRate}%</div>
+          <div className="text-[var(--font-size-sm)] text-[var(--color-text-muted)]">Pass Rate</div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon red">✕</div>
-          <div className="card-value">{failedJobs}</div>
-          <div className="card-label">Failed</div>
+        <div
+          className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-lg)] p-[var(--space-lg)] transition-all duration-150 hover:border-[var(--color-border-hover)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
+        >
+          <div
+            className="w-10 h-10 rounded-[var(--radius-md)] flex items-center justify-center mb-[var(--space-md)] text-[1.2rem]"
+            style={{ background: "rgba(229, 72, 77, 0.15)", color: "var(--color-failed)" }}
+          >
+            ✕
+          </div>
+          <div className="text-[var(--font-size-3xl)] font-bold text-[var(--color-text)] mb-[var(--space-xs)]">{failedJobs}</div>
+          <div className="text-[var(--font-size-sm)] text-[var(--color-text-muted)]">Failed</div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon gray">◉</div>
-          <div className="card-value">{runningJobs}</div>
-          <div className="card-label">In Progress</div>
+        <div
+          className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-lg)] p-[var(--space-lg)] transition-all duration-150 hover:border-[var(--color-border-hover)] hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
+        >
+          <div
+            className="w-10 h-10 rounded-[var(--radius-md)] flex items-center justify-center mb-[var(--space-md)] text-[1.2rem]"
+            style={{ background: "rgba(139, 141, 147, 0.15)", color: "var(--color-pending)" }}
+          >
+            ◉
+          </div>
+          <div className="text-[var(--font-size-3xl)] font-bold text-[var(--color-text)] mb-[var(--space-xs)]">{runningJobs}</div>
+          <div className="text-[var(--font-size-sm)] text-[var(--color-text-muted)]">In Progress</div>
         </div>
       </div>
 
