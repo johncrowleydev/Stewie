@@ -1,18 +1,19 @@
 /**
- * SettingsPage — GitHub integration, LLM credentials, invite codes, user management.
- * REF: JOB-025 T-302, T-201, T-310, T-311, JOB-027 T-406
+ * SettingsPage — personal preferences: GitHub integration and LLM credentials.
+ *
+ * Admin-only sections (invite codes, user management) have been extracted to
+ * dedicated admin pages: AdminInvitesPage and AdminUsersPage (JOB-033 T-552).
+ *
+ * REF: JOB-025 T-302, T-201, JOB-027 T-406, JOB-033 T-552
  */
 import { useEffect, useState, useCallback } from "react";
-import { useAuth } from "../contexts/AuthContext";
-import { IconKey, IconShield, IconUsers } from "../components/Icons";
+import { IconKey } from "../components/Icons";
 import {
   getGitHubStatus, saveGitHubToken, removeGitHubToken,
   fetchCredentials, addCredential, deleteCredential,
-  fetchInviteCodes, generateInviteCode, revokeInviteCode,
-  fetchUsers, deleteUser,
 } from "../api/client";
-import { btnPrimary, btnGhost, btnDanger, formInput, formLabel, formGroup, formHint, card, pageTitleRow, skeleton, th, td, dataTable } from "../tw";
-import type { GitHubStatus, Credential, InviteCode, UserInfo } from "../types";
+import { btnPrimary, btnGhost, btnDanger, formInput, formLabel, formGroup, formHint, card, pageTitleRow, skeleton } from "../tw";
+import type { GitHubStatus, Credential } from "../types";
 
 const LLM_PROVIDERS = [
   { name: "Anthropic (Claude)", credentialType: "AnthropicApiKey", placeholder: "sk-ant-…" },
@@ -44,8 +45,6 @@ function SettingsCard({ title, icon, actions, maxWidth = 600, id, children }: {
 }
 
 export function SettingsPage() {
-  const { user: authUser } = useAuth();
-  const isAdmin = authUser?.role === "admin";
   const [status, setStatus] = useState<GitHubStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [patInput, setPatInput] = useState("");
@@ -60,19 +59,6 @@ export function SettingsPage() {
   const [savingKey, setSavingKey] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
-  const [inviteLoading, setInviteLoading] = useState(true);
-  const [inviteMessage, setInviteMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const [generatingInvite, setGeneratingInvite] = useState(false);
-  const [newInviteCode, setNewInviteCode] = useState<string | null>(null);
-  const [copiedCode, setCopiedCode] = useState(false);
-  const [revokingInviteId, setRevokingInviteId] = useState<string | null>(null);
-  const [confirmRevokeId, setConfirmRevokeId] = useState<string | null>(null);
-  const [users, setUsers] = useState<UserInfo[]>([]);
-  const [usersLoading, setUsersLoading] = useState(true);
-  const [usersMessage, setUsersMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const [confirmDeleteUserId, setConfirmDeleteUserId] = useState<string | null>(null);
-  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -90,20 +76,6 @@ export function SettingsPage() {
     finally { setCredLoading(false); }
   }, []);
   useEffect(() => { void loadCredentials(); }, [loadCredentials]);
-
-  const loadInviteCodes = useCallback(async () => {
-    if (!isAdmin) return;
-    try { setInviteCodes(await fetchInviteCodes()); } catch { setInviteCodes([]); }
-    finally { setInviteLoading(false); }
-  }, [isAdmin]);
-  useEffect(() => { void loadInviteCodes(); }, [loadInviteCodes]);
-
-  const loadUsers = useCallback(async () => {
-    if (!isAdmin) return;
-    try { setUsers(await fetchUsers()); } catch { setUsers([]); }
-    finally { setUsersLoading(false); }
-  }, [isAdmin]);
-  useEffect(() => { void loadUsers(); }, [loadUsers]);
 
   async function handleConnect() {
     if (!patInput.trim()) { setMessage({ type: "error", text: "Please enter a GitHub Personal Access Token." }); return; }
@@ -140,38 +112,6 @@ export function SettingsPage() {
   }
 
   function getCredentialByType(t: string) { return credentials.find((c) => c.credentialType === t); }
-
-  async function handleGenerateInvite() {
-    setGeneratingInvite(true); setInviteMessage(null); setNewInviteCode(null); setCopiedCode(false);
-    try { const invite = await generateInviteCode(); setNewInviteCode(invite.code); await loadInviteCodes(); setInviteMessage({ type: "success", text: "Invite code generated." }); }
-    catch (err) { setInviteMessage({ type: "error", text: err instanceof Error ? err.message : "Failed to generate invite code" }); }
-    finally { setGeneratingInvite(false); }
-  }
-
-  async function handleCopyCode(code: string) {
-    try { await navigator.clipboard.writeText(code); } catch { const input = document.createElement("input"); input.value = code; document.body.appendChild(input); input.select(); document.execCommand("copy"); document.body.removeChild(input); }
-    setCopiedCode(true); setTimeout(() => setCopiedCode(false), 2000);
-  }
-
-  async function handleRevokeInvite(id: string) {
-    if (confirmRevokeId !== id) { setConfirmRevokeId(id); return; }
-    setRevokingInviteId(id); setConfirmRevokeId(null); setInviteMessage(null);
-    try { await revokeInviteCode(id); await loadInviteCodes(); setInviteMessage({ type: "success", text: "Invite code revoked." }); }
-    catch (err) { setInviteMessage({ type: "error", text: err instanceof Error ? err.message : "Failed to revoke invite code" }); }
-    finally { setRevokingInviteId(null); }
-  }
-
-  async function handleDeleteUser(id: string) {
-    if (confirmDeleteUserId !== id) { setConfirmDeleteUserId(id); return; }
-    setDeletingUserId(id); setConfirmDeleteUserId(null); setUsersMessage(null);
-    try { await deleteUser(id); await loadUsers(); setUsersMessage({ type: "success", text: "User deleted." }); }
-    catch (err) { setUsersMessage({ type: "error", text: err instanceof Error ? err.message : "Failed to delete user" }); }
-    finally { setDeletingUserId(null); }
-  }
-
-  function formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
-  }
 
   if (loading) {
     return (
@@ -266,131 +206,6 @@ export function SettingsPage() {
         )}
         <FeedbackMessage msg={credMessage} />
       </SettingsCard>
-
-      {/* Invite Codes (admin) */}
-      {isAdmin && (
-        <SettingsCard
-          title="Invite Codes"
-          icon={<IconShield size={14} />}
-          id="invite-management"
-          actions={
-            <button className={btnPrimary} onClick={() => { void handleGenerateInvite(); }} disabled={generatingInvite} id="generate-invite-btn">
-              {generatingInvite ? "Generating…" : "Generate Code"}
-            </button>
-          }
-        >
-          {newInviteCode && (
-            <div className="flex items-center gap-md p-md bg-ds-primary-muted rounded-md mb-md" id="generated-invite-code">
-              <span className="font-mono font-bold text-md text-ds-primary flex-1">{newInviteCode}</span>
-              <button className={`${btnGhost} text-xs py-xs px-sm`} onClick={() => { void handleCopyCode(newInviteCode); }} id="copy-invite-btn">{copiedCode ? "Copied!" : "Copy"}</button>
-            </div>
-          )}
-
-          {inviteLoading ? (
-            <div className={`${skeleton} h-[60px]`} />
-          ) : inviteCodes.length === 0 ? (
-            <div className="text-center py-lg text-s text-ds-text-muted italic">No invite codes generated yet.</div>
-          ) : (
-            <div className="overflow-x-auto">
-            <table className={dataTable} id="invite-codes-table">
-              <thead>
-                <tr>
-                  {["Code", "Status", "Created", ""].map((h) => <th key={h} className={th}>{h}</th>)}
-                </tr>
-              </thead>
-              <tbody>
-                {inviteCodes.map((invite) => {
-                  const isUsed = !!invite.usedByUserId;
-                  return (
-                    <tr key={invite.id} className="border-b border-ds-border last:border-b-0">
-                      <td className={`${td} font-mono`}>{invite.code}</td>
-                      <td className={td}>
-                        <span className={`inline-flex items-center px-2 py-px rounded-full text-xs font-medium ${isUsed ? "bg-[rgba(139,141,147,0.1)] text-ds-text-muted" : "bg-ds-primary-muted text-ds-primary"}`}>
-                          {isUsed ? "Used" : "Available"}
-                        </span>
-                      </td>
-                      <td className={`${td} text-ds-text-muted`}>{formatDate(invite.createdAt)}</td>
-                      <td className={td}>
-                        {!isUsed && (
-                          confirmRevokeId === invite.id ? (
-                            <div className="flex gap-xs">
-                              <button className={`${btnDanger} text-xs py-xs px-sm`} onClick={() => { void handleRevokeInvite(invite.id); }} disabled={revokingInviteId === invite.id}>{revokingInviteId === invite.id ? "Revoking…" : "Confirm"}</button>
-                              <button className={`${btnGhost} text-xs py-xs px-sm`} onClick={() => setConfirmRevokeId(null)} disabled={revokingInviteId === invite.id}>Cancel</button>
-                            </div>
-                          ) : (
-                            <button className={`${btnDanger} text-xs py-xs px-sm`} onClick={() => { void handleRevokeInvite(invite.id); }} disabled={revokingInviteId === invite.id} id={`revoke-invite-${invite.id}`}>Revoke</button>
-                          )
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            </div>
-          )}
-          <FeedbackMessage msg={inviteMessage} />
-        </SettingsCard>
-      )}
-
-      {/* Users (admin) */}
-      {isAdmin && (
-        <SettingsCard title="Users" icon={<IconUsers size={14} />} id="user-management">
-          {usersLoading ? (
-            <div className={`${skeleton} h-[60px]`} />
-          ) : users.length === 0 ? (
-            <div className="text-center py-lg text-s text-ds-text-muted italic">No users found.</div>
-          ) : (
-            <div className="overflow-x-auto">
-            <table className={dataTable} id="users-table">
-              <thead>
-                <tr>
-                  {["Username", "Role", "Created", ""].map((h) => <th key={h} className={th}>{h}</th>)}
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((u) => {
-                  const isSelf = u.id === authUser?.id;
-                  const isTargetAdmin = u.role === "admin";
-                  const canDelete = !isSelf && !isTargetAdmin;
-                  return (
-                    <tr key={u.id} className="border-b border-ds-border last:border-b-0">
-                      <td className={td}>
-                        <span className="flex items-center gap-sm">
-                          {u.username}
-                          {isSelf && <span className="text-[10px] py-px px-1.5 rounded-full bg-ds-primary-muted text-ds-primary font-medium">you</span>}
-                        </span>
-                      </td>
-                      <td className={td}>
-                        <span className={`inline-flex items-center px-2 py-px rounded-full text-xs font-medium ${u.role === "admin" ? "bg-[rgba(245,166,35,0.15)] text-ds-warning" : "bg-[rgba(59,130,246,0.1)] text-ds-running"}`}>
-                          {u.role}
-                        </span>
-                      </td>
-                      <td className={`${td} text-ds-text-muted`}>{formatDate(u.createdAt)}</td>
-                      <td className={td}>
-                        {canDelete ? (
-                          confirmDeleteUserId === u.id ? (
-                            <div className="flex gap-xs">
-                              <button className={`${btnDanger} text-xs py-xs px-sm`} onClick={() => { void handleDeleteUser(u.id); }} disabled={deletingUserId === u.id}>{deletingUserId === u.id ? "Deleting…" : "Confirm"}</button>
-                              <button className={`${btnGhost} text-xs py-xs px-sm`} onClick={() => setConfirmDeleteUserId(null)} disabled={deletingUserId === u.id}>Cancel</button>
-                            </div>
-                          ) : (
-                            <button className={`${btnDanger} text-xs py-xs px-sm`} onClick={() => { void handleDeleteUser(u.id); }} disabled={deletingUserId === u.id} id={`delete-user-${u.id}`}>Delete</button>
-                          )
-                        ) : (
-                          <span className="text-ds-text-muted opacity-50 cursor-not-allowed" title={isSelf ? "Cannot delete your own account" : "Cannot delete admin users"}>—</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            </div>
-          )}
-          <FeedbackMessage msg={usersMessage} />
-        </SettingsCard>
-      )}
     </div>
   );
 }
