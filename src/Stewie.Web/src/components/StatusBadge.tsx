@@ -1,44 +1,50 @@
 /**
- * StatusBadge — color-coded status pill component.
- * Maps RunStatus/TaskStatus values to visual states.
- * Running state includes an animated pulse dot.
- * REF: JOB-027 T-407
+ * StatusBadge — backwards-compatible wrapper around the new Badge component.
+ *
+ * Maps the legacy string-based `status` prop to the typed `Badge` variant API.
+ * Consumers should migrate to `<Badge>` from `components/ui/Badge` directly.
+ *
+ * DECISION: Keep this file as a thin re-export rather than deleting it now.
+ * Deleting would require updating all consumers in this same task, which
+ * conflicts with JOB-029's scope (consumer migration). This wrapper ensures
+ * zero breakage during the transition.
+ *
+ * REF: JOB-028 T-503 (Badge refactor), JOB-027 T-407 (original)
  */
+
+import { Badge } from "./ui/Badge";
+import type { BadgeVariant } from "./ui/Badge";
 
 interface StatusBadgeProps {
   status: string;
 }
 
-/** Status-specific styles: [bg, textColor] */
-const statusStyles: Record<string, { bg: string; text: string; extra?: string }> = {
-  pending:            { bg: "rgba(139,141,147,0.15)", text: "var(--color-pending)" },
-  running:            { bg: "rgba(59,130,246,0.15)",  text: "var(--color-running)" },
-  completed:          { bg: "rgba(111,172,80,0.15)",  text: "var(--color-completed)" },
-  failed:             { bg: "rgba(229,72,77,0.15)",   text: "var(--color-failed)" },
-  partiallycompleted: { bg: "rgba(245,166,35,0.15)",  text: "var(--color-warning)" },
-  blocked:            { bg: "rgba(139,141,147,0.12)", text: "var(--color-text-muted)" },
-  cancelled:          { bg: "rgba(139,141,147,0.08)", text: "var(--color-text-muted)", extra: "line-through opacity-70" },
-};
+/**
+ * Maps legacy status strings to Badge variant names.
+ * Statuses not in this map fall back to "pending".
+ */
+const STATUS_TO_VARIANT: Record<string, BadgeVariant> = {
+  pending: "pending",
+  running: "running",
+  completed: "completed",
+  failed: "failed",
+  partiallycompleted: "warning",
+  blocked: "pending",
+  cancelled: "pending",
+} as const;
 
-export function StatusBadge({ status }: StatusBadgeProps) {
+/**
+ * Legacy StatusBadge wrapper. Delegates to `<Badge>` internally.
+ *
+ * @deprecated Use `<Badge>` from `components/ui/Badge` directly.
+ */
+export function StatusBadge({ status }: StatusBadgeProps): React.JSX.Element {
   const normalized = status.toLowerCase();
-  const s = statusStyles[normalized] ?? statusStyles.pending;
-  const isRunning = normalized === "running";
-  const isBlocked = normalized === "blocked";
+  const variant = STATUS_TO_VARIANT[normalized] ?? "pending";
 
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 py-[3px] px-2.5 rounded-full text-xs font-semibold uppercase tracking-wide ${s.extra ?? ""}`}
-      style={{ background: s.bg, color: s.text }}
-    >
-      <span
-        className={`w-1.5 h-1.5 rounded-full ${isRunning ? "animate-[pulse_1.5s_ease-in-out_infinite]" : ""}`}
-        style={{
-          background: isBlocked ? "transparent" : "currentColor",
-          border: isBlocked ? "1px solid currentColor" : undefined,
-        }}
-      />
+    <Badge variant={variant}>
       {status}
-    </span>
+    </Badge>
   );
 }
