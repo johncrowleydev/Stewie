@@ -14,7 +14,7 @@
  * 3. If header title is wrong → check getPageTitle()
  * 4. If user menu doesn't close → check handleClickOutside effect
  *
- * REF: JOB-030 T-523, JOB-031 T-531
+ * REF: JOB-030 T-523, JOB-031 T-531, JOB-031 T-532
  */
 import { useState, useRef, useEffect, useContext, useMemo } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
@@ -28,6 +28,7 @@ import {
   resolveNavPath,
 } from "./sidebar/navConfig";
 import type { NavItem, NavScope } from "./sidebar/navConfig";
+import { ProjectSwitcher } from "./sidebar/ProjectSwitcher";
 
 /** Maps route paths to page titles for the header bar */
 function getPageTitle(pathname: string): string {
@@ -190,6 +191,9 @@ export function Layout() {
           <img src="/stewie-logo.png" alt="Stewie" className="w-full px-lg rounded-sm" />
           <span className="font-sans text-2xl font-bold tracking-wide text-ds-primary mt-xs">stewie</span>
         </div>
+
+        {/* Project switcher dropdown — between logo and nav */}
+        <ProjectSwitcher projectId={projectId} />
 
         <nav className="flex-1 p-md flex flex-col gap-xs overflow-y-auto" id="main-nav">
           {/* Global links — always visible at top */}
