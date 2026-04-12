@@ -60,7 +60,6 @@ function SettingsIcon() {
 /** Maps route paths to page titles for the header bar */
 function getPageTitle(pathname: string): string {
   if (pathname === "/") return "Dashboard";
-  if (pathname === "/jobs/new") return "Create Job";
   if (pathname === "/jobs") return "Jobs";
   if (pathname.startsWith("/jobs/")) return "Job Details";
   if (pathname === "/projects") return "Projects";

@@ -11,7 +11,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { JobsPage } from "./pages/JobsPage";
-import { CreateJobPage } from "./pages/CreateJobPage";
+
 import { JobDetailPage } from "./pages/JobDetailPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { ProjectDetailPage } from "./pages/ProjectDetailPage";
@@ -30,7 +30,7 @@ function App() {
         <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/jobs" element={<JobsPage />} />
-          <Route path="/jobs/new" element={<CreateJobPage />} />
+
           <Route path="/jobs/:id" element={<JobDetailPage />} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/projects/:id" element={<ProjectDetailPage />} />

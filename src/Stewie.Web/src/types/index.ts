@@ -69,14 +69,7 @@ export interface CreateProjectRequest {
   description?: string | null;
 }
 
-/** Create job request body — CON-002 §4.2 (v1.5.0) */
-export interface CreateJobRequest {
-  projectId: string;
-  objective: string;
-  scope?: string | null;
-  script?: string[] | null;
-  acceptanceCriteria?: string[] | null;
-}
+
 
 /** Artifact entity — CON-002 §5.6 */
 export interface Artifact {

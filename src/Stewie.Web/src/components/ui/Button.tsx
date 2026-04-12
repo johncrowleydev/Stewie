@@ -15,7 +15,7 @@
  *   so spacing/font tweaks layer on top of the existing tw.ts foundation.
  * - `data-testid` is always present for deterministic test selectors (GOV-003 §8.4).
  *
- * Used by: Pages that need action buttons (CreateJobPage, SettingsPage, etc.)
+ * Used by: Pages that need action buttons (SettingsPage, ProjectsPage, etc.)
  * Related: tw.ts (base styles), GOV-003 §8
  *
  * REF: JOB-028 T-500

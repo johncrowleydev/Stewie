@@ -3,13 +3,13 @@
  * REF: JOB-012 T-126, JOB-027 T-404
  */
 import { useCallback, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+
 import { fetchJobs } from "../api/client";
 import type { Job } from "../types";
 import { usePolling } from "../hooks/usePolling";
 import { useSignalR } from "../hooks/useSignalR";
 import { StatusBadge } from "../components/StatusBadge";
-import { btnPrimary } from "../tw";
+
 
 const FALLBACK_POLL_MS = 5000;
 
@@ -82,12 +82,7 @@ export function DashboardPage() {
 
   return (
     <div id="dashboard-page">
-      <div className="flex items-center justify-between mb-xl">
-        <div />
-        <Link to="/jobs/new" className={`${btnPrimary} no-underline`} id="dashboard-new-job">
-          + New Job
-        </Link>
-      </div>
+
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-lg mb-xl">
         <StatCard icon="B" value={totalJobs} label="Total Jobs" color="blue" />

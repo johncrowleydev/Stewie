@@ -7,7 +7,7 @@
  * On 401, the token is cleared and user is redirected to /login.
  */
 import type {
-  Job, Project, CreateProjectRequest, CreateJobRequest,
+  Job, Project, CreateProjectRequest,
   ApiError, Event, LoginRequest, RegisterRequest, AuthResponse, GitHubStatus,
   GovernanceReport, GovernanceAnalytics, ChatMessage, ChatMessagesResponse, ContainerOutputResponse,
   AgentSession, ArchitectStatus, Credential, GitHubRepo, InviteCode, UserInfo
@@ -103,13 +103,7 @@ export async function fetchJobs(): Promise<Job[]> {
   return request<Job[]>("/api/jobs");
 }
 
-/** Create a new job — POST /api/jobs */
-export async function createJob(data: CreateJobRequest): Promise<Job> {
-  return request<Job>("/api/jobs", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-}
+
 
 /** Fetch a single job by ID — GET /api/jobs/{id} */
 export async function fetchJob(id: string): Promise<Job> {
