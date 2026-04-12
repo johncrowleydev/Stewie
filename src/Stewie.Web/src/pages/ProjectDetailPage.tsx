@@ -1,22 +1,15 @@
 /**
  * ProjectDetailPage — Project overview with Architect controls and chat slideover.
- *
- * Displays project metadata (name, repo, provider), the Architect Agent
- * lifecycle controls, and a right-side ChatSlideover for the Human↔Architect
- * conversation. Chat can be slideover (overlay) or pinned sidebar.
- *
- * Route: /projects/:id
- *
- * REF: JOB-013 T-138, JOB-018 T-178, JOB-025 T-301
+ * REF: JOB-013 T-138, JOB-018 T-178, JOB-025 T-301, JOB-027 T-405
  */
 import { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { fetchProject } from "../api/client";
 import { ArchitectControls } from "../components/ArchitectControls";
 import { ChatSlideover } from "../components/ChatSlideover";
+import { btnGhost, backButton, card, pageTitleRow, skeleton } from "../tw";
 import type { Project } from "../types";
 
-/** Floating chat trigger button icon */
 function ChatTriggerIcon() {
   return (
     <svg width={20} height={20} viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
@@ -25,7 +18,6 @@ function ChatTriggerIcon() {
   );
 }
 
-/** ProjectDetailPage — project info + architect controls + chat slideover */
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [project, setProject] = useState<Project | null>(null);
@@ -37,41 +29,26 @@ export function ProjectDetailPage() {
 
   useEffect(() => {
     if (!id) return;
-
     async function loadProject() {
-      try {
-        const data = await fetchProject(id!);
-        setProject(data);
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load project");
-      } finally {
-        setLoading(false);
-      }
+      try { setProject(await fetchProject(id!)); setError(null); }
+      catch (err) { setError(err instanceof Error ? err.message : "Failed to load project"); }
+      finally { setLoading(false); }
     }
-
     void loadProject();
   }, [id]);
 
-  /** Called by ArchitectControls when status changes */
-  const handleArchitectStatusChange = useCallback((active: boolean) => {
-    setArchitectActive(active);
-  }, []);
-
-  /** Handle pinned width changes for layout adjustment */
-  const handlePinnedWidthChange = useCallback((width: number | null) => {
-    setPinnedWidth(width);
-  }, []);
+  const handleArchitectStatusChange = useCallback((active: boolean) => { setArchitectActive(active); }, []);
+  const handlePinnedWidthChange = useCallback((width: number | null) => { setPinnedWidth(width); }, []);
 
   if (loading) {
     return (
       <div id="project-detail-page">
-        <div className="page-title-row">
-          <Link to="/projects" className="btn btn-ghost">← Projects</Link>
+        <div className={pageTitleRow}>
+          <Link to="/projects" className={btnGhost}>← Projects</Link>
         </div>
-        <div className="skeleton skeleton-card" style={{ height: 80 }} />
-        <div className="skeleton skeleton-card" style={{ height: 120, marginTop: 16 }} />
-        <div className="skeleton skeleton-card" style={{ height: 400, marginTop: 16 }} />
+        <div className={`${skeleton} h-[80px]`} />
+        <div className={`${skeleton} h-[120px] mt-md`} />
+        <div className={`${skeleton} h-[400px] mt-md`} />
       </div>
     );
   }
@@ -79,96 +56,66 @@ export function ProjectDetailPage() {
   if (error || !project) {
     return (
       <div id="project-detail-page">
-        <div className="page-title-row">
-          <Link to="/projects" className="btn btn-ghost">← Projects</Link>
+        <div className={pageTitleRow}>
+          <Link to="/projects" className={btnGhost}>← Projects</Link>
         </div>
-        <div className="error-state">
-          <h3>Project not found</h3>
-          <p>{error || "This project doesn't exist or you don't have access."}</p>
+        <div className="text-center p-2xl text-ds-text-muted">
+          <h3 className="text-base font-semibold text-ds-text mb-sm">Project not found</h3>
+          <p className="text-md">{error || "This project doesn't exist or you don't have access."}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div
-      id="project-detail-page"
-      style={pinnedWidth ? { marginRight: pinnedWidth } : undefined}
-    >
-      {/* Breadcrumb */}
-      <div className="page-title-row">
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
-          <Link to="/projects" className="btn btn-ghost">← Projects</Link>
-          <h1 style={{ margin: 0, fontSize: "var(--font-size-xl)" }}>{project.name}</h1>
+    <div id="project-detail-page" style={pinnedWidth ? { marginRight: pinnedWidth } : undefined}>
+      <div className={pageTitleRow}>
+        <div className="flex items-center gap-md">
+          <Link to="/projects" className={btnGhost}>← Projects</Link>
+          <h1 className="m-0 text-xl">{project.name}</h1>
         </div>
       </div>
 
       {/* Project info card */}
-      <div className="card" style={{ marginBottom: "var(--space-lg)" }}>
-        <div className="card-header">
-          <span className="card-title">Project Details</span>
-          <span className="mono" style={{ fontSize: "var(--font-size-xs)", color: "var(--text-secondary)" }}>
-            {project.id.slice(0, 8)}…
-          </span>
+      <div className={`${card} mb-lg`}>
+        <div className="flex items-center justify-between pb-sm border-b border-ds-border mb-md">
+          <span className="text-md font-semibold text-ds-text">Project Details</span>
+          <span className="font-mono text-xs text-ds-text-secondary">{project.id.slice(0, 8)}…</span>
         </div>
-        <div style={{ padding: "var(--space-md) var(--space-lg)" }}>
-          <div style={{ display: "flex", gap: "var(--space-xl)", flexWrap: "wrap" }}>
+        <div className="flex gap-xl flex-wrap">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-ds-text-muted mb-xs">Repository</div>
+            <div className="font-mono text-s">{project.repoUrl || "—"}</div>
+          </div>
+          {project.repoProvider && (
             <div>
-              <div className="card-label">Repository</div>
-              <div className="mono" style={{ fontSize: "var(--font-size-sm)" }}>
-                {project.repoUrl || "—"}
-              </div>
+              <div className="text-xs font-semibold uppercase tracking-wider text-ds-text-muted mb-xs">Provider</div>
+              <div className="text-s">{project.repoProvider.charAt(0).toUpperCase() + project.repoProvider.slice(1)}</div>
             </div>
-            {project.repoProvider && (
-              <div>
-                <div className="card-label">Provider</div>
-                <div style={{ fontSize: "var(--font-size-sm)" }}>
-                  {project.repoProvider.charAt(0).toUpperCase() + project.repoProvider.slice(1)}
-                </div>
-              </div>
-            )}
-            <div>
-              <div className="card-label">Created</div>
-              <div style={{ fontSize: "var(--font-size-sm)" }}>
-                {new Date(project.createdAt).toLocaleDateString(undefined, {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                })}
-              </div>
-            </div>
+          )}
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-ds-text-muted mb-xs">Created</div>
+            <div className="text-s">{new Date(project.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}</div>
           </div>
         </div>
       </div>
 
-      {/* Architect controls */}
-      <ArchitectControls
-        projectId={project.id}
-        onStatusChange={handleArchitectStatusChange}
-      />
+      <ArchitectControls projectId={project.id} onStatusChange={handleArchitectStatusChange} />
 
-      {/* Floating chat trigger button — visible when chat is closed */}
       {!chatOpen && (
         <button
-          className="chat-trigger-fab"
+          className="fixed bottom-xl right-xl z-[300] flex items-center gap-sm py-sm px-md rounded-full bg-ds-primary text-white border border-ds-primary shadow-ds-lg cursor-pointer transition-all duration-200 hover:bg-ds-primary-hover hover:shadow-[0_8px_32px_rgba(111,172,80,0.3)] hover:-translate-y-0.5 animate-[fab-appear_300ms_ease] dark:bg-transparent dark:text-ds-primary dark:border-ds-primary dark:hover:bg-[rgba(111,172,80,0.15)]"
           onClick={() => setChatOpen(true)}
           title="Open project chat"
           id="chat-trigger-fab"
         >
           <ChatTriggerIcon />
-          <span className="chat-trigger-label">Chat</span>
-          {architectActive && <span className="chat-trigger-dot" />}
+          <span className="text-s font-medium">Chat</span>
+          {architectActive && <span className="w-2 h-2 rounded-full bg-white animate-[pulse_1.5s_ease-in-out_infinite]" />}
         </button>
       )}
 
-      {/* Chat slideover */}
-      <ChatSlideover
-        projectId={project.id}
-        architectActive={architectActive}
-        isOpen={chatOpen}
-        onClose={() => setChatOpen(false)}
-        onPinnedWidthChange={handlePinnedWidthChange}
-      />
+      <ChatSlideover projectId={project.id} architectActive={architectActive} isOpen={chatOpen} onClose={() => setChatOpen(false)} onPinnedWidthChange={handlePinnedWidthChange} />
     </div>
   );
 }

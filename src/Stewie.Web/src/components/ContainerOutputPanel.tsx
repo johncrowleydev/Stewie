@@ -1,108 +1,61 @@
 /**
  * ContainerOutputPanel — Terminal-style component for live container output streaming.
- *
- * Features:
- * - Dark terminal aesthetic with macOS-style header dots
- * - Auto-scrolls to bottom as new lines arrive
- * - Scroll lock: stops auto-scrolling when user scrolls up; resumes at bottom
- * - Toggleable line numbers
- * - Stderr lines highlighted in red/amber with [stderr] tag
- * - Status indicator: pulsing "Streaming..." when active, "Completed" when finished
- * - Fetches backlog on mount via fetchContainerOutput
- * - Subscribes to SignalR ContainerOutput events for real-time lines
- *
- * REF: JOB-014 T-147
+ * REF: JOB-014 T-147, JOB-027 T-407
  */
 import { useEffect, useState, useRef, useCallback } from "react";
 import { fetchContainerOutput } from "../api/client";
 import { useSignalR } from "../hooks/useSignalR";
 
-/** Props for ContainerOutputPanel */
 export interface ContainerOutputPanelProps {
-  /** The task ID to stream output for */
   taskId: string;
-  /** The job ID — used for SignalR group subscription */
   jobId: string;
-  /** Whether the task is still running (controls streaming indicator) */
   isActive?: boolean;
 }
 
-/** Represents a single output line with metadata */
 interface OutputLine {
-  /** The raw text content */
   text: string;
-  /** Whether this line came from stderr */
   isStderr: boolean;
-  /** 1-indexed line number */
   lineNumber: number;
 }
 
-/**
- * Parses a raw line from the container output buffer.
- * Stderr lines are prefixed with "[stderr] " by the backend.
- */
 function parseLine(raw: string, lineNumber: number): OutputLine {
   const isStderr = raw.startsWith("[stderr] ");
-  const text = isStderr ? raw.slice(9) : raw;
-  return { text, isStderr, lineNumber };
+  return { text: isStderr ? raw.slice(9) : raw, isStderr, lineNumber };
 }
 
-/**
- * ContainerOutputPanel — renders a terminal-like panel displaying container output.
- */
 export function ContainerOutputPanel({ taskId, jobId, isActive = false }: ContainerOutputPanelProps) {
   const [lines, setLines] = useState<OutputLine[]>([]);
   const [showLineNumbers, setShowLineNumbers] = useState(false);
   const [scrollLocked, setScrollLocked] = useState(false);
   const [backlogLoaded, setBacklogLoaded] = useState(false);
-
   const bodyRef = useRef<HTMLDivElement>(null);
   const lineCountRef = useRef(0);
-
-  // SignalR connection
   const { state: signalRState, on } = useSignalR();
   const isLive = signalRState === "connected";
 
-  /**
-   * Auto-scroll to bottom unless the user has scrolled up (scroll lock).
-   */
   const scrollToBottom = useCallback(() => {
     const el = bodyRef.current;
     if (!el || scrollLocked) return;
     el.scrollTop = el.scrollHeight;
   }, [scrollLocked]);
 
-  /**
-   * Detect user scroll position to toggle scroll lock.
-   * Lock when user scrolls up; unlock when they reach the bottom.
-   */
   const handleScroll = useCallback(() => {
     const el = bodyRef.current;
     if (!el) return;
-    const threshold = 40; // px from bottom
-    const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
-    setScrollLocked(!isAtBottom);
+    setScrollLocked(el.scrollHeight - el.scrollTop - el.clientHeight >= 40);
   }, []);
 
-  /**
-   * Append new lines to state and update line counter.
-   */
   const appendLines = useCallback((rawLines: string[]) => {
     setLines(prev => {
       let counter = lineCountRef.current;
-      const newParsed = rawLines.map(raw => {
-        counter++;
-        return parseLine(raw, counter);
-      });
+      const newParsed = rawLines.map(raw => { counter++; return parseLine(raw, counter); });
       lineCountRef.current = counter;
       return [...prev, ...newParsed];
     });
   }, []);
 
-  // Fetch backlog on mount
   useEffect(() => {
     let cancelled = false;
-
     async function loadBacklog() {
       try {
         const response = await fetchContainerOutput(taskId);
@@ -113,135 +66,88 @@ export function ContainerOutputPanel({ taskId, jobId, isActive = false }: Contai
           lineCountRef.current = parsed.length;
           setLines(parsed);
         }
-      } catch {
-        // Endpoint may not exist yet or task has no output — silent fail
-      } finally {
-        if (!cancelled) setBacklogLoaded(true);
-      }
+      } catch { /* noop */ }
+      finally { if (!cancelled) setBacklogLoaded(true); }
     }
-
     void loadBacklog();
     return () => { cancelled = true; };
   }, [taskId]);
 
-  // Auto-scroll after backlog load
-  useEffect(() => {
-    if (backlogLoaded) {
-      // Small delay to let DOM render
-      requestAnimationFrame(() => scrollToBottom());
-    }
-  }, [backlogLoaded, scrollToBottom]);
+  useEffect(() => { if (backlogLoaded) requestAnimationFrame(() => scrollToBottom()); }, [backlogLoaded, scrollToBottom]);
 
-  // Subscribe to SignalR ContainerOutput events
   useEffect(() => {
     if (!isLive || !isActive) return;
-
-    const cleanup = on("ContainerOutput", (...args: unknown[]) => {
-      // Event payload: (string jobId, string taskId, string line)
-      const eventJobId = args[0] as string;
-      const eventTaskId = args[1] as string;
-      const line = args[2] as string;
-
-      // Only process lines for this specific task
-      if (eventJobId !== jobId || eventTaskId !== taskId) return;
-
-      appendLines([line]);
+    return on("ContainerOutput", (...args: unknown[]) => {
+      if (args[0] !== jobId || args[1] !== taskId) return;
+      appendLines([args[2] as string]);
     });
-
-    return cleanup;
   }, [isLive, isActive, on, jobId, taskId, appendLines]);
 
-  // Auto-scroll when new lines arrive
-  useEffect(() => {
-    if (lines.length > 0) {
-      requestAnimationFrame(() => scrollToBottom());
-    }
-  }, [lines.length, scrollToBottom]);
+  useEffect(() => { if (lines.length > 0) requestAnimationFrame(() => scrollToBottom()); }, [lines.length, scrollToBottom]);
 
   const lineCount = lines.length;
   const hasOutput = lineCount > 0;
 
   return (
-    <div className="terminal-panel" id={`terminal-panel-${taskId}`}>
-      {/* Header bar with macOS dots and title */}
-      <div className="terminal-header">
-        <div className="terminal-header-left">
-          <div className="terminal-header-dots">
-            <div className="terminal-header-dot terminal-header-dot--red" />
-            <div className="terminal-header-dot terminal-header-dot--yellow" />
-            <div className="terminal-header-dot terminal-header-dot--green" />
+    <div className="bg-[#0d1117] border border-ds-border rounded-lg overflow-hidden mt-sm font-mono text-xs" id={`terminal-panel-${taskId}`}>
+      {/* Header */}
+      <div className="flex items-center justify-between px-md py-sm bg-[#161b22] border-b border-[rgba(255,255,255,0.06)]">
+        <div className="flex items-center gap-sm">
+          <div className="flex gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
+            <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
+            <div className="w-3 h-3 rounded-full bg-[#28c840]" />
           </div>
-          <span className="terminal-header-title">
-            container output — {taskId.slice(0, 8)}…
-          </span>
+          <span className="text-[#8b949e] text-xs ml-sm">container output — {taskId.slice(0, 8)}…</span>
         </div>
-        <div className="terminal-header-right">
-          <button
-            className={`terminal-toggle-btn ${showLineNumbers ? "active" : ""}`}
-            onClick={() => setShowLineNumbers(v => !v)}
-            title="Toggle line numbers"
-            id={`terminal-toggle-lines-${taskId}`}
-          >
-            #
-          </button>
-        </div>
+        <button
+          className={`px-1.5 py-px rounded-sm text-[10px] font-mono cursor-pointer border transition-all duration-150 ${showLineNumbers ? "bg-[rgba(111,172,80,0.15)] text-ds-primary border-ds-primary" : "bg-transparent text-[#8b949e] border-transparent hover:text-[#c9d1d9]"}`}
+          onClick={() => setShowLineNumbers(v => !v)}
+          title="Toggle line numbers"
+          id={`terminal-toggle-lines-${taskId}`}
+        >
+          #
+        </button>
       </div>
 
-      {/* Scrollable output body */}
-      <div
-        className="terminal-body"
-        ref={bodyRef}
-        onScroll={handleScroll}
-        id={`terminal-body-${taskId}`}
-      >
+      {/* Body */}
+      <div className="max-h-[400px] overflow-y-auto p-md leading-relaxed" ref={bodyRef} onScroll={handleScroll} id={`terminal-body-${taskId}`}>
         {!hasOutput && (
-          <div className="terminal-empty">
+          <div className="text-center text-[#8b949e] py-xl italic">
             {isActive ? (
-              <>
-                Waiting for output…
-                <span className="terminal-cursor" />
-              </>
-            ) : (
-              "No output recorded"
-            )}
+              <>Waiting for output…<span className="inline-block w-1.5 h-4 bg-ds-primary ml-1 animate-[terminal-blink_1s_step-end_infinite]" /></>
+            ) : "No output recorded"}
           </div>
         )}
-
         {lines.map((line) => (
-          <div
-            key={line.lineNumber}
-            className={`terminal-line ${line.isStderr ? "terminal-line--stderr" : ""}`}
-          >
+          <div key={line.lineNumber} className={`py-px px-0 animate-[terminal-line-appear_0.15s_ease-out] ${line.isStderr ? "text-[#f97583] bg-[rgba(249,115,131,0.06)] border-l-2 border-[#f97583] pl-sm" : "text-[#c9d1d9]"}`}>
             {showLineNumbers && (
-              <span className="terminal-line-number">{line.lineNumber}</span>
+              <span className="inline-block w-10 text-right mr-md text-[#484f58] select-none">{line.lineNumber}</span>
             )}
             {line.isStderr && (
-              <span className="terminal-stderr-tag">stderr</span>
+              <span className="inline-block text-[10px] font-semibold uppercase text-[#f97583] bg-[rgba(249,115,131,0.12)] px-1 py-px rounded-sm mr-sm">stderr</span>
             )}
-            <span className="terminal-line-text">{line.text}</span>
+            <span>{line.text}</span>
           </div>
         ))}
       </div>
 
       {/* Status bar */}
-      <div className="terminal-status">
-        <div className="terminal-status-left">
+      <div className="flex items-center justify-between px-md py-xs bg-[#161b22] border-t border-[rgba(255,255,255,0.06)] text-[10px] text-[#8b949e]">
+        <div className="flex items-center gap-1.5">
           {isActive ? (
             <>
-              <div className="terminal-streaming-dot" />
-              <span className="terminal-status-text--streaming">Streaming…</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-ds-completed animate-[terminal-pulse_1.5s_ease-in-out_infinite]" />
+              <span className="text-ds-completed font-medium">Streaming…</span>
             </>
           ) : (
-            <span className="terminal-status-text--completed">
-              {hasOutput ? "Completed" : "Idle"}
-            </span>
+            <span className="text-[#8b949e]">{hasOutput ? "Completed" : "Idle"}</span>
           )}
         </div>
-        <div className="terminal-status-right">
+        <div className="flex items-center gap-md">
           {scrollLocked && (
-            <span className="terminal-scroll-lock">
-              <span className="terminal-scroll-lock-icon">⏸</span>
-              Scroll locked
+            <span className="inline-flex items-center gap-xs px-1.5 py-px rounded-full bg-[rgba(245,166,35,0.15)] text-ds-warning font-medium animate-[scroll-lock-appear_0.2s_ease]">
+              ⏸ Scroll locked
             </span>
           )}
           <span>{lineCount} lines</span>

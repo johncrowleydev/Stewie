@@ -1,32 +1,24 @@
 /**
  * CreateJobPage — Form for creating a new job with task definition.
- * Submits to POST /api/jobs per CON-002 §4.2 (v1.5.0).
- * Project selector populated from GET /api/projects.
- *
- * Fields: project (required), objective (required), scope (optional),
- * script commands (optional, multi-line), acceptance criteria (optional, multi-line).
+ * REF: CON-002 §4.2 (v1.5.0), JOB-027 T-404
  */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchProjects, createJob } from "../api/client";
+import { btnPrimary, btnGhost, formInput, formLabel, formGroup, formHint, card, pageTitleRow, skeleton } from "../tw";
 import type { Project } from "../types";
 
-/** Create Job form page */
 export function CreateJobPage() {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Form fields
   const [projectId, setProjectId] = useState("");
   const [objective, setObjective] = useState("");
   const [scope, setScope] = useState("");
   const [scriptText, setScriptText] = useState("");
   const [criteriaText, setCriteriaText] = useState("");
-
-  // Validation
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -34,27 +26,19 @@ export function CreateJobPage() {
     async function loadProjects() {
       try {
         const data = await fetchProjects();
-        if (!cancelled) {
-          setProjects(data);
-          if (data.length > 0) setProjectId(data[0].id);
-        }
-      } catch {
-        // Projects may not load — form still usable with manual ID
-      } finally {
-        if (!cancelled) setLoadingProjects(false);
-      }
+        if (!cancelled) { setProjects(data); if (data.length > 0) setProjectId(data[0].id); }
+      } catch { /* noop */ }
+      finally { if (!cancelled) setLoadingProjects(false); }
     }
     void loadProjects();
     return () => { cancelled = true; };
   }, []);
 
-  /** Parse multi-line text into string array, filtering empty lines */
   function parseLines(text: string): string[] | null {
     const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
     return lines.length > 0 ? lines : null;
   }
 
-  /** Validate form and return error message or null */
   function validate(): string | null {
     if (!projectId) return "Please select a project.";
     if (!objective.trim()) return "Objective is required.";
@@ -64,16 +48,10 @@ export function CreateJobPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setTouched({ projectId: true, objective: true });
-
     const validationError = validate();
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-
+    if (validationError) { setError(validationError); return; }
     setSubmitting(true);
     setError(null);
-
     try {
       const job = await createJob({
         projectId,
@@ -90,47 +68,42 @@ export function CreateJobPage() {
     }
   }
 
+  /* Custom select styling: arrow icon, pointer */
+  const selectInput = `${formInput} appearance-none bg-[url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b8d93' d='M2 4l4 4 4-4'/%3E%3C/svg%3E")] bg-no-repeat bg-[position:right_12px_center] pr-8 cursor-pointer`;
+
   return (
     <div id="create-job-page">
-      <div className="page-title-row">
-        
-      </div>
+      <div className={pageTitleRow} />
 
-      <form className="create-form" onSubmit={(e) => { void handleSubmit(e); }} id="create-job-form">
-        <div className="form-group">
-          <label className="form-label" htmlFor="project-select">
-            Project *
-          </label>
+      <form className={`${card} mb-xl`} onSubmit={(e) => { void handleSubmit(e); }} id="create-job-form">
+        <div className={formGroup}>
+          <label className={formLabel} htmlFor="project-select">Project *</label>
           {loadingProjects ? (
-            <div className="skeleton skeleton-row" style={{ height: 38 }} />
+            <div className={`${skeleton} h-[38px]`} />
           ) : (
             <select
               id="project-select"
-              className="form-input"
+              className={selectInput}
               value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
               onBlur={() => setTouched((p) => ({ ...p, projectId: true }))}
             >
               <option value="">Select a project…</option>
               {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} ({p.repoUrl})
-                </option>
+                <option key={p.id} value={p.id}>{p.name} ({p.repoUrl})</option>
               ))}
             </select>
           )}
           {touched.projectId && !projectId && (
-            <div className="form-error">Project is required.</div>
+            <div className="text-ds-failed text-s mt-sm">Project is required.</div>
           )}
         </div>
 
-        <div className="form-group">
-          <label className="form-label" htmlFor="objective-input">
-            Objective *
-          </label>
+        <div className={formGroup}>
+          <label className={formLabel} htmlFor="objective-input">Objective *</label>
           <textarea
             id="objective-input"
-            className="form-input"
+            className={`${formInput} resize-y min-h-[60px]`}
             rows={3}
             placeholder="What should the worker accomplish?"
             value={objective}
@@ -138,48 +111,33 @@ export function CreateJobPage() {
             onBlur={() => setTouched((p) => ({ ...p, objective: true }))}
           />
           {touched.objective && !objective.trim() && (
-            <div className="form-error">Objective is required.</div>
+            <div className="text-ds-failed text-s mt-sm">Objective is required.</div>
           )}
         </div>
 
-        <div className="form-group">
-          <label className="form-label" htmlFor="scope-input">
-            Scope
-          </label>
-          <input
-            id="scope-input"
-            className="form-input"
-            type="text"
-            placeholder="Boundaries of the work (optional)"
-            value={scope}
-            onChange={(e) => setScope(e.target.value)}
-          />
+        <div className={formGroup}>
+          <label className={formLabel} htmlFor="scope-input">Scope</label>
+          <input id="scope-input" className={formInput} type="text" placeholder="Boundaries of the work (optional)" value={scope} onChange={(e) => setScope(e.target.value)} />
         </div>
 
-        <div className="form-group">
-          <label className="form-label" htmlFor="script-input">
-            Script Commands
-          </label>
+        <div className={formGroup}>
+          <label className={formLabel} htmlFor="script-input">Script Commands</label>
           <textarea
             id="script-input"
-            className="form-input"
+            className={`${formInput} resize-y min-h-[60px]`}
             rows={4}
             placeholder={"One command per line (optional)\ne.g. npm install\nnpm run build"}
             value={scriptText}
             onChange={(e) => setScriptText(e.target.value)}
           />
-          <div className="form-hint">
-            Each line is a bash command executed sequentially in the workspace.
-          </div>
+          <div className={formHint}>Each line is a bash command executed sequentially in the workspace.</div>
         </div>
 
-        <div className="form-group">
-          <label className="form-label" htmlFor="criteria-input">
-            Acceptance Criteria
-          </label>
+        <div className={formGroup}>
+          <label className={formLabel} htmlFor="criteria-input">Acceptance Criteria</label>
           <textarea
             id="criteria-input"
-            className="form-input"
+            className={`${formInput} resize-y min-h-[60px]`}
             rows={3}
             placeholder={"One criterion per line (optional)\ne.g. All tests pass\nNo lint errors"}
             value={criteriaText}
@@ -187,24 +145,13 @@ export function CreateJobPage() {
           />
         </div>
 
-        {error && <div className="form-error">{error}</div>}
+        {error && <div className="text-ds-failed text-s mt-sm">{error}</div>}
 
-        <div className="form-actions">
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={submitting}
-            id="submit-job-btn"
-          >
+        <div className="flex gap-sm mt-md">
+          <button type="submit" className={btnPrimary} disabled={submitting} id="submit-job-btn">
             {submitting ? "Creating…" : "Create Job"}
           </button>
-          <button
-            type="button"
-            className="btn btn-ghost"
-            onClick={() => { void navigate("/jobs"); }}
-          >
-            Cancel
-          </button>
+          <button type="button" className={btnGhost} onClick={() => { void navigate("/jobs"); }}>Cancel</button>
         </div>
       </form>
     </div>

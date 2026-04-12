@@ -157,6 +157,72 @@
    Base layer — global defaults
    ============================================ */
 @layer base {
+  /* ── Theme CSS Custom Properties ──
+     Dark (default) and light override. These are the runtime values that
+     the ds-* @theme tokens resolve to. They must live in @layer base so
+     specificity doesn't conflict with Tailwind utilities. */
+  :root {
+    /* Surfaces */
+    --color-bg: #0f1117;
+    --color-surface: #1a1d27;
+    --color-surface-elevated: #22262f;
+    --color-surface-hover: #282c37;
+
+    /* Brand */
+    --color-primary: #6fac50;
+    --color-primary-hover: #5d9440;
+    --color-primary-muted: rgba(111, 172, 80, 0.12);
+
+    /* Text */
+    --color-text: #e4e5e7;
+    --color-text-muted: #8b8d93;
+    --color-text-secondary: #767573;
+
+    /* Borders */
+    --color-border: #2a2e38;
+    --color-border-hover: #3a3f4b;
+
+    /* Status */
+    --color-pending: #8b8d93;
+    --color-running: #3b82f6;
+    --color-completed: #6fac50;
+    --color-failed: #e5484d;
+    --color-warning: #f5a623;
+
+    /* Shadows (theme-aware) */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+
+  [data-theme="light"] {
+    --color-bg: #f5f5f7;
+    --color-surface: #ffffff;
+    --color-surface-elevated: #f0f0f2;
+    --color-surface-hover: #e8e8ec;
+
+    --color-primary: #5a9a3e;
+    --color-primary-hover: #4a8432;
+    --color-primary-muted: rgba(90, 154, 62, 0.10);
+
+    --color-text: #1a1a1e;
+    --color-text-muted: #6b6d73;
+    --color-text-secondary: #767573;
+
+    --color-border: #d8d9de;
+    --color-border-hover: #c0c1c6;
+
+    --color-pending: #6b6d73;
+    --color-running: #2563eb;
+    --color-completed: #3d8b24;
+    --color-failed: #dc2626;
+    --color-warning: #d97706;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+
   *,
   *::before,
   *::after {
@@ -175,16 +241,9 @@
   body {
     margin: 0;
     padding: 0;
-    background-color: var(--color-gray-50);
-    color: var(--color-gray-900);
+    background-color: var(--color-bg);
+    color: var(--color-text);
     min-height: 100vh;
-  }
-
-  /* Dark mode base overrides */
-  .dark body,
-  [data-theme="dark"] body {
-    background-color: var(--color-gray-950);
-    color: var(--color-gray-100);
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -194,13 +253,21 @@
   }
 
   a {
-    color: var(--color-primary-400);
+    color: var(--color-primary);
     text-decoration: none;
-    transition: color var(--transition-fast);
+    transition: color 150ms ease;
   }
 
   a:hover {
-    color: var(--color-primary-500);
+    color: var(--color-primary-hover);
+  }
+
+  /* Buttons acting as links must NOT inherit anchor hover color */
+  a.btn {
+    text-decoration: none;
+  }
+  a.btn:hover {
+    color: inherit;
   }
 
   code, pre, kbd, samp {
@@ -216,17 +283,16 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background-color: var(--color-gray-300);
+    background-color: var(--color-border);
     border-radius: var(--radius-full);
   }
-  .dark ::-webkit-scrollbar-thumb,
-  [data-theme="dark"] ::-webkit-scrollbar-thumb {
-    background-color: var(--color-gray-700);
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-border-hover);
   }
 
   /* Focus ring */
   :focus-visible {
-    outline: 2px solid var(--color-primary-400);
+    outline: 2px solid var(--color-primary);
     outline-offset: 2px;
   }
 }
@@ -307,4 +373,19 @@
 @keyframes fab-appear {
   from { opacity: 0; transform: scale(0.8) translateY(8px); }
   to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes dropdown-appear {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
