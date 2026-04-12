@@ -4,7 +4,7 @@
  * Validates password match and minimum length client-side.
  * Auto-logs in and redirects to dashboard on success.
  *
- * REF: CON-002 §4.0
+ * REF: CON-002 §4.0, JOB-027 T-403
  */
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
@@ -63,10 +63,13 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="auth-page" id="register-page">
-      <div className="auth-card">
-        <div className="auth-brand">
-          <img src="/stewie-logo.png" alt="Stewie" className="auth-logo" />
+    <div
+      className="flex items-center justify-center min-h-screen bg-[var(--color-bg)] p-[var(--space-lg)]"
+      id="register-page"
+    >
+      <div className="w-full max-w-[400px] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-lg)] py-[var(--space-xl)] px-[var(--space-lg)]">
+        <div className="flex items-center justify-center gap-[var(--space-sm)] mb-[var(--space-xl)] flex-col">
+          <img src="/stewie-logo.png" alt="Stewie" className="w-[228px] h-auto" />
           <span className="brand-wordmark">stewie</span>
         </div>
 
@@ -123,11 +126,11 @@ export function RegisterPage() {
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
             {confirmPassword && password !== confirmPassword && (
-              <div className="form-error">Passwords do not match.</div>
+              <div className="text-[var(--color-failed)] text-[var(--font-size-sm)] mt-[var(--space-sm)]">Passwords do not match.</div>
             )}
           </div>
 
-          {error && <div className="form-error">{error}</div>}
+          {error && <div className="text-[var(--color-failed)] text-[var(--font-size-sm)] mt-[var(--space-sm)]">{error}</div>}
 
           <button
             type="submit"
@@ -139,9 +142,14 @@ export function RegisterPage() {
           </button>
         </form>
 
-        <div className="auth-footer">
+        <div className="mt-[var(--space-lg)] text-center text-[var(--font-size-sm)] text-[var(--color-text-muted)]">
           <span>Already have an account?</span>{" "}
-          <Link to="/login" className="auth-link">Sign in</Link>
+          <Link
+            to="/login"
+            className="text-[var(--color-primary)] no-underline font-medium hover:underline"
+          >
+            Sign in
+          </Link>
         </div>
       </div>
     </div>

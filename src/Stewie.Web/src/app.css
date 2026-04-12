@@ -83,12 +83,39 @@
   --color-error: #ef4444;
   --color-info: #3b82f6;
 
+  /* ── Design-system tokens (bridged from index.css CSS variables) ──
+     These reference the CSS custom properties defined in :root / [data-theme]
+     so Tailwind utilities like bg-ds-surface, text-ds-muted, border-ds-border
+     automatically follow the current theme. */
+  --color-ds-bg: var(--color-bg);
+  --color-ds-surface: var(--color-surface);
+  --color-ds-surface-elevated: var(--color-surface-elevated);
+  --color-ds-surface-hover: var(--color-surface-hover);
+  --color-ds-primary: var(--color-primary);
+  --color-ds-primary-hover: var(--color-primary-hover);
+  --color-ds-primary-muted: var(--color-primary-muted);
+  --color-ds-text: var(--color-text);
+  --color-ds-text-muted: var(--color-text-muted);
+  --color-ds-text-secondary: var(--color-text-secondary);
+  --color-ds-border: var(--color-border);
+  --color-ds-border-hover: var(--color-border-hover);
+  --color-ds-pending: var(--color-pending);
+  --color-ds-running: var(--color-running);
+  --color-ds-completed: var(--color-completed);
+  --color-ds-failed: var(--color-failed);
+  --color-ds-warning: var(--color-warning);
+
   /* Shadows */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
   --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
+
+  /* Design-system shadows (theme-aware) */
+  --shadow-ds-sm: var(--shadow-sm);
+  --shadow-ds-md: var(--shadow-md);
+  --shadow-ds-lg: var(--shadow-lg);
 
   /* Border radius */
   --radius-xs: 2px;
@@ -98,6 +125,27 @@
   --radius-xl: 12px;
   --radius-2xl: 16px;
   --radius-full: 9999px;
+
+  /* Spacing aliases matching index.css tokens */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+
+  /* Layout */
+  --spacing-sidebar: 260px;
+  --spacing-header: 60px;
+
+  /* Typography sizes matching index.css tokens */
+  --text-xs: 0.75rem;
+  --text-s: 0.8125rem;
+  --text-md: 0.875rem;
+  --text-base: 1rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2rem;
 
   /* Transitions */
   --transition-fast: 120ms ease;

@@ -1582,73 +1582,15 @@ textarea.form-input {
 }
 
 /* --- Auth Pages --- */
-.auth-page {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background: var(--color-bg);
-  padding: var(--space-lg);
-}
-
-.auth-card {
-  width: 100%;
-  max-width: 400px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-xl) var(--space-lg);
-}
-
-.auth-brand {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-xl);
-  flex-direction: column;
-}
-
-.auth-logo {
-  width: 228px;
-  height: auto;
-}
-
-.auth-title {
-  font-size: var(--font-size-2xl);
-  font-weight: 700;
-  color: var(--color-text-secondary);
-}
-
-.auth-heading {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
-  margin-bottom: var(--space-lg);
-  text-align: center;
-}
-
-.auth-footer {
-  margin-top: var(--space-lg);
-  text-align: center;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-}
-
-.auth-link {
-  color: var(--color-primary);
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.auth-link:hover {
-  text-decoration: underline;
-}
+/* --- Auth Pages --- migrated to Tailwind (T-403) --- */
+/* .btn-full, .brand-wordmark retained as shared utilities */
 
 .btn-full {
   width: 100%;
   justify-content: center;
   margin-top: var(--space-md);
 }
+
 
 /* --- GitHub Status --- */
 .github-status {
