@@ -478,7 +478,7 @@ documents:
     path: 05_PROJECT/JOB-030_Route_Restructuring.md
     title: "Job 030 — Route Restructuring + ProjectContext"
     type: how-to
-    status: OPEN
+    status: CLOSED
     tags: [project-management, job, workflow, phase-8, frontend, routing, architecture]
     agents: [coder]
     summary: >
@@ -1161,6 +1161,18 @@ documents:
       Audit report for JOB-029 (Frontend Cleanup). 260 tests pass.
       CreateJobPage deleted, terminal colors extracted, responsive fixes
       at 375px/768px. Phase 7 complete. Verdict: PASS.
+
+  - id: VER-030
+    path: 40_VERIFICATION/VER-030_JOB-030_Audit.md
+    title: "JOB-030 Audit — Route Restructuring + ProjectContext"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, phase-8, frontend, routing]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-030 (Route Restructuring). 260 tests pass.
+      Hierarchical routes, ProjectContext, AdminRoute guard, admin
+      placeholders. ProjectDetailPage deleted. Verdict: PASS.
 
   # ---- 60_EVOLUTION ----
   - id: EVO-001

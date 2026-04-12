@@ -286,14 +286,14 @@ Phases are **scope-bounded**, not time-bounded.
 
 ---
 
-### Phase 8: App Shell + Role-Based Architecture (Planned)
+### Phase 8: App Shell + Role-Based Architecture 🔄 IN PROGRESS
 **Goal:** Restructure navigation for admin vs. user roles, add project-scoped context with switcher, build admin system dashboard.
 
 > **Split rationale:** Route restructuring (JOB-030) is high-risk because it touches layouts, guards, and every page import. Splitting sidebar + switcher into a separate job (JOB-031) keeps each agent session focused.
 
 **Exit criteria:**
-- [ ] Route restructuring: `/admin/*`, `/p/:projectId/*`, `/projects`, `/settings` (JOB-030)
-- [ ] ProjectContext provider with localStorage persistence (JOB-030)
+- [x] Route restructuring: `/admin/*`, `/p/:projectId/*`, `/projects`, `/settings` (JOB-030)
+- [x] ProjectContext provider with localStorage persistence (JOB-030)
 - [ ] Data-driven sidebar config — role → nav items mapping (JOB-031)
 - [ ] Project switcher dropdown in header (JOB-031)
 - [ ] Chat FAB on all project-scoped pages (JOB-031)
