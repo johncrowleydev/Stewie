@@ -442,7 +442,7 @@ documents:
     path: 05_PROJECT/JOB-027_Tailwind_Migration.md
     title: "Job 027 — Tailwind CSS v4 Migration"
     type: how-to
-    status: OPEN
+    status: CLOSED
     tags: [project-management, job, workflow, phase-7, frontend, design-system, tailwind, migration]
     agents: [coder]
     summary: >
@@ -1055,6 +1055,19 @@ documents:
       Joint audit for Phase 7 parallel jobs. 260 tests pass (13 new).
       Chat slideover, GitHub repo picker, admin user/invite management.
       Merge conflict resolution documented. Verdict: PASS.
+
+  - id: VER-027
+    path: 40_VERIFICATION/VER-027_JOB-027_Audit.md
+    title: "JOB-027 Audit — Tailwind CSS v4 Migration"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, phase-7, frontend, tailwind, design-system]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-027 (Tailwind CSS v4 Migration). 260 tests pass.
+      4,349-line index.css deleted, replaced with ds-* @theme tokens and
+      tw.ts shared utility. DEF-010 (build error) and DEF-011 (duplicate
+      keyframe) fixed by architect during audit. Verdict: CONDITIONAL PASS.
 
   # ---- 60_EVOLUTION ----
   - id: EVO-001
