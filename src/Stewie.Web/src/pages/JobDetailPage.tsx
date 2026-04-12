@@ -1,7 +1,7 @@
 /**
  * JobDetailPage — Displays a single job with task chain timeline, governance reports,
  * git info, diff viewer, and events mini-timeline.
- * REF: CON-002 §5.2, §5.6, §4.6, JOB-012 T-128, JOB-027 T-404
+ * REF: CON-002 §5.2, §5.6, §4.6, JOB-012 T-128, JOB-027 T-404, JOB-030 T-525
  */
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
@@ -12,6 +12,7 @@ import { ContainerOutputPanel } from "../components/ContainerOutputPanel";
 import { backButton, card, skeleton, btnGhost, sectionHeading } from "../tw";
 import type { Job, Event, EventType, Artifact, DiffContent, GovernanceReport, WorkTask } from "../types";
 import { useSignalR } from "../hooks/useSignalR";
+import { useProject } from "../contexts/ProjectContext";
 
 const EVENT_COLORS: Record<EventType, string> = {
   JobCreated: "var(--color-running)", JobStarted: "var(--color-warning)",
@@ -157,6 +158,7 @@ function TaskChainTimeline({ tasks, jobId }: { tasks: WorkTask[]; jobId: string 
 
 export function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { projectId } = useProject();
   const [job, setJob] = useState<Job | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -218,7 +220,7 @@ export function JobDetailPage() {
   if (error || !job) {
     return (
       <div>
-        <Link to="/jobs" className={backButton} id="back-to-jobs">← Back to Jobs</Link>
+        <Link to={`/p/${projectId}/jobs`} className={backButton} id="back-to-jobs">← Back to Jobs</Link>
         <div className="text-center p-2xl text-ds-text-muted bg-[rgba(229,72,77,0.08)] border border-[rgba(229,72,77,0.2)] rounded-lg">
           <h3 className="text-base font-semibold text-ds-failed mb-sm">{error?.includes("404") ? "Job not found" : "Error loading job"}</h3>
           <p className="text-md">{error ?? "The requested job could not be found."}</p>
