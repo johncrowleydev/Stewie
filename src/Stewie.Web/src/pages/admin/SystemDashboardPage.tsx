@@ -7,18 +7,19 @@
  * - Health data fetched on mount with graceful error handling — the page
  *   displays an error card rather than crashing on API failure.
  * - All colors use ds-* design tokens for theme consistency.
- * - Uses `Card` and `Badge` from the ui/ component library.
+ * - Uses `Card`, `Badge`, `DataTable` from the ui/ component library.
  * - `data-testid` attributes on all interactive/data elements (GOV-003 §8.4).
  * - Semantic `<article>` and `<section>` elements for accessibility (GOV-003 §8.3).
+ * - Constants and helpers extracted to `systemDashboardUtils.ts` (GOV-003 §4.1).
  *
  * READING GUIDE FOR INCIDENT RESPONDERS:
- * 1. If health panel shows stale data     → check useEffect fetch in HealthPanel
- * 2. If agent sessions table is empty     → check fetchAgentSessions / API response
- * 3. If activity feed is broken           → check fetchEvents API call
+ * 1. If health panel shows stale data     → check useEffect fetch in loadHealthData
+ * 2. If agent sessions table is empty     → check loadSessions / API response
+ * 3. If activity feed is broken           → check loadEvents / fetchEvents API call
  * 4. If page crashes on load              → check error boundaries in guard clauses
  *
  * Used by: App.tsx (route: /admin/system)
- * Related: api/client.ts, types/index.ts, GOV-003 §8
+ * Related: api/client.ts, systemDashboardUtils.ts, GOV-003 §8
  *
  * REF: JOB-032 T-540, T-541, T-542
  *
@@ -29,32 +30,24 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { fetchHealth, fetchProjects, fetchJobs, getAgentSessions } from "../../api/client";
+import {
+  fetchHealth, fetchProjects, fetchJobs,
+  getAgentSessions, fetchEvents,
+} from "../../api/client";
 import { Card, Badge, DataTable } from "../../components/ui";
 import { skeleton } from "../../tw";
-import type { HealthResponse, AgentSession, Project } from "../../types";
+import type { HealthResponse, Project, Event } from "../../types";
 import type { Column } from "../../components/ui";
 
-/** Auto-refresh interval for health data (30 seconds). */
-const HEALTH_REFRESH_MS = 30_000;
+import {
+  HEALTH_REFRESH_MS, SESSIONS_REFRESH_MS, ACTIVITY_FEED_LIMIT,
+  STAT_STYLES, EVENT_TYPE_VARIANT,
+  formatTimestamp, formatDuration, describeEvent,
+  relativeTime, variantToStatStyle,
+} from "./systemDashboardUtils";
+import type { SessionRow } from "./systemDashboardUtils";
 
-/** Auto-refresh interval for agent sessions (30 seconds). */
-const SESSIONS_REFRESH_MS = 30_000;
-
-/**
- * Stat card style map — variant name → semi-transparent bg + text color.
- *
- * DECISION: Using inline styles with CSS custom properties rather than
- * Tailwind classes because the bg needs rgba transparency that isn't
- * available as a ds-* token.
- * TRADEOFF: Slightly less "pure Tailwind" but guarantees theme awareness.
- */
-const STAT_STYLES = {
-  green: { bg: "rgba(111, 172, 80, 0.15)", text: "var(--color-completed)" },
-  blue: { bg: "rgba(59, 130, 246, 0.15)", text: "var(--color-running)" },
-  red: { bg: "rgba(229, 72, 77, 0.15)", text: "var(--color-failed)" },
-  gray: { bg: "rgba(139, 141, 147, 0.15)", text: "var(--color-pending)" },
-} as const;
+// ── Sub-components ──
 
 /** Props for the internal StatTile component. */
 interface StatTileProps {
@@ -98,50 +91,7 @@ function StatTile({ icon, value, label, color }: StatTileProps) {
   );
 }
 
-/**
- * Formats an ISO timestamp into a human-readable relative or absolute time.
- *
- * @param isoTimestamp - ISO 8601 timestamp string.
- * @returns Human-readable timestamp string.
- */
-function formatTimestamp(isoTimestamp: string): string {
-  const date = new Date(isoTimestamp);
-  return date.toLocaleString();
-}
-
-/**
- * SystemDashboardPage — Main admin dashboard with system health,
- * agent sessions, and recent activity panels.
- */
-/**
- * Agent session row — enriched with project name for display in the table.
- *
- * DECISION: Extending AgentSession with projectName rather than doing a
- * lookup in the render function. Keeps the DataTable column definitions
- * simple and avoids repeated Map lookups per render cycle.
- */
-interface SessionRow extends AgentSession {
-  /** Project name resolved from the project ID. */
-  projectName: string;
-  /** Index signature required by DataTable<T extends Record<string, unknown>>. */
-  [key: string]: unknown;
-}
-
-/**
- * Computes a human-readable runtime duration from a start time.
- *
- * @param startedAt - ISO 8601 timestamp of when the session started.
- * @returns Human-readable duration string (e.g., "5m 23s").
- */
-function formatDuration(startedAt: string): string {
-  const startMs = new Date(startedAt).getTime();
-  const nowMs = Date.now();
-  const diffSeconds = Math.max(0, Math.floor((nowMs - startMs) / 1000));
-  const minutes = Math.floor(diffSeconds / 60);
-  const seconds = diffSeconds % 60;
-  if (minutes === 0) return `${String(seconds)}s`;
-  return `${String(minutes)}m ${String(seconds)}s`;
-}
+// ── DataTable column defs (must be in .tsx for JSX) ──
 
 /** Column definitions for the agent sessions DataTable. */
 const SESSION_COLUMNS: Column<SessionRow>[] = [
@@ -188,7 +138,14 @@ const SESSION_COLUMNS: Column<SessionRow>[] = [
   },
 ];
 
+// ── Main page component ──
+
+/**
+ * SystemDashboardPage — Main admin dashboard with system health,
+ * agent sessions, and recent activity panels.
+ */
 export function SystemDashboardPage() {
+  /* Health state */
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [healthError, setHealthError] = useState<string | null>(null);
   const [healthLoading, setHealthLoading] = useState(true);
@@ -199,6 +156,10 @@ export function SystemDashboardPage() {
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(true);
   const [projectsCache, setProjectsCache] = useState<Project[]>([]);
+
+  /* Activity feed state */
+  const [events, setEvents] = useState<Event[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
 
   /**
    * Fetch all health-related data in parallel.
@@ -239,7 +200,6 @@ export function SystemDashboardPage() {
       const allSessions: SessionRow[] = [];
       const projectMap = new Map(projects.map((p) => [p.id, p.name]));
 
-      /* Fetch sessions per project in parallel. */
       const results = await Promise.allSettled(
         projects.map((p) => getAgentSessions(p.id))
       );
@@ -262,10 +222,8 @@ export function SystemDashboardPage() {
     }
   }, []);
 
-  /* Initial fetch + auto-refresh timer with cleanup. */
+  /* Health auto-refresh timer with cleanup. */
   const healthIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const sessionsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
   useEffect(() => {
     void loadHealthData();
     healthIntervalRef.current = setInterval(() => {
@@ -279,10 +237,8 @@ export function SystemDashboardPage() {
     };
   }, [loadHealthData]);
 
-  /**
-   * Load sessions once projects are available, then auto-refresh.
-   * Uses projectsCache to avoid re-fetching projects on each interval.
-   */
+  /* Sessions auto-refresh timer — starts when projectsCache is populated. */
+  const sessionsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   useEffect(() => {
     if (projectsCache.length === 0) return;
 
@@ -298,10 +254,27 @@ export function SystemDashboardPage() {
     };
   }, [projectsCache, loadSessions]);
 
+  /* Load events once on mount. */
+  useEffect(() => {
+    async function loadEvents() {
+      try {
+        const result = await fetchEvents(ACTIVITY_FEED_LIMIT);
+        setEvents(result);
+      } catch {
+        /* Silently fail — empty feed is acceptable fallback. */
+      } finally {
+        setEventsLoading(false);
+      }
+    }
+    void loadEvents();
+  }, []);
+
+  // ── Render ──
+
   return (
     <div id="system-dashboard-page" data-testid="system-dashboard-page">
       {/* Page header */}
-      <div className="flex items-center justify-between mb-xl">
+      <div className="flex items-center justify-between mb-xl flex-wrap gap-sm">
         <div>
           <h1 className="text-2xl font-bold text-ds-text">System Dashboard</h1>
           <p className="text-s text-ds-text-muted mt-xs">
@@ -334,7 +307,7 @@ export function SystemDashboardPage() {
       )}
 
       {healthError && !health && (
-        <Card className="mb-xl" data-testid="health-error-card">
+        <Card className="mb-xl">
           <Card.Header>
             <span className="flex items-center gap-sm">
               <span aria-hidden="true">⚠</span>
@@ -359,24 +332,9 @@ export function SystemDashboardPage() {
               label="API Status"
               color={health.status === "healthy" ? "green" : "red"}
             />
-            <StatTile
-              icon="⌘"
-              value={health.version}
-              label="API Version"
-              color="blue"
-            />
-            <StatTile
-              icon="📁"
-              value={totalProjects}
-              label="Total Projects"
-              color="gray"
-            />
-            <StatTile
-              icon="⚡"
-              value={totalJobs}
-              label="Total Jobs"
-              color="blue"
-            />
+            <StatTile icon="⌘" value={health.version} label="API Version" color="blue" />
+            <StatTile icon="📁" value={totalProjects} label="Total Projects" color="gray" />
+            <StatTile icon="⚡" value={totalJobs} label="Total Jobs" color="blue" />
           </section>
 
           {/* Health details card */}
@@ -392,14 +350,12 @@ export function SystemDashboardPage() {
                 <div className="text-xs text-ds-text-muted uppercase tracking-wider mb-xs">
                   API Status
                 </div>
-                <div className="flex items-center gap-sm">
-                  <Badge
-                    variant={health.status === "healthy" ? "completed" : "failed"}
-                    size="sm"
-                  >
-                    {health.status}
-                  </Badge>
-                </div>
+                <Badge
+                  variant={health.status === "healthy" ? "completed" : "failed"}
+                  size="sm"
+                >
+                  {health.status}
+                </Badge>
               </div>
               <div data-testid="health-detail-version">
                 <div className="text-xs text-ds-text-muted uppercase tracking-wider mb-xs">
@@ -441,6 +397,97 @@ export function SystemDashboardPage() {
           skeletonRows={3}
           emptyMessage="No active agent sessions"
         />
+      </Card>
+
+      {/* ── Recent Activity Feed ── */}
+      <Card className="mb-xl">
+        <Card.Header>
+          <span className="flex items-center gap-sm">
+            <span aria-hidden="true">📋</span>
+            Recent Activity
+          </span>
+        </Card.Header>
+
+        {eventsLoading && (
+          <div
+            role="status"
+            aria-label="Loading activity feed"
+            data-testid="activity-skeleton"
+            className="space-y-md"
+          >
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-start gap-md">
+                <div className={`${skeleton} w-8 h-8 rounded-full shrink-0`} aria-hidden="true" />
+                <div className="flex-1 space-y-xs">
+                  <div className={`${skeleton} h-4 w-3/4 rounded`} aria-hidden="true" />
+                  <div className={`${skeleton} h-3 w-1/3 rounded`} aria-hidden="true" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!eventsLoading && events.length === 0 && (
+          <div className="text-center p-xl text-ds-text-muted" data-testid="activity-empty">
+            <div className="text-[2rem] mb-sm opacity-30" aria-hidden="true">📋</div>
+            <p className="text-md">No recent activity</p>
+          </div>
+        )}
+
+        {!eventsLoading && events.length > 0 && (
+          <div className="relative" data-testid="activity-feed" aria-label="Recent activity timeline">
+            {/* Vertical timeline line */}
+            <div className="absolute left-[15px] top-0 bottom-0 w-px bg-ds-border" aria-hidden="true" />
+
+            <div className="space-y-md">
+              {events.map((event) => {
+                const config = EVENT_TYPE_VARIANT[event.eventType];
+                const styleKey = variantToStatStyle(config.variant);
+                return (
+                  <div
+                    key={event.id}
+                    className="flex items-start gap-md pl-0 relative
+                               animate-[fadeIn_0.3s_ease] group"
+                    data-testid={`activity-event-${event.id}`}
+                  >
+                    {/* Timeline dot */}
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center
+                                 text-xs font-bold shrink-0 z-10
+                                 transition-transform duration-150
+                                 group-hover:scale-110"
+                      style={{
+                        background: STAT_STYLES[styleKey].bg,
+                        color: STAT_STYLES[styleKey].text,
+                      }}
+                      aria-hidden="true"
+                    >
+                      {config.icon}
+                    </div>
+
+                    {/* Event content */}
+                    <div className="flex-1 min-w-0 py-xs">
+                      <div className="flex items-center gap-sm flex-wrap">
+                        <Badge variant={config.variant} size="sm" dot={false}>
+                          {event.eventType}
+                        </Badge>
+                        <span className="text-xs text-ds-text-muted">
+                          {relativeTime(event.timestamp)}
+                        </span>
+                      </div>
+                      <p className="text-s text-ds-text mt-xs truncate">
+                        {describeEvent(event)}
+                      </p>
+                      <p className="text-xs text-ds-text-muted mt-xs font-mono">
+                        {event.entityType}:{event.entityId.slice(0, 8)}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   );
