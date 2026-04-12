@@ -5,9 +5,10 @@
  * - Public: /login, /register
  * - Global: /projects, /settings (protected, no project scope)
  * - Project-scoped: /p/:projectId/* (protected, wrapped in ProjectProvider)
- * - Admin: /admin/* (protected, admin-only — placeholder pages for now)
+ * - Admin: /admin/* (protected, admin-only — users and invites live,
+ *   system dashboard placeholder for JOB-032)
  *
- * REF: JOB-030 T-522
+ * REF: JOB-030 T-522, JOB-033 T-553
  */
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -23,6 +24,8 @@ import { JobDetailPage } from "./pages/JobDetailPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { EventsPage } from "./pages/EventsPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { AdminInvitesPage } from "./pages/admin/AdminInvitesPage";
+import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
 import { Card } from "./components/ui";
 
 /** localStorage key matching ProjectContext */
@@ -43,7 +46,8 @@ function RootRedirect() {
 
 /**
  * AdminPlaceholder — renders a Card with the section title and "Coming soon" text.
- * Used as a stub for admin pages that will be built in JOB-032 and JOB-033.
+ * Used as a stub for admin pages not yet built. JOB-033 pages (users, invites)
+ * have been replaced with live components. Only System Dashboard (JOB-032) remains.
  */
 function AdminPlaceholder({ title }: { title: string }) {
   return (
@@ -78,10 +82,10 @@ function App() {
             <Route path="events" element={<EventsPage />} />
           </Route>
 
-          {/* Admin routes (placeholder pages — JOB-032 and JOB-033) */}
+          {/* Admin routes — users and invites are live (JOB-033), system dashboard placeholder (JOB-032) */}
           <Route path="/admin" element={<AdminRoute><Outlet /></AdminRoute>}>
-            <Route path="users" element={<AdminPlaceholder title="User Management" />} />
-            <Route path="invites" element={<AdminPlaceholder title="Invite Codes" />} />
+            <Route path="users" element={<AdminUsersPage />} />
+            <Route path="invites" element={<AdminInvitesPage />} />
             <Route path="system" element={<AdminPlaceholder title="System Dashboard" />} />
           </Route>
         </Route>
