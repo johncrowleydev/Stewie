@@ -68,3 +68,6 @@ tmp/
 
 # Vite build output
 wwwroot/
+
+# TypeScript build cache
+*.tsbuildinfo
