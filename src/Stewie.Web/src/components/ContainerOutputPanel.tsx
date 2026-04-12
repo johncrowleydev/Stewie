@@ -1,10 +1,17 @@
 /**
  * ContainerOutputPanel — Terminal-style component for live container output streaming.
- * REF: JOB-014 T-147, JOB-027 T-407
+ *
+ * DECISION: Terminal chrome colors (termBg, termHeaderBg, etc.) are applied via inline
+ * `style` props rather than Tailwind arbitrary values. This avoids bare hex in className
+ * strings while keeping the terminal's intentional non-design-system palette documented
+ * in tw.ts.
+ *
+ * REF: JOB-014 T-147, JOB-027 T-407, JOB-029 T-511 (DEF-012)
  */
 import { useEffect, useState, useRef, useCallback } from "react";
 import { fetchContainerOutput } from "../api/client";
 import { useSignalR } from "../hooks/useSignalR";
+import { termBg, termHeaderBg, termText, termMuted, termLineNum, termError } from "../tw";
 
 export interface ContainerOutputPanelProps {
   taskId: string;
@@ -89,22 +96,31 @@ export function ContainerOutputPanel({ taskId, jobId, isActive = false }: Contai
   const hasOutput = lineCount > 0;
 
   return (
-    <div className="bg-[#0d1117] border border-ds-border rounded-lg overflow-hidden mt-sm font-mono text-xs" id={`terminal-panel-${taskId}`}>
+    <div
+      className="border border-ds-border rounded-lg overflow-hidden mt-sm font-mono text-xs"
+      style={{ backgroundColor: termBg }}
+      id={`terminal-panel-${taskId}`}
+    >
       {/* Header */}
-      <div className="flex items-center justify-between px-md py-sm bg-[#161b22] border-b border-[rgba(255,255,255,0.06)]">
+      <div
+        className="flex items-center justify-between px-md py-sm border-b border-[rgba(255,255,255,0.06)]"
+        style={{ backgroundColor: termHeaderBg }}
+      >
         <div className="flex items-center gap-sm">
           <div className="flex gap-1.5">
             <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
             <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
             <div className="w-3 h-3 rounded-full bg-[#28c840]" />
           </div>
-          <span className="text-[#8b949e] text-xs ml-sm">container output — {taskId.slice(0, 8)}…</span>
+          <span className="text-xs ml-sm" style={{ color: termMuted }}>container output — {taskId.slice(0, 8)}…</span>
         </div>
         <button
-          className={`px-1.5 py-px rounded-sm text-[10px] font-mono cursor-pointer border transition-all duration-150 ${showLineNumbers ? "bg-[rgba(111,172,80,0.15)] text-ds-primary border-ds-primary" : "bg-transparent text-[#8b949e] border-transparent hover:text-[#c9d1d9]"}`}
+          className={`px-1.5 py-px rounded-sm text-[10px] font-mono cursor-pointer border transition-all duration-150 ${showLineNumbers ? "bg-[rgba(111,172,80,0.15)] text-ds-primary border-ds-primary" : "bg-transparent border-transparent"}`}
+          style={showLineNumbers ? undefined : { color: termMuted }}
           onClick={() => setShowLineNumbers(v => !v)}
           title="Toggle line numbers"
           id={`terminal-toggle-lines-${taskId}`}
+          data-hover-color={termText}
         >
           #
         </button>
@@ -113,19 +129,29 @@ export function ContainerOutputPanel({ taskId, jobId, isActive = false }: Contai
       {/* Body */}
       <div className="max-h-[400px] overflow-y-auto p-md leading-relaxed" ref={bodyRef} onScroll={handleScroll} id={`terminal-body-${taskId}`}>
         {!hasOutput && (
-          <div className="text-center text-[#8b949e] py-xl italic">
+          <div className="text-center py-xl italic" style={{ color: termMuted }}>
             {isActive ? (
               <>Waiting for output…<span className="inline-block w-1.5 h-4 bg-ds-primary ml-1 animate-[terminal-blink_1s_step-end_infinite]" /></>
             ) : "No output recorded"}
           </div>
         )}
         {lines.map((line) => (
-          <div key={line.lineNumber} className={`py-px px-0 animate-[terminal-line-appear_0.15s_ease-out] ${line.isStderr ? "text-[#f97583] bg-[rgba(249,115,131,0.06)] border-l-2 border-[#f97583] pl-sm" : "text-[#c9d1d9]"}`}>
+          <div
+            key={line.lineNumber}
+            className={`py-px px-0 animate-[terminal-line-appear_0.15s_ease-out] ${line.isStderr ? "bg-[rgba(249,115,131,0.06)] border-l-2 pl-sm" : ""}`}
+            style={{
+              color: line.isStderr ? termError : termText,
+              borderColor: line.isStderr ? termError : undefined,
+            }}
+          >
             {showLineNumbers && (
-              <span className="inline-block w-10 text-right mr-md text-[#484f58] select-none">{line.lineNumber}</span>
+              <span className="inline-block w-10 text-right mr-md select-none" style={{ color: termLineNum }}>{line.lineNumber}</span>
             )}
             {line.isStderr && (
-              <span className="inline-block text-[10px] font-semibold uppercase text-[#f97583] bg-[rgba(249,115,131,0.12)] px-1 py-px rounded-sm mr-sm">stderr</span>
+              <span
+                className="inline-block text-[10px] font-semibold uppercase bg-[rgba(249,115,131,0.12)] px-1 py-px rounded-sm mr-sm"
+                style={{ color: termError }}
+              >stderr</span>
             )}
             <span>{line.text}</span>
           </div>
@@ -133,7 +159,10 @@ export function ContainerOutputPanel({ taskId, jobId, isActive = false }: Contai
       </div>
 
       {/* Status bar */}
-      <div className="flex items-center justify-between px-md py-xs bg-[#161b22] border-t border-[rgba(255,255,255,0.06)] text-[10px] text-[#8b949e]">
+      <div
+        className="flex items-center justify-between px-md py-xs border-t border-[rgba(255,255,255,0.06)] text-[10px]"
+        style={{ backgroundColor: termHeaderBg, color: termMuted }}
+      >
         <div className="flex items-center gap-1.5">
           {isActive ? (
             <>
@@ -141,7 +170,7 @@ export function ContainerOutputPanel({ taskId, jobId, isActive = false }: Contai
               <span className="text-ds-completed font-medium">Streaming…</span>
             </>
           ) : (
-            <span className="text-[#8b949e]">{hasOutput ? "Completed" : "Idle"}</span>
+            <span style={{ color: termMuted }}>{hasOutput ? "Completed" : "Idle"}</span>
           )}
         </div>
         <div className="flex items-center gap-md">
