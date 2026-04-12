@@ -279,7 +279,7 @@ Phases are **scope-bounded**, not time-bounded.
 - [x] Admin invite code generation/revocation UI (JOB-026)
 - [x] Admin user list/deletion UI (JOB-026)
 - [x] Dark mode outline buttons, anchor hover fix (hotfix)
-- [ ] Tailwind CSS v4 migration with brand tokens and dark mode (JOB-027)
+- [x] Tailwind CSS v4 migration with brand tokens and dark mode (JOB-027)
 - [ ] Reusable component library: Button, Card, Input, Badge, Select, DataTable, Dropdown, Modal (JOB-028)
 - [ ] Remove manual job creation, fix visual bugs, responsive audit (JOB-029)
 
@@ -287,6 +287,9 @@ Phases are **scope-bounded**, not time-bounded.
 
 ### Phase 8: App Shell + Role-Based Architecture (Planned)
 **Goal:** Restructure navigation for admin vs. user roles, add project-scoped context with switcher, build admin system dashboard.
+
+> **Split rationale:** Route restructuring (JOB-030) is high-risk because it touches layouts, guards, and every page import. Splitting sidebar + switcher into a separate job (JOB-031) keeps each agent session focused.
+
 **Exit criteria:**
 - [ ] Route restructuring: `/admin/*`, `/p/:projectId/*`, `/projects`, `/settings` (JOB-030)
 - [ ] ProjectContext provider with localStorage persistence (JOB-030)
@@ -299,15 +302,19 @@ Phases are **scope-bounded**, not time-bounded.
 
 ---
 
-### Phase 9: Code Explorer + Premium Polish (Planned)
-**Goal:** Add GitHub-backed code browsing, overhaul events page, premium visual polish pass.
+### Phase 9: Code Explorer + Visual Polish (Planned)
+**Goal:** Add GitHub-backed code browsing, overhaul events page, premium visual polish in focused passes.
+
+> **Split rationale:** JOB-036 was originally a "touch everything" polish job — structurally identical to JOB-027 which caused agent failure. Split into 3 tightly-scoped jobs by page grouping to prevent context overload.
+
 **Exit criteria:**
 - [ ] File tree browser via GitHub API proxy (JOB-034)
 - [ ] Read-only syntax-highlighted code viewer with Prism (JOB-034)
 - [ ] Events page: structured cards, filtering, project scoping (JOB-035)
-- [ ] Premium visual polish: stat cards, job timeline, micro-animations, empty states (JOB-036)
-- [ ] Full responsive audit at 320px–1920px (JOB-036)
-- [ ] Dark mode comprehensive audit (JOB-036)
+- [ ] Dashboard polish: stat cards, KPIs, micro-animations (JOB-036)
+- [ ] Job detail polish: timeline view, task cards, progress indicators (JOB-037)
+- [ ] Responsive audit at 320px–1920px for all pages (JOB-038)
+- [ ] Dark mode comprehensive audit for all pages (JOB-038)
 
 ---
 

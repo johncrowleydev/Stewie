@@ -450,6 +450,30 @@ documents:
       CSS v4 with brand design tokens, self-hosted Inter + JetBrains Mono fonts,
       and dark mode support. Foundation for component library (JOB-028).
 
+  - id: JOB-028
+    path: 05_PROJECT/JOB-028_Component_Library.md
+    title: "Job 028 — Reusable Component Library"
+    type: how-to
+    status: OPEN
+    tags: [project-management, job, workflow, phase-7, frontend, design-system, components]
+    agents: [coder]
+    summary: >
+      Convert tw.ts string constants into typed React components (Button, Card,
+      Input, FormGroup, Badge, DataTable, Select, Modal) in src/components/ui/.
+      One component per task, strict boundaries.
+
+  - id: JOB-029
+    path: 05_PROJECT/JOB-029_Frontend_Cleanup.md
+    title: "Job 029 — Frontend Cleanup"
+    type: how-to
+    status: OPEN
+    tags: [project-management, job, workflow, phase-7, frontend, cleanup]
+    agents: [coder]
+    summary: >
+      Remove dead manual job creation flow, extract ContainerOutputPanel
+      hardcoded hex colors to tw.ts (DEF-012), responsive smoke test at
+      375px and 768px. Closes Phase 7.
+
   # ── 10_GOVERNANCE ───────────────────────────────────────────────────────────
   - id: GOV-001
     path: 10_GOVERNANCE/GOV-001_DocumentationStandard.md
