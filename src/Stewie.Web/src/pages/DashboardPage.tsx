@@ -92,7 +92,7 @@ export function DashboardPage() {
       </div>
 
       {jobList.length > 0 && (
-        <div className="bg-ds-surface border border-ds-border rounded-lg p-lg transition-all duration-150 hover:border-ds-border-hover hover:shadow-ds-md">
+        <div className="bg-ds-surface border border-ds-border rounded-lg p-lg transition-all duration-150 hover:border-ds-border-hover hover:shadow-ds-md overflow-x-auto">
           <div className="flex items-center justify-between mb-md">
             <span className="text-md font-semibold text-ds-text">Recent Jobs</span>
           </div>

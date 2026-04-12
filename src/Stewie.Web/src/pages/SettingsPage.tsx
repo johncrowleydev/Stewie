@@ -291,6 +291,7 @@ export function SettingsPage() {
           ) : inviteCodes.length === 0 ? (
             <div className="text-center py-lg text-s text-ds-text-muted italic">No invite codes generated yet.</div>
           ) : (
+            <div className="overflow-x-auto">
             <table className={dataTable} id="invite-codes-table">
               <thead>
                 <tr>
@@ -326,6 +327,7 @@ export function SettingsPage() {
                 })}
               </tbody>
             </table>
+            </div>
           )}
           <FeedbackMessage msg={inviteMessage} />
         </SettingsCard>
@@ -339,6 +341,7 @@ export function SettingsPage() {
           ) : users.length === 0 ? (
             <div className="text-center py-lg text-s text-ds-text-muted italic">No users found.</div>
           ) : (
+            <div className="overflow-x-auto">
             <table className={dataTable} id="users-table">
               <thead>
                 <tr>
@@ -383,6 +386,7 @@ export function SettingsPage() {
                 })}
               </tbody>
             </table>
+            </div>
           )}
           <FeedbackMessage msg={usersMessage} />
         </SettingsCard>
