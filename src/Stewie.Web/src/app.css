@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Dark mode variant — maps dark: utilities to data-theme="dark" attribute
+   REF: JOB-027 Design Decisions §3. useTheme.ts sets data-theme on <html>. */
+@variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /* ============================================
    Self-hosted fonts
    ============================================ */
@@ -177,4 +181,82 @@
     outline: 2px solid var(--color-primary-400);
     outline-offset: 2px;
   }
+}
+
+/* ============================================
+   Shared keyframe animations
+   Used via Tailwind arbitrary animate-[...] syntax
+   ============================================ */
+@keyframes dropdown-appear {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes overlay-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.8); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-ring {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.15); }
+  50%      { box-shadow: 0 0 0 6px rgba(245, 166, 35, 0.05); }
+}
+
+@keyframes terminal-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 4px rgba(111, 172, 80, 0.5); }
+  50%      { opacity: 0.4; box-shadow: 0 0 8px rgba(111, 172, 80, 0.2); }
+}
+
+@keyframes terminal-blink {
+  0%, 50%  { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+@keyframes terminal-line-appear {
+  from { opacity: 0; transform: translateY(2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes architect-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(111, 172, 80, 0.4); }
+  50%      { opacity: 0.7; box-shadow: 0 0 0 4px rgba(111, 172, 80, 0); }
+}
+
+@keyframes architect-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes chat-slide-in {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes scroll-lock-appear {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fab-appear {
+  from { opacity: 0; transform: scale(0.8) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
