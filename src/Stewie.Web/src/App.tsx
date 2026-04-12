@@ -23,6 +23,7 @@ import { JobDetailPage } from "./pages/JobDetailPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { EventsPage } from "./pages/EventsPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { SystemDashboardPage } from "./pages/admin/SystemDashboardPage";
 import { Card } from "./components/ui";
 
 /** localStorage key matching ProjectContext */
@@ -82,7 +83,7 @@ function App() {
           <Route path="/admin" element={<AdminRoute><Outlet /></AdminRoute>}>
             <Route path="users" element={<AdminPlaceholder title="User Management" />} />
             <Route path="invites" element={<AdminPlaceholder title="Invite Codes" />} />
-            <Route path="system" element={<AdminPlaceholder title="System Dashboard" />} />
+            <Route path="system" element={<SystemDashboardPage />} />
           </Route>
         </Route>
       </Routes>

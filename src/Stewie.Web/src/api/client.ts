@@ -10,7 +10,7 @@ import type {
   Job, Project, CreateProjectRequest,
   ApiError, Event, LoginRequest, RegisterRequest, AuthResponse, GitHubStatus,
   GovernanceReport, GovernanceAnalytics, ChatMessage, ChatMessagesResponse, ContainerOutputResponse,
-  AgentSession, ArchitectStatus, Credential, GitHubRepo, InviteCode, UserInfo
+  AgentSession, ArchitectStatus, Credential, GitHubRepo, InviteCode, UserInfo, HealthResponse
 } from "../types";
 
 /** Base URL is proxied via Vite config — no absolute URL needed. */
@@ -76,6 +76,13 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   }
 
   return (await response.json()) as T;
+}
+
+// --- Health endpoint ---
+
+/** Fetch system health — GET /health (unauthenticated per CON-002 §4.4) */
+export async function fetchHealth(): Promise<HealthResponse> {
+  return request<HealthResponse>("/health");
 }
 
 // --- Auth endpoints ---
