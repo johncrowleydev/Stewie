@@ -466,7 +466,7 @@ documents:
     path: 05_PROJECT/JOB-029_Frontend_Cleanup.md
     title: "Job 029 — Frontend Cleanup"
     type: how-to
-    status: OPEN
+    status: CLOSED
     tags: [project-management, job, workflow, phase-7, frontend, cleanup]
     agents: [coder]
     summary: >
@@ -1104,6 +1104,18 @@ documents:
       Audit report for JOB-028 (Component Library). 260 tests pass. 8 typed
       React components (Button, Card, Input, FormGroup, Badge, DataTable,
       Select, Modal) in src/components/ui/. Zero defects. Verdict: PASS.
+
+  - id: VER-029
+    path: 40_VERIFICATION/VER-029_JOB-029_Audit.md
+    title: "JOB-029 Audit — Frontend Cleanup"
+    type: reference
+    status: APPROVED
+    tags: [verification, audit, job, phase-7, frontend, cleanup]
+    agents: [architect]
+    summary: >
+      Audit report for JOB-029 (Frontend Cleanup). 260 tests pass.
+      CreateJobPage deleted, terminal colors extracted, responsive fixes
+      at 375px/768px. Phase 7 complete. Verdict: PASS.
 
   # ---- 60_EVOLUTION ----
   - id: EVO-001
