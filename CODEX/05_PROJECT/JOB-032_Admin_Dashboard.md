@@ -1,18 +1,23 @@
 ---
 id: JOB-032
 title: "Admin System Dashboard"
-type: planning
-status: CLOSED
+type: how-to
+status: FAILED
 owner: architect
 agents: [developer]
 tags: [frontend, admin, dashboard, phase-8]
 related: [JOB-030, JOB-031, PRJ-001, GOV-003, JOB-028]
 created: 2026-04-12
 updated: 2026-04-12
-version: 1.0.0
+version: 2.0.0
 ---
 
-> **BLUF:** Build the admin system dashboard at `/admin/system` with health status, agent session monitoring, system stats, and a recent activity feed. Uses the component library from JOB-028. Replaces the placeholder from JOB-030.
+> **BLUF:** ~~Admin dashboard complete.~~ **FAILED.** SystemDashboardPage was
+> built with health panel, agent sessions, and activity feed, but crashed on
+> unknown event types (AgentStarted/AgentTerminated). UI uses emoji icons,
+> has text overflow issues, and is missing critical features: no container
+> monitoring, no log viewing. Crash hotfixed but UI quality unacceptable.
+> Audit verdict (VER-032) retracted.
 
 # JOB-032: Admin System Dashboard
 

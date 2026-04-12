@@ -2,17 +2,22 @@
 id: VER-030
 title: "JOB-030 Audit — Route Restructuring + ProjectContext"
 type: reference
-status: APPROVED
+status: RETRACTED
 owner: architect
 agents: [architect]
 tags: [verification, audit, job, phase-8, frontend, routing, architecture]
 related: [JOB-030, GOV-002, GOV-003]
 created: 2026-04-12
 updated: 2026-04-12
-version: 1.0.0
+version: 2.0.0
 ---
 
-> **BLUF:** JOB-030 is a clean pass. Routes restructured to hierarchical layout, ProjectContext and AdminRoute guard created, ProjectDetailPage removed, all pages wired. Zero visual regressions, zero defects. **Verdict: PASS.**
+> **BLUF:** ~~JOB-030 is a clean pass.~~ **RETRACTED.** This audit checked
+> only build status and commit format — never tested in a browser. Route
+> restructuring introduced a fundamental flaw: Layout renders above
+> ProjectProvider, making project context permanently inaccessible to the
+> sidebar. JWT role claim key mismatch (pre-existing) was also not caught.
+> Verdict retracted on 2026-04-12.
 
 # VER-030: JOB-030 Route Restructuring — Audit
 

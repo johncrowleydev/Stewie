@@ -478,46 +478,48 @@ documents:
     path: 05_PROJECT/JOB-030_Route_Restructuring.md
     title: "Job 030 — Route Restructuring + ProjectContext"
     type: how-to
-    status: CLOSED
+    status: FAILED
     tags: [project-management, job, workflow, phase-8, frontend, routing, architecture]
     agents: [coder]
     summary: >
-      Restructure flat routes into hierarchical layout: /p/:projectId/* for
-      project pages, /admin/* for admin pages. Add ProjectContext provider
-      and AdminRoute guard. 6 tasks.
+      FAILED. Routes restructured but Layout above ProjectProvider made
+      sidebar context permanently null. JWT role claim key mismatch not caught.
+      Hotfixed by architect. VER-030 retracted.
 
   - id: JOB-031
     path: 05_PROJECT/JOB-031_Sidebar_Switcher.md
     title: "Job 031 — Data-Driven Sidebar + Project Switcher"
     type: how-to
-    status: CLOSED
+    status: FAILED
     tags: [project-management, job, workflow, phase-8, frontend, navigation]
     agents: [coder]
     summary: >
-      Replace hardcoded sidebar with data-driven nav config. Add project
-      switcher dropdown and chat FAB. Depends on JOB-030. 4 tasks.
+      FAILED. Sidebar config and project switcher broken — Layout context
+      always null. Switcher did nothing. Hotfixed by architect. VER-031 retracted.
 
   - id: JOB-032
     path: 05_PROJECT/JOB-032_Admin_Dashboard.md
     title: "Job 032 — Admin System Dashboard"
     type: how-to
-    status: CLOSED
+    status: FAILED
     tags: [project-management, job, workflow, phase-8, frontend, admin, dashboard]
     agents: [coder]
     summary: >
-      Build admin system dashboard at /admin/system with health panel,
-      agent sessions table, and activity feed. 4 tasks.
+      FAILED. SystemDashboardPage crashed on unknown event types. UI uses
+      emoji icons, text overflow. Missing container monitoring and logs.
+      Crash hotfixed. VER-032 retracted.
 
   - id: JOB-033
     path: 05_PROJECT/JOB-033_Admin_Extraction.md
     title: "Job 033 — Admin User Management Extraction"
     type: how-to
-    status: CLOSED
+    status: FAILED
     tags: [project-management, job, workflow, phase-8, frontend, admin]
     agents: [coder]
     summary: >
-      Extract invite codes and user management from SettingsPage into
-      dedicated admin pages. Clean SettingsPage to personal prefs. 4 tasks.
+      FAILED (audit retracted). Extraction appears functional but audit
+      used same build-only process that failed on all Phase 8 jobs.
+      No browser testing. VER-033 retracted.
 
   # ── 10_GOVERNANCE ───────────────────────────────────────────────────────────
   - id: GOV-001
@@ -1166,13 +1168,13 @@ documents:
     path: 40_VERIFICATION/VER-030_JOB-030_Audit.md
     title: "JOB-030 Audit — Route Restructuring + ProjectContext"
     type: reference
-    status: APPROVED
+    status: RETRACTED
     tags: [verification, audit, job, phase-8, frontend, routing]
     agents: [architect]
     summary: >
-      Audit report for JOB-030 (Route Restructuring). 260 tests pass.
-      Hierarchical routes, ProjectContext, AdminRoute guard, admin
-      placeholders. ProjectDetailPage deleted. Verdict: PASS.
+      RETRACTED. Audit only checked build/types. Route restructuring placed
+      Layout above ProjectProvider, making sidebar context permanently null.
+      JWT role claim key mismatch not caught. No browser testing.
 
   - id: VER-032
     path: 40_VERIFICATION/VER-032_JOB-032_Audit.md
@@ -1189,12 +1191,13 @@ documents:
     path: 40_VERIFICATION/VER-033_JOB-033_Audit.md
     title: "JOB-033 Audit — Admin User Management Extraction"
     type: reference
-    status: APPROVED
+    status: RETRACTED
     tags: [verification, audit, job, phase-8, frontend, admin]
     agents: [architect]
     summary: >
-      Audit report for JOB-033. AdminInvitesPage and AdminUsersPage
-      extracted. SettingsPage cleaned. Modal delete. Verdict: PASS.
+      RETRACTED. Same build-only audit process that failed across all Phase 8
+      jobs. Extraction appears functional but no browser testing performed.
+      Retracted as part of full Phase 8 audit retraction.
 
   - id: VER-031
     path: 40_VERIFICATION/VER-031_JOB-031_Audit.md

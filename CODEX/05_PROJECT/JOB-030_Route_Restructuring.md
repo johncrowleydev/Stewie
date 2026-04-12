@@ -1,18 +1,22 @@
 ---
 id: JOB-030
 title: "Route Restructuring + ProjectContext"
-type: planning
-status: CLOSED
+type: how-to
+status: FAILED
 owner: architect
 agents: [developer]
 tags: [frontend, routing, architecture, phase-8]
 related: [PRJ-001, GOV-003, JOB-028]
 created: 2026-04-12
 updated: 2026-04-12
-version: 1.0.0
+version: 2.0.0
 ---
 
-> **BLUF:** Restructure the flat React Router config into a hierarchical layout: project-scoped routes (`/p/:projectId/*`), admin routes (`/admin/*`), and global routes (`/projects`, `/settings`). Add a `ProjectContext` provider to track the active project. Add an `AdminRoute` guard. No visual changes — this is pure plumbing.
+> **BLUF:** ~~Route restructuring complete.~~ **FAILED.** Routes were restructured
+> but the architecture introduced a critical flaw: Layout renders above
+> ProjectProvider, making sidebar project context permanently null. JWT role
+> claim key mismatch was also not caught. Bugs hotfixed by architect on
+> 2026-04-12 but audit verdict (VER-030) retracted.
 
 # JOB-030: Route Restructuring + ProjectContext
 

@@ -1,18 +1,22 @@
 ---
 id: JOB-033
 title: "Admin User Management Extraction"
-type: planning
-status: CLOSED
+type: how-to
+status: FAILED
 owner: architect
 agents: [developer]
 tags: [frontend, admin, phase-8]
 related: [JOB-030, JOB-031, PRJ-001, GOV-003, JOB-028]
 created: 2026-04-12
 updated: 2026-04-12
-version: 1.0.0
+version: 2.0.0
 ---
 
-> **BLUF:** Extract the invite code and user management UI from SettingsPage into dedicated admin pages at `/admin/invites` and `/admin/users`. Clean up SettingsPage to contain only personal preferences (GitHub token, LLM keys, theme). Replaces two JOB-030 placeholders.
+> **BLUF:** ~~Admin extraction complete.~~ **FAILED** (audit retracted).
+> AdminUsersPage and AdminInvitesPage were extracted and appear functionally
+> correct, but the audit (VER-033) used the same build-only process that
+> failed across all Phase 8 jobs. No browser testing was performed. Retracted
+> as part of full Phase 8 audit retraction on 2026-04-12.
 
 # JOB-033: Admin User Management Extraction
 

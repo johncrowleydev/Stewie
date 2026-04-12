@@ -8,8 +8,8 @@ agents: [all]
 tags: [documentation, standards, naming, frontmatter, templates, governance]
 related: []
 created: 2026-03-04
-updated: 2026-04-11
-version: 2.2.0
+updated: 2026-04-12
+version: 2.3.0
 ---
 
 > **BLUF:** NASA/JPL-grade documentation standard for all projects. All docs must use YAML frontmatter, BLUF-first writing, and follow the Indexed Decimal folder structure. Enforces change control (NPR 7150.2D), peer review gates, requirements traceability (DO-178C §6.4), and formal retention/archival policies. Documentation is a first-class deliverable — not an afterthought.
@@ -125,7 +125,7 @@ Every `.md` file **MUST** begin with this metadata block:
 id: GOV-001
 title: "Documentation Standard"
 type: reference              # reference | how-to | tutorial | explanation | planning | contract | evolution
-status: DRAFT                # DRAFT | REVIEW | APPROVED | DEPRECATED | OPEN | CLOSED | ACTIVE | FIXED | PROPOSED
+status: DRAFT                # DRAFT | REVIEW | APPROVED | DEPRECATED | OPEN | CLOSED | ACTIVE | FIXED | PROPOSED | FAILED | RETRACTED
 owner: architect             # Who maintains this doc
 agents: [all]                # Which agent roles should read this: [all], [coder], [tester], etc.
 tags: [documentation, standards]
@@ -143,7 +143,7 @@ version: 1.0.0
 | `id` | string | Unique doc ID (`CATEGORY-NNN`) |
 | `title` | string | Human-readable title |
 | `type` | enum | `reference`, `how-to`, `tutorial`, `explanation`, `planning`, `contract`, `evolution` |
-| `status` | enum | `DRAFT`, `REVIEW`, `APPROVED`, `DEPRECATED`, `OPEN`, `CLOSED`, `ACTIVE`, `FIXED`, `PROPOSED` |
+| `status` | enum | `DRAFT`, `REVIEW`, `APPROVED`, `DEPRECATED`, `OPEN`, `CLOSED`, `ACTIVE`, `FIXED`, `PROPOSED`, `FAILED`, `RETRACTED` |
 | `owner` | string | Maintainer role or name |
 | `agents` | list | Agent roles that should read this doc |
 | `tags` | list | Searchable keywords |
@@ -194,6 +194,8 @@ Core lifecycle statuses plus extended statuses for work items and defects:
 | `ACTIVE` | Currently in use (living document) | BCK, SESSION_HANDOFF, VER |
 | `FIXED` | Defect resolved | DEF |
 | `PROPOSED` | Awaiting approval | EVO |
+| `FAILED` | Work delivered but did not meet acceptance criteria | JOB |
+| `RETRACTED` | Verdict or approval withdrawn (e.g. inadequate audit) | VER |
 
 ---
 

@@ -9,7 +9,7 @@ tags: [verification, audit, job, phase-8, frontend, admin, dashboard]
 related: [JOB-032, GOV-003]
 created: 2026-04-12
 updated: 2026-04-12
-version: 1.0.0
+version: 2.0.0
 ---
 
 > **BLUF:** ~~JOB-032 is a clean pass.~~ **RETRACTED.** This audit checked only

@@ -9,7 +9,7 @@ tags: [project-management, roadmap, governance, agentic-development]
 related: [BCK-001, GOV-008, BLU-001]
 created: 2026-04-09
 updated: 2026-04-11
-version: 3.0.0
+version: 5.0.0
 ---
 
 > **BLUF:** Stewie is an autonomous AI development platform where a Human interacts exclusively with an Architect Agent through a chat interface. The Architect Agent plans work, creates jobs, spins up Developer Agent containers, monitors their output, and enforces governance — all without the Human touching code, jobs, or tasks directly. Stewie is the control plane; the agents are the intelligence.

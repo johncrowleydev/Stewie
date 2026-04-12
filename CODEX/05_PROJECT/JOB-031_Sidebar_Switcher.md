@@ -1,18 +1,22 @@
 ---
 id: JOB-031
 title: "Data-Driven Sidebar + Project Switcher"
-type: planning
-status: CLOSED
+type: how-to
+status: FAILED
 owner: architect
 agents: [developer]
 tags: [frontend, navigation, architecture, phase-8]
 related: [JOB-030, PRJ-001, GOV-003, JOB-028]
 created: 2026-04-12
 updated: 2026-04-12
-version: 1.0.0
+version: 2.0.0
 ---
 
-> **BLUF:** Replace the hardcoded sidebar NavLinks with a data-driven config that maps user role to visible nav items. Add a project switcher dropdown in the header. Add a floating chat FAB on all project-scoped pages. Depends on JOB-030 (route restructuring) being completed first.
+> **BLUF:** ~~Sidebar rebuilt from config.~~ **FAILED.** Sidebar config and
+> project switcher were implemented but both were broken because Layout sat
+> above ProjectProvider (project context always null). Switcher did nothing,
+> project links never appeared. Hotfixed by architect on 2026-04-12.
+> Audit verdict (VER-031) retracted.
 
 # JOB-031: Data-Driven Sidebar + Project Switcher
 

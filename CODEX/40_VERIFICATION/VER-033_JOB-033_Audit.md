@@ -2,17 +2,22 @@
 id: VER-033
 title: "JOB-033 Audit — Admin User Management Extraction"
 type: reference
-status: APPROVED
+status: RETRACTED
 owner: architect
 agents: [architect]
 tags: [verification, audit, job, phase-8, frontend, admin]
 related: [JOB-033, GOV-003]
 created: 2026-04-12
 updated: 2026-04-12
-version: 1.0.0
+version: 2.0.0
 ---
 
-> **BLUF:** JOB-033 is a clean pass. Invite code and user management extracted from SettingsPage into dedicated admin pages. SettingsPage cleaned: zero `isAdmin` checks remaining. Modal used for delete confirmation. **Verdict: PASS.**
+> **BLUF:** ~~JOB-033 is a clean pass.~~ **RETRACTED.** This audit used the
+> same build-only process that failed across all Phase 8 jobs. While JOB-033
+> deliverables (AdminUsersPage, AdminInvitesPage, SettingsPage cleanup) appear
+> functionally correct, the audit itself was inadequate — no browser testing
+> was performed. Verdict retracted on 2026-04-12 as part of full Phase 8
+> audit retraction.
 
 # VER-033: JOB-033 Admin User Management Extraction — Audit
 
